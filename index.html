@@ -550,6 +550,189 @@ window.claude={use:async n=>{
   return null;
 }};
 })();
+</script><script>/* ===== Firebase: ล็อกอิน Google + เซฟบนคลาวด์ + อันดับ Firestore (เฉพาะเวอร์ชันนอก claude.ai) ===== */
+(function(){
+'use strict';
+const CFG={apiKey:"AIzaSyAZ1mveEDaA59spw_XRjX_gmV898g_otkA",authDomain:"doom365.firebaseapp.com",projectId:"doom365",storageBucket:"doom365.firebasestorage.app",messagingSenderId:"296220747122",appId:"1:296220747122:web:5a8015a8a7706962dbe9eb"};
+const BASE='https://www.gstatic.com/firebasejs/10.14.1/';
+const SYNC=['doom365-lives','doom365-ach','doom365-meta','doom365-codex','doom365-nick','doom365-wk','doom365-tut','doom365-theme','doom365-len','doom365-mg'];
+const SYNCSET=new Set(SYNC);
+const SAVEK='doom365v2-save',SVAT='doom365-svat';
+const PUSH_MS=25000;
+const ls=window.localStorage;
+const P=Storage.prototype,oSet=P.setItem,oRem=P.removeItem,oGet=P.getItem;
+const rawGet=k=>{try{return oGet.call(ls,k)}catch(e){return null}};
+const rawSet=(k,v)=>{try{oSet.call(ls,k,v)}catch(e){}};
+const rawRem=k=>{try{oRem.call(ls,k)}catch(e){}};
+
+const FB={ok:false,state:'loading',err:'',user:null,syncAt:0,syncErr:'',gameIdle:null,
+  _ls:[],onAuth(f){this._ls.push(f);if(this.ok&&this.state==='ready')setTimeout(()=>{try{f(this.user)}catch(e){}},0)},
+  async signIn(){
+    await ready;if(!FB.ok)throw new Error('unavailable');
+    const prov=new m.b.GoogleAuthProvider();
+    try{await m.b.signInWithPopup(auth,prov)}
+    catch(e){
+      const c=e&&e.code;
+      if(c==='auth/popup-blocked'||c==='auth/operation-not-supported-in-this-environment'){await m.b.signInWithRedirect(auth,prov);return}
+      if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request')return;
+      throw e;
+    }
+  },
+  async signOut(){
+    await ready;if(!FB.ok)return;
+    const okp=await push(true);
+    await m.b.signOut(auth);
+    if(okp){SYNC.forEach(rawRem);rawRem(SAVEK);rawRem(SVAT)}
+    try{window.D365_onCloud&&window.D365_onCloud()}catch(e){}
+    return okp;
+  },
+  pushNow(){return push(true)}
+};
+window.D365_FB=FB;
+
+let m=null,app=null,auth=null,fs=null,applying=false,pushT=0,pushing=false,dirty=false;
+const withTimeout=(p,ms)=>Promise.race([p,new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),ms))]);
+const ready=(async()=>{
+  try{
+    m=window.__D365_FBMODS||await withTimeout(Promise.all([import(BASE+'firebase-app.js'),import(BASE+'firebase-auth.js'),import(BASE+'firebase-firestore.js')]).then(a=>({a:a[0],b:a[1],c:a[2]})),15000);
+    app=m.a.initializeApp(CFG);auth=m.b.getAuth(app);fs=m.c.getFirestore(app);
+    try{await m.b.getRedirectResult(auth)}catch(e){}
+    await new Promise(res=>{
+      let first=true;
+      m.b.onAuthStateChanged(auth,u=>{
+        FB.user=u?{uid:u.uid,name:u.displayName||'',photo:u.photoURL||''}:null;
+        FB.ok=true;FB.state='ready';
+        const f=first;first=false;
+        if(FB.user)pull().catch(e=>{FB.syncErr=String(e&&e.message||e)});
+        if(f)res();else fire();
+      });
+      setTimeout(()=>{if(first){first=false;FB.ok=true;FB.state='ready';res()}},8000);
+    });
+    FB.ok=true;FB.state='ready';
+    fire();
+  }catch(e){FB.ok=false;FB.state='fail';FB.err=String(e&&e.message||e);fire()}
+  return FB.ok;
+})();
+function fire(){FB._ls.forEach(f=>{try{f(FB.user)}catch(e){}})}
+
+/* ---------- ผสานข้อมูลระหว่างเครื่องกับคลาวด์ ---------- */
+function mergeKey(k,l,c){
+  if(c==null||c==='')return l;
+  if(l==null||l==='')return c;
+  if(l===c)return l;
+  let a,b;try{a=JSON.parse(l);b=JSON.parse(c)}catch(e){return l}
+  if(Array.isArray(a)&&Array.isArray(b)){
+    const seen=new Set(),out=[];
+    for(const x of a.concat(b)){const s=JSON.stringify(x);if(!seen.has(s)){seen.add(s);out.push(x)}}
+    return JSON.stringify(k==='doom365-lives'?out.slice(0,5):out.slice(0,500));
+  }
+  if(a&&b&&typeof a==='object'&&typeof b==='object'&&!Array.isArray(a)&&!Array.isArray(b)){
+    const o=Object.assign({},b,a);
+    for(const x of Object.keys(b)){if(typeof a[x]==='number'&&typeof b[x]==='number')o[x]=Math.max(a[x],b[x])}
+    return JSON.stringify(o);
+  }
+  return l;
+}
+const docRef=()=>m.c.doc(fs,'users',FB.user.uid);
+async function pull(){
+  if(!FB.user||!FB.ok)return;
+  const uid=FB.user.uid;
+  const sn=await m.c.getDoc(docRef());
+  if(!FB.user||FB.user.uid!==uid)return;
+  const cloud=sn.exists()?sn.data():null;
+  const ck=(cloud&&cloud.kv)||{};
+  applying=true;let changed=false;
+  try{
+    SYNC.forEach(k=>{
+      const l=rawGet(k),mg=mergeKey(k,l,ck[k]);
+      if(mg!=null&&mg!==''&&mg!==l){rawSet(k,mg);changed=true}
+    });
+    const idle=FB.gameIdle?FB.gameIdle():true;
+    if(idle){
+      const lsave=rawGet(SAVEK)||'';let lsv=+rawGet(SVAT)||0;
+      if(lsave&&!lsv){lsv=Date.now();rawSet(SVAT,String(lsv))}
+      const csv=cloud?(+cloud.svat||0):0;
+      if(csv>lsv){rawSet(SAVEK,cloud.save||'');rawSet(SVAT,String(csv));changed=true}
+    }
+  }finally{applying=false}
+  FB.syncAt=Date.now();FB.syncErr='';
+  schedulePush(1500);
+  if(changed){try{window.D365_onCloud&&window.D365_onCloud()}catch(e){}}
+  else{try{window.D365_onCloud&&window.D365_onCloud(true)}catch(e){}}
+}
+function schedulePush(ms){
+  if(!FB.user||!FB.ok||applying)return;
+  dirty=true;clearTimeout(pushT);pushT=setTimeout(()=>{push(false)},ms==null?PUSH_MS:ms);
+}
+async function push(force){
+  clearTimeout(pushT);
+  if(!FB.user||!FB.ok)return false;
+  if(!dirty&&!force)return true;
+  if(pushing){schedulePush(3000);return false}
+  pushing=true;dirty=false;
+  try{
+    const keys={};SYNC.forEach(k=>{const v=rawGet(k);if(v!=null&&v!=='')keys[k]=v});
+    let save=rawGet(SAVEK)||'';let svat=+rawGet(SVAT)||0;
+    if(save&&!svat){svat=Date.now();rawSet(SVAT,String(svat))}
+    if(!svat)svat=0;
+    if(save.length>600000)save='';
+    await m.c.setDoc(docRef(),{v:1,svat,save,kv:keys,at:Date.now()});
+    FB.syncAt=Date.now();FB.syncErr='';
+    return true;
+  }catch(e){FB.syncErr=String(e&&e.message||e);dirty=true;return false}
+  finally{pushing=false}
+}
+/* จับการเปลี่ยนแปลงข้อมูลเซฟ */
+P.setItem=function(k,v){
+  const r=oSet.apply(this,arguments);
+  try{if(this===ls&&!applying){
+    if(k===SAVEK)oSet.call(ls,SVAT,String(Date.now()));
+    if(k===SAVEK||SYNCSET.has(k))schedulePush();
+  }}catch(e){}
+  return r;
+};
+P.removeItem=function(k){
+  const r=oRem.apply(this,arguments);
+  try{if(this===ls&&!applying){
+    if(k===SAVEK)oSet.call(ls,SVAT,String(Date.now()));
+    if(k===SAVEK||SYNCSET.has(k))schedulePush();
+  }}catch(e){}
+  return r;
+};
+const flush=()=>{if(dirty&&FB.user&&FB.ok)push(false)};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flush()});
+window.addEventListener('pagehide',flush);
+
+/* ---------- ฐานข้อมูลอันดับบน Firestore (หน้าตาเหมือน db ของ claude.ai) ---------- */
+const fbDb={
+  doc(path){
+    const parts=path.split('/');
+    return {
+      async get(){await ready;const sn=await m.c.getDoc(m.c.doc(fs,...parts));return {exists:sn.exists(),data:()=>sn.data()}},
+      async set(d){await ready;await m.c.setDoc(m.c.doc(fs,...parts),d)},
+      async update(d){await ready;await m.c.updateDoc(m.c.doc(fs,...parts),d)}
+    };
+  },
+  collection(c){
+    let lim=300;
+    const o={
+      limit(n){lim=n;return o},
+      async get(){await ready;const sn=await m.c.getDocs(m.c.query(m.c.collection(fs,c),m.c.limit(lim)));return {docs:sn.docs.map(d=>({id:d.id,data:()=>d.data()}))}},
+      onSnapshot(cb){o.get().then(cb).catch(()=>{});return()=>{}}
+    };
+    return o;
+  }
+};
+const fbUser={id:async()=>FB.user?FB.user.uid:'',isOwner:()=>false,canEdit:()=>false,can:()=>null};
+const orig=window.claude&&window.claude.use?window.claude.use.bind(window.claude):null;
+window.claude={use:async n=>{
+  if(n==='db'||n==='user'){
+    await ready;
+    if(FB.ok)return n==='db'?fbDb:fbUser;
+  }
+  return orig?orig(n):null;
+}};
+})();
 </script><script>let DAILY=null;
 const RND=()=>DAILY?DAILY():Math.random();
 function seedRng(str){let h=1779033703^str.length;for(let i=0;i<str.length;i++){h=Math.imul(h^str.charCodeAt(i),3432918353);h=h<<13|h>>>19}
@@ -5595,22 +5778,34 @@ function lbRow(id,d){
   row.bad=row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60;
   return row;
 }
+const FBon=()=>!!(window.D365_FB&&D365_FB.ok);
+async function lbLoad(force){
+  if(!LB.useGet||!LB.db)return;
+  if(!force&&LB.at&&Date.now()-LB.at<180000)return;
+  try{const sn=await LB.db.collection('board').limit(300).get();LB.rows=sn.docs.map(d=>lbRow(d.id,d.data()));LB.at=Date.now();LB.err=''}catch(e){LB.err='load'}
+}
 async function lbInit(){
   try{
+    if(LB.unsub){try{LB.unsub()}catch(e){}LB.unsub=null}
+    LB.signed=false;LB.id=null;
     if(!(window.claude&&claude.use)){LB.state='no';return}
     const user=await claude.use('user'),db=await claude.use('db');
     if(!user||!db){LB.state='off';return}
     const id=await user.id();
-    if(!id){LB.state='anon';return}
+    LB.useGet=FBon();
+    if(LB.useGet){LB.db=db;LB.user=user}
+    if(!id){LB.state='anon';if(stage==='start')setTimeout(()=>{if(stage==='start')showStart()},0);return}
     LB.user=user;LB.db=db;LB.id=id;LB.signed=true;LB.state='ok';
     try{
       const me=await db.doc('board/'+id).get();
       if(me.exists){const d=me.data();if(d&&d.nick&&!NICK){NICK=clean(d.nick,16);try{localStorage.setItem('doom365-nick',NICK)}catch(e){}}}
     }catch(e){}
-    LB.unsub=db.collection('board').limit(500).onSnapshot(sn=>{
-      LB.rows=sn.docs.map(d=>lbRow(d.id,d.data()));
-      if(stage==='board')renderBoard();
-    },()=>{});
+    if(!LB.useGet){
+      LB.unsub=db.collection('board').limit(500).onSnapshot(sn=>{
+        LB.rows=sn.docs.map(d=>lbRow(d.id,d.data()));
+        if(stage==='board')renderBoard();
+      },()=>{});
+    }
     if(stage==='start')setTimeout(()=>{if(stage==='start')showStart()},0);
   }catch(e){LB.state='err'}
 }
@@ -5643,6 +5838,7 @@ function myRank(k){const l=rankList(k);const i=l.findIndex(r=>r.id===LB.id);retu
 let boardTab='richest',boardBack=null;
 function showBoard(back){
   boardBack=back||showStart;stage='board';renderBoard();
+  if(LB.useGet)lbLoad().then(()=>{if(stage==='board')renderBoard()});
 }
 let boardQ='';
 function renderBoard(){
@@ -5661,7 +5857,7 @@ function renderBoard(){
    '<div class="kick"><span>ตารางอันดับของเซิร์ฟเวอร์</span><span>'+LB.rows.length+' ผู้เล่น</span></div>'+
    '<h2 style="font-size:24px">'+m[3]+' '+esc(m[1])+' · ท็อป 50</h2>'+
    '<div class="tabs">'+METRICS.map(x=>'<button class="mini'+(x[0]===k?' on':'')+'" data-t="'+x[0]+'">'+x[3]+' '+esc(x[1])+'</button>').join('')+'</div>'+
-   (LB.signed?'':'<div class="amb">'+(LB.state==='anon'?'ยังไม่ได้ล็อกอินบัญชี claude.ai ผลของคุณจึงไม่ถูกบันทึกในอันดับ':'ตารางอันดับใช้ได้เมื่อเปิดเกมจาก claude.ai (ต้องล็อกอิน)')+'</div>')+
+   (LB.signed?'':'<div class="amb">'+(FBon()?'ยังไม่ได้ล็อกอิน Google ดูอันดับได้ แต่ผลของคุณจะไม่ถูกบันทึก (ล็อกอินได้ที่หน้าแรก)':LB.state==='anon'?'ยังไม่ได้ล็อกอินบัญชี claude.ai ผลของคุณจึงไม่ถูกบันทึกในอันดับ':'ตารางอันดับใช้ได้เมื่อเปิดเกมจาก claude.ai (ต้องล็อกอิน)')+'</div>')+
    mine+pod+
    '<input id="bq" class="bq" placeholder="ค้นหาชื่อผู้เล่นหรืออาชีพ" value="'+esc(boardQ)+'">'+
    '<ol class="rank rk2">'+(shown.length?shown.filter(x=>q||x.i>2).map(x=>{const r=x.r,w=Math.max(4,Math.round(r[k]/Math.max(1,topV)*100));return '<li'+(r.id===LB.id?' class="me"':'')+'><b>'+(x.i+1)+'</b><span>'+esc(r.nick)+badge(r)+'<small>'+esc(r.role)+(r.title?' · '+esc(r.title):'')+'</small><u style="width:'+w+'%"></u></span><em>'+esc(m[2](r[k]))+'</em></li>'}).join('')||'<li><span>ไม่พบในท็อป 50</span></li>':'<li><span>ยังไม่มีใครในหมวดนี้ มาเป็นคนแรกสิ</span></li>')+'</ol>'+
@@ -5673,9 +5869,11 @@ function renderBoard(){
 async function lbEnding(E,kind){
   const box=$('rankbox');if(!box)return;
   if(S.cause==='giveup'){box.innerHTML='<p class="hint">การยอมแพ้ไม่ถูกนับในตารางอันดับ</p>';return}
+  if(!LB.signed&&FBon()){box.innerHTML='<div class="amb">ล็อกอินด้วย Google เพื่อบันทึกอันดับและเซฟของคุณ <button class="mini" id="rkin">ล็อกอิน Google</button></div>';const bb=$('rkin');if(bb)bb.onclick=acctSignIn;return}
   if(!LB.signed){box.innerHTML='<div class="amb">ล็อกอินบัญชี claude.ai และเปิดเกมจากหน้า artifact เพื่อบันทึกอันดับของคุณในเซิร์ฟเวอร์ (ตอนนี้ยังไม่ได้บันทึก)</div>';return}
   box.innerHTML='<p class="hint">กำลังบันทึกอันดับ…</p>';
   const ok=await lbRecord(E,kind);
+  if(ok&&LB.useGet)await lbLoad();
   const b2=$('rankbox');if(!b2)return;
   if(!ok){b2.innerHTML='<div class="amb">บันทึกอันดับไม่สำเร็จ (ผลชีวิตนี้ยังอยู่ในหน้านี้ ลองใหม่ภายหลังได้)</div>';return}
   b2.innerHTML='<div class="tomb"><small>อันดับของคุณในเซิร์ฟเวอร์ · '+esc(NICK||'ผู้เล่น')+'</small>'+
@@ -6017,6 +6215,36 @@ function showTut(){
   ov.querySelector('#tutx').onclick=close;ov.querySelector('#tutok').onclick=close;
 }
 function tutOnce(){let s='';try{s=localStorage.getItem(TUTK)||''}catch(e){}if(!s)setTimeout(showTut,700)}
+
+/* ===== บัญชี Google (เวอร์ชันนอก claude.ai) ===== */
+async function acctSignIn(){
+  try{toast('กำลังเปิดหน้าล็อกอิน Google…');await D365_FB.signIn()}catch(e){toast('ล็อกอินไม่สำเร็จ ลองใหม่อีกครั้ง')}
+}
+function renderAcct(){
+  const el=$('acct');if(!el)return;
+  const F=window.D365_FB;
+  if(!F){el.style.display='none';return}
+  el.style.display='';
+  if(F.state==='loading'){el.innerHTML='<p class="hint">กำลังเชื่อมต่อระบบบัญชี…</p>';return}
+  if(!F.ok){el.innerHTML='<p class="hint">ระบบล็อกอินใช้ไม่ได้ตอนนี้ (เชื่อมต่อไม่ได้) เกมยังเก็บเซฟไว้ในเครื่องนี้ตามปกติ</p>';return}
+  if(F.user){
+    const t=F.syncAt?'ซิงก์เซฟล่าสุดเมื่อสักครู่':'กำลังซิงก์เซฟ…';
+    el.innerHTML='<div class="amb" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:180px">👤 ล็อกอินแล้ว: <b>'+esc(F.user.name||'ผู้เล่น')+'</b><br><small>'+(F.syncErr?'ซิงก์ไม่สำเร็จ จะลองใหม่เอง':t)+' · อันดับถูกบันทึก</small></span><button class="mini" id="acout">ออกจากระบบ</button></div>';
+    $('acout').onclick=async()=>{const ok=await D365_FB.signOut();toast(ok===false?'ซิงก์ไม่สำเร็จ จึงเก็บข้อมูลไว้ในเครื่องนี้':'ออกจากระบบแล้ว')};
+  }else{
+    el.innerHTML='<div class="amb" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span style="flex:1;min-width:180px">เก็บเซฟบนคลาวด์ เล่นต่อได้ทุกเครื่อง และบันทึกอันดับ<br><small>ไม่ล็อกอินก็เล่นได้ ข้อมูลจะอยู่ในเครื่องนี้</small></span><button class="btn" id="acin" style="padding:8px 14px">ล็อกอินด้วย Google</button></div>';
+    $('acin').onclick=acctSignIn;
+  }
+}
+if(window.D365_FB){
+  D365_FB.gameIdle=()=>stage==='start';
+  D365_FB.onAuth(()=>{lbInit();if(stage==='start')renderAcct()});
+  window.D365_onCloud=()=>{
+    try{const n=lsGet('doom365-nick');if(n!=null)NICK=clean(n,16)}catch(e){}
+    try{if(typeof loadTheme==='function')loadTheme()}catch(e){}
+    if(stage==='start')showStart();
+  };
+}
 /* ===== UI v2 ===== */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -6379,12 +6607,14 @@ function showStart(){
    '<p class="sub">มีบางอย่างกำลังพุ่งเข้าหาโลก คุณจะเกิดมาเป็นใคร มีเงินเท่าไหร่ ชะตาสุ่มให้ทั้งหมด จากนั้นต้องกิน ดื่ม ซ่อมที่พัก ดูแลแผล หาเพื่อนร่วมทาง และตัดสินใจทีละวัน ความตายมาได้หลายแบบ ทั้งหิว ป่วย ทั้งเรื่องแปลกๆ แม้แต่คนมีเงินก็ไม่รอด</p>'+
    '<div class="facts"><div class="fact"><small>เหตุการณ์ทั้งหมด</small><b>≈ '+pool.cards.toLocaleString('en-US')+'</b></div><div class="fact"><small>ชาติกำเนิดสุ่ม</small><b>'+ROLES.length+' แบบ</b></div><div class="fact"><small>สาเหตุการตาย</small><b>'+Object.keys(DEATHS).length+' แบบ</b></div><div class="fact"><small>เสียงตามอารมณ์</small><b>8 ธีม</b></div></div>'+
    '<div class="row"><button class="btn" id="go">ลืมตาตื่นขึ้นมา</button>'+(hasSave()?'<button class="btn ghost" id="cont">เล่นต่อจากที่บันทึก</button>':'')+'<button class="btn ghost" id="wk">ท้าทายสัปดาห์: '+curWeekly().n+(wkPassedNow()?' ✓':'')+'</button><button class="btn ghost" id="daily">ชีวิตประจำวัน '+esc(dayKey())+'</button></div>'+mpHtml+
-   '<div class="nick"><label for="nick">ชื่อของคุณในเกม</label><input id="nick" maxlength="16" placeholder="ตั้งชื่อเล่น" value="'+esc(NICK)+'"><span>'+(LB.signed?(window.D365_SA?'อันดับออนไลน์ใช้งานได้ · ผลของคุณจะถูกบันทึก':'ล็อกอินแล้วด้วยบัญชี claude.ai · อันดับถูกบันทึก'):LB.state==='anon'?'ยังไม่ได้ล็อกอิน claude.ai':'อันดับใช้ได้เมื่อเปิดจาก claude.ai')+'</span></div>'+
+   '<div class="nick"><label for="nick">ชื่อของคุณในเกม</label><input id="nick" maxlength="16" placeholder="ตั้งชื่อเล่น" value="'+esc(NICK)+'"><span>'+(LB.signed?(window.D365_SA?'อันดับออนไลน์ใช้งานได้ · ผลของคุณจะถูกบันทึก':'ล็อกอินแล้วด้วยบัญชี claude.ai · อันดับถูกบันทึก'):LB.state==='anon'?(window.D365_FB&&D365_FB.ok?'ยังไม่ได้ล็อกอิน Google':'ยังไม่ได้ล็อกอิน claude.ai'):'อันดับใช้ได้เมื่อเปิดจาก claude.ai')+'</span></div>'+
+   '<div id="acct"></div>'+
    '<p class="hint">🏅 '+esc(wkSummary())+'</p>'+
    '<div id="onl"></div>'+
    '<p class="hint">กดปุ่มเลข 1–6 เพื่อเลือก · กด “เพลง” เพื่อเปิดเสียง · “สัญลักษณ์” อธิบายไอคอนทั้งหมด · “อันดับ” ดูตารางผู้เล่น</p>';
   $('nick').onchange=e=>{setNick(e.target.value);if(LB.signed&&NICK)LB.db.doc('board/'+LB.id).update({nick:NICK}).catch(()=>{})};
   try{lobbyInit();renderOnline()}catch(e){}
+  try{renderAcct()}catch(e){}
   $('go').onclick=()=>{if(tget(DW_KEY)>Date.now())return;mpClose();if(KEPT&&!KEPT.wk&&!KEPT.daily){cand=KEPT}else{rrLeft=2;cand=rollBirth()}showBirth()};
   waitBtn('go',DW_KEY,'ลืมตาตื่นขึ้นมา');
   $('wk').onclick=()=>{if(tget(DW_KEY)>Date.now()){toast('ยังต้องรอหลังชีวิตที่แล้ว');return}mpClose();if(KEPT&&KEPT.wk){cand=KEPT;showBirth()}else startWeekly()};
