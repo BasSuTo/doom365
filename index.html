@@ -7584,7 +7584,7 @@ const MOODNAME=MOODS;
 
 /* ===== ออนไลน์ ===== */
 const MP={room:null,api:null,on:false,host:false,guest:false,code:'',nick:'',rev:0,sid:0,last:null,votes:{},rx:null,grev:-1,unsub:[],auto:false,hostPeer:null,tally:null,ready:false,tried:false,iv:null};
-const TOPICS={st:'interact',vote:'interact',chat:'interact',hello:'interact',tally:'interact',emo:'interact'};
+const TOPICS={st:'interact',vote:'interact',chat:'interact',hello:'interact',tally:'interact',emo:'interact',pick:'interact',next:'interact'};
 (async function(){
   try{
     if(window.claude&&claude.use){
@@ -7600,6 +7600,8 @@ const b64=u8=>{let s='';for(let i=0;i<u8.length;i++)s+=String.fromCharCode(u8[i]
 const unb64=t=>{const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.length;i++)u[i]=s.charCodeAt(i);return u};
 function mpSend(model,keep){
   if(!MP.on||!MP.host||!MP.room)return;
+  if(MP.lead&&!leadValid())MP.lead='host';
+  model.lead={p:MP.lead,n:leadName()};
   if(keep!==false){model.rev=++MP.rev;MP.last=model}
   const bytes=new TextEncoder().encode(JSON.stringify(model)),CH=2300,n=Math.ceil(bytes.length/CH),id=++MP.sid;
   for(let i=0;i<n;i++)MP.room.emit('st',{id,i,n,d:b64(bytes.slice(i*CH,(i+1)*CH))}).catch(()=>{});
@@ -7630,7 +7632,7 @@ async function mpOpen(code,nick,asHost){
   try{
     MP.room=await MP.api.join('d365-'+code);
   }catch(e){toast('เข้าห้องไม่สำเร็จ ลองใหม่อีกครั้ง');return false}
-  Object.assign(MP,{on:true,host:asHost,guest:!asHost,code,nick,rev:0,votes:{},grev:-1,rx:null,last:null,tally:null});
+  Object.assign(MP,{on:true,host:asHost,guest:!asHost,code,nick,rev:0,votes:{},grev:-1,rx:null,last:null,tally:null,lead:null,turns:true,glead:null});
   const r=MP.room;
   r.presence({nm:nick,host:asHost?1:0});
   MP.unsub.push(r.onPeers(c=>{
@@ -7653,6 +7655,17 @@ async function mpOpen(code,nick,asHost){
       const i=+d.i;if(!(i>=0&&i<MP.last.vote.n)||MP.last.vote.off&&MP.last.vote.off.includes(i))return;
       MP.votes[m.peer]=i;mpTally();sfx('vote');
       if(MP.auto)mpAutoCheck();
+    }));
+    MP.unsub.push(r.on('pick',m=>{
+      const d=m.data||{};
+      if(m.sameTab||!MP.last||d.rev!==MP.rev||m.peer!==MP.lead||busy||!MP.last.vote)return;
+      const i=+d.i;if(!(i>=0&&i<MP.last.vote.n)||(MP.last.vote.off&&MP.last.vote.off.includes(i)))return;
+      hostPickIndex(i);
+    }));
+    MP.unsub.push(r.on('next',m=>{
+      const d=m.data||{};
+      if(m.sameTab||!MP.last||d.rev!==MP.rev||m.peer!==MP.lead)return;
+      const nx=$('next');if(nx)nx.click();
     }));
     MP.iv=setInterval(()=>{if(MP.last)mpSend(MP.last,false)},7000);
   }else{
@@ -7687,8 +7700,24 @@ function mpClose(){
   MP.unsub.forEach(u=>{try{u()}catch(e){}});MP.unsub=[];
   clearInterval(MP.iv);clearInterval(MP.hi);clearInterval(MP.pv);view.peers=[];
   if(MP.room){try{MP.room.leave()}catch(e){}}
-  Object.assign(MP,{room:null,on:false,host:false,guest:false,last:null,votes:{},tally:null,rx:null,grev:-1});
+  Object.assign(MP,{room:null,on:false,host:false,guest:false,last:null,votes:{},tally:null,rx:null,grev:-1,lead:null,glead:null});
   $('chatbox').style.display='none';
+}
+/* ----- ผลัดกันนำ: คนที่ถึงตาเป็นผู้ตัดสิน คนอื่นโหวตแนะนำ ----- */
+function selfPeer(){const p=MP.room&&MP.room.peers().find(x=>x.sameTab);return p?p.peer:null}
+function leadValid(){return !MP.lead||MP.lead==='host'||guests().some(p=>p.peer===MP.lead)}
+function leadName(){return !MP.lead||MP.lead==='host'?(MP.nick||'หัวหน้าห้อง'):nameOf(MP.lead)}
+function rotateLead(){
+  if(!MP.on||!MP.host)return;
+  if(!MP.turns){MP.lead='host';return}
+  const ord=['host'].concat(guests().map(p=>p.peer));
+  const i=ord.indexOf(MP.lead);MP.lead=ord[(i+1)%ord.length]||'host';
+  if(ord.length>1)chatLine('','ตานี้ '+leadName()+' เป็นคนตัดสินใจ (คนอื่นโหวตแนะนำได้)',true);
+}
+function hostIsLead(){return !(MP.on&&MP.host)||MP.lead==='host'||!leadValid()}
+function hostClick(i){
+  if(hostIsLead()){hostPickIndex(i);return}
+  MP.votes.host=i;mpTally();sfx('vote');toast('โหวตแนะนำให้ '+leadName()+' แล้ว');
 }
 function mpTally(){
   if(!MP.on||!MP.host||!MP.last||!MP.last.vote)return;
@@ -7773,18 +7802,38 @@ function renderEvent(m,mode){
   {const tx=panel.querySelector('p.sub.clamp'),mb=$('evmore');
    if(tx&&mb)requestAnimationFrame(()=>{if(tx.scrollHeight>tx.clientHeight+2){mb.style.display='';mb.onclick=()=>{const o=tx.classList.toggle('open');mb.textContent=o?'ย่อ ▴':'อ่านต่อ ▾'}}})}
   if(mode==='guest')panel.querySelectorAll('.ch').forEach(b=>b.onclick=()=>guestVote(+b.dataset.i));
-  else panel.querySelectorAll('.ch').forEach(b=>b.onclick=()=>choose(+b.dataset.i));
+  else panel.querySelectorAll('.ch').forEach(b=>b.onclick=()=>mode==='host'?hostClick(+b.dataset.i):choose(+b.dataset.i));
   if(mode==='host')bindHostBar();
 }
 function hostBar(){
-  return '<div class="act3"><button class="btn ghost" id="useVote" disabled>ยังไม่มีใครโหวต</button>'+
+  const mine=hostIsLead();
+  return '<div class="amb" id="leadb" style="margin-bottom:8px">🎯 '+(mine?'<b>ตาคุณตัดสินใจ</b>'+(guests().length?' · เพื่อนโหวตแนะนำได้':''):'ตาของ <b>'+esc(leadName())+'</b> · คุณโหวตแนะนำได้ (กดข้อที่อยากแนะนำ)')+'</div>'+
+   '<div class="act3"><button class="btn ghost" id="useVote" disabled>ยังไม่มีใครโหวต</button>'+
+   '<label class="chk"><input type="checkbox" id="turnsV"'+(MP.turns?' checked':'')+'> ผลัดกันตัดสินใจทีละฉาก (ปิด = หัวหน้าห้องตัดสินคนเดียว)</label>'+
    '<label class="chk"><input type="checkbox" id="autoV"'+(MP.auto?' checked':'')+'> เดินตามเสียงข้างมากทันทีเมื่อเพื่อนทุกคนโหวตครบ</label></div>';
 }
 function bindHostBar(){
   const u=$('useVote'),a=$('autoV');
   if(u)u.onclick=()=>{const i=leader();if(i>=0)hostPickIndex(i)};
   if(a)a.onchange=()=>{MP.auto=a.checked;if(MP.auto)mpAutoCheck()};
+  const tv=$('turnsV');if(tv)tv.onchange=()=>{MP.turns=tv.checked;if(!MP.turns)MP.lead='host';toast(MP.turns?'ฉากต่อไปผลัดกันตัดสินใจ':'หัวหน้าห้องตัดสินใจคนเดียวตั้งแต่ฉากต่อไป')};
   hostTally();
+}
+function guestLeadInfo(m){
+  MP.glead=(m&&m.lead&&typeof m.lead==='object')?{p:clean(m.lead.p,80),n:clean(m.lead.n,24)}:null;
+  MP.iamLead=!!(MP.glead&&MP.glead.p&&MP.glead.p!=='host'&&MP.glead.p===selfPeer());
+}
+function guestBanner(){
+  const g=MP.glead;if(!g)return;
+  const t=MP.iamLead?'🎯 <b>ถึงตาคุณตัดสินใจ!</b> กดเลือกข้อที่ต้องการ เพื่อนจะเห็นผลทันที (ดูคะแนนโหวตของเพื่อนประกอบได้)':'🎯 ตาของ <b>'+esc(g.n||'หัวหน้าห้อง')+'</b> · กดโหวตแนะนำได้ แล้วคุยกันในแชท';
+  panel.insertAdjacentHTML('afterbegin','<div class="amb" style="margin-bottom:8px">'+t+'</div>');
+  const h=panel.querySelector('p.hint');if(h&&/โหวต|หัวหน้าห้อง|กดเลือก/.test(h.textContent))h.remove();
+}
+function guestAct(i){
+  if(MP.iamLead){
+    if(!MP.room||MP.grev<0)return;
+    MP.myVote=i;MP.room.emit('pick',{rev:MP.grev,i}).catch(()=>{});sfx('vote');guestTally();
+  }else guestVote(i);
 }
 function guestVote(i){
   if(!MP.room||MP.grev<0)return;
@@ -7868,7 +7917,7 @@ function showHostLobby(){
 function showJoinSetup(){
   stage='lobby';
   panel.innerHTML=
-   '<div class="kick"><span>เข้าร่วมห้อง</span><span>คุณเป็นผู้ช่วยตัดสินใจ</span></div>'+
+   '<div class="kick"><span>เข้าร่วมห้อง</span><span>ผลัดกันตัดสินใจ</span></div>'+
    '<h2 style="font-size:24px">กรอกรหัสห้องของเพื่อน</h2>'+
    '<div class="fld"><label for="rc">รหัสห้อง 4 ตัวอักษร</label><input id="rc" maxlength="4" autocapitalize="characters" placeholder="เช่น K7QD"></div>'+
    '<div class="fld"><label for="nk">ชื่อที่เพื่อนเห็น</label><input id="nk" maxlength="16" value="'+esc(lsGet('doom365-nick')||'')+'" placeholder="เช่น ฟ้า"></div>'+
@@ -7921,6 +7970,7 @@ function showEvent(){
   ev=genEvent();codexAdd(ev.k);const ctx=viewFor(ev);renderHUD();
   {const e0=ev;if(!(MP.on&&MP.guest)&&(ALBUM.length===0||Math.floor(S.day)>=358&&ALBUM.length<14&&RND()<.5||(e0.cat==='danger'||e0.cat==='joy')&&RND()<.2))setTimeout(()=>{if(stage==='play')albumShot(e0.head)},500)}
   const m=evModel(ev);
+  if(MP.on&&MP.host)rotateLead();
   renderEvent(m,MP.on&&MP.host?'host':'solo');
   if(MP.on&&MP.host){mpSend(m);mpTally()}
 }
@@ -7947,7 +7997,7 @@ function choose(i){
   if(busy||!ev||!ev.ch[i]||!ev.ch[i].ok)return;busy=true;
   panel.querySelectorAll('.ch').forEach(b=>b.disabled=true);
   const c0=ev.ch[i];
-  if(c0.risk&&mgOn()&&!(MP.on&&MP.guest)&&!c0.roll){mgPlay(c0,m=>{MGX=m;try{doChoose(i)}finally{MGX=1}});return}
+  if(c0.risk&&mgOn()&&!(MP.on&&MP.guest)&&hostIsLead()&&!c0.roll){mgPlay(c0,m=>{MGX=m;try{doChoose(i)}finally{MGX=1}});return}
   doChoose(i);
 }
 function doChoose(i){
@@ -8047,9 +8097,10 @@ function showMorning(keep){
   if(!keep)MRES=null;
   renderHUD();
   const m=morningModel();
+  if(!keep&&MP.on&&MP.host)rotateLead();
   if(!keep)setView({scene:'room',tod:m.tod,seed:'home'+S.name,npc:0,look:S.role.look,doomId:S.doom.id,day:S.day,crew:S.crew,mood:null,up:upIds()});
   panel.innerHTML=morningHTML(m,MP.on&&MP.host?'host':'solo');
-  panel.querySelectorAll('.act,#goon').forEach(b=>b.onclick=()=>morningPick(+b.dataset.i));
+  panel.querySelectorAll('.act,#goon').forEach(b=>b.onclick=()=>MP.on&&MP.host?hostClick(+b.dataset.i):morningPick(+b.dataset.i));
   if($('shopb'))$('shopb').onclick=showShop;
   if($('homeb'))$('homeb').onclick=showHome;if($('skb'))$('skb').onclick=showSkills;if($('giftb'))$('giftb').onclick=showGift;
   if(MP.on&&MP.host){bindHostBar();mpSend(m);mpTally()}
@@ -8147,7 +8198,7 @@ function sanLook(l){
 function sanX(x){const o={};if(x&&typeof x==='object')for(const k of ALLK)if(x[k])o[k]=gnum(x[k],-1e12,1e12);return o}
 function guestRender(m){
   if(m.rev===MP.grev&&m.k!=='idle')return;
-  MP.grev=m.rev;MP.myVote=null;MP.tally=null;
+  MP.grev=m.rev;MP.myVote=null;MP.tally=null;guestLeadInfo(m);
   const hud=sanHud(m.hud);
   const sc=SCN[m.scene]?m.scene:'street';
   const mood=MUSIC[m.mood]?m.mood:'calm';
@@ -8160,20 +8211,22 @@ function guestRender(m){
     const mm={head:clean(m.head,160),txt:clean(m.txt,700),quote:clean(m.quote,400),scene:sc,tod:ctx.tod,mood,day:ctx.day,
       ch:(Array.isArray(m.ch)?m.ch:[]).slice(0,6).map(c=>({t:clean(c&&c.t,200),x:sanX(c&&c.x),d:gnum(c&&c.d,0,99),p:gnum(c&&c.p,0,1),ok:!!(c&&c.ok),dice:!!(c&&c.dice)}))};
     renderEvent(mm,'guest');
-    panel.querySelectorAll('.ch').forEach(b=>{b.disabled=false});
+    guestBanner();
+    panel.querySelectorAll('.ch').forEach(b=>{b.disabled=false;b.onclick=()=>guestAct(+b.dataset.i)});
     panel.querySelectorAll('.ch').forEach((b,i)=>{if(!mm.ch[i].ok)b.disabled=true});
     stage='guest';
   }else if(m.k==='out'){
     const om={choice:clean(m.choice,200),ok:!!m.ok,text:clean(m.text,800),extra:(Array.isArray(m.extra)?m.extra:[]).slice(0,5).map(t=>clean(t,400)),x:sanX(m.x),inv:sanX(m.inv),days:gnum(m.days,0,365),day0:gnum(m.day0,0,365),act:!!m.act,
       eat:gnum(m.eat,0,9),drink:gnum(m.drink,0,9),hunger:!!m.hunger,thirst:!!m.thirst,cost:gnum(m.cost,0,1e12)};
-    panel.innerHTML=outHTML(om,false)+'<p class="hint">'+(m.end?'หัวหน้าห้องกำลังไปสู่ตอนจบ…':'รอหัวหน้าห้องกดต่อไป · คุยกันในแชทได้เลย')+'</p>';
+    panel.innerHTML=outHTML(om,false)+'<p class="hint">'+(m.end?'หัวหน้าห้องกำลังไปสู่ตอนจบ…':(MP.iamLead?'ถึงตาคุณ กดต่อไปได้เลย':'รอ '+esc((MP.glead&&MP.glead.n)||'หัวหน้าห้อง')+' กดต่อไป · คุยกันในแชทได้เลย'))+'</p>'+(MP.iamLead&&!m.end?'<div class="row"><button class="btn" id="gnext">ต่อไป</button></div>':'');
+    {const gn=$('gnext');if(gn)gn.onclick=()=>{MP.room.emit('next',{rev:MP.grev}).catch(()=>{});gn.disabled=true}}
     floaters(om.x);if(om.ok)sfx('ok');else sfx('bad');
     stage='guest';
   }else if(m.k==='morn'){
     const L=(Array.isArray(m.opts)?m.opts:[]).slice(0,9).map(a=>({t:clean(a&&a.t,40),d:clean(a&&a.d,60),en:gnum(a&&a.en,0,99),ok:!!(a&&a.ok)}));
     const mm={hud,day:ctx.day,opts:L,urgent:!!m.urgent,left:gnum(m.left,0,9)};
     panel.innerHTML=morningHTML(mm,'guest');
-    panel.querySelectorAll('[data-i]').forEach(b=>{b.disabled=false;b.onclick=()=>guestVote(+b.dataset.i)});
+    guestBanner();panel.querySelectorAll('[data-i]').forEach(b=>{b.disabled=false;b.onclick=()=>guestAct(+b.dataset.i)});
     panel.querySelectorAll('.act').forEach((b,i)=>{if(!L[i]||!L[i].ok)b.disabled=true});
     stage='guest';
   }else if(m.k==='end'){
