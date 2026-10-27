@@ -329,6 +329,7 @@ body{background:radial-gradient(900px 500px at 85% -10%,var(--g1),transparent 70
 .advice.hot{border-left-color:var(--gold);background:rgba(255,200,80,.14)}
 .act .why{font-size:11px;color:var(--bad)}
 .act .rec{position:absolute;top:-8px;right:6px;font-style:normal;font-size:10.5px;padding:1px 7px;border-radius:9px;background:var(--gold);color:#2a1a00;font-weight:700}
+.card{grid-auto-rows:max-content}
 .card p.sub.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .card p.sub.clamp.open{display:block;-webkit-line-clamp:unset}
 .more{justify-self:start;margin-top:-4px;padding:3px 10px!important;min-height:0!important;height:auto!important;font-size:12px}
@@ -7601,7 +7602,7 @@ const unb64=t=>{const s=atob(t),u=new Uint8Array(s.length);for(let i=0;i<s.lengt
 function mpSend(model,keep){
   if(!MP.on||!MP.host||!MP.room)return;
   if(MP.lead&&!leadValid())MP.lead='host';
-  model.lead={p:MP.lead,n:leadName()};
+  model.lead=leadInfo();
   if(keep!==false){model.rev=++MP.rev;MP.last=model}
   const bytes=new TextEncoder().encode(JSON.stringify(model)),CH=2300,n=Math.ceil(bytes.length/CH),id=++MP.sid;
   for(let i=0;i<n;i++)MP.room.emit('st',{id,i,n,d:b64(bytes.slice(i*CH,(i+1)*CH))}).catch(()=>{});
@@ -7714,6 +7715,12 @@ function rotateLead(){
   const i=ord.indexOf(MP.lead);MP.lead=ord[(i+1)%ord.length]||'host';
   if(ord.length>1)chatLine('','ตานี้ '+leadName()+' เป็นคนตัดสินใจ (คนอื่นโหวตแนะนำได้)',true);
 }
+function leadInfo(){const ord=['host'].concat(guests().map(p=>p.peer));return {p:MP.lead,n:leadName(),o:ord.map(x=>x==='host'?(MP.nick||'หัวหน้าห้อง'):nameOf(x)).slice(0,8),i:Math.max(0,ord.indexOf(MP.lead||'host'))}}
+function turnStrip(o,i){
+  if(!Array.isArray(o)||o.length<2)return '';
+  return '<div class="tstrip" style="display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin:0 0 8px;font-size:12.5px">'+o.map((n,k)=>
+   '<span style="padding:2px 9px;border-radius:12px;border:1px solid var(--line);'+(k===i?'background:var(--gold);color:#1a0d00;font-weight:700':'opacity:.75')+'">'+(k===i?'🎯 ':'')+esc(clean(n,14))+(k===(i+1)%o.length&&k!==i?' · ถัดไป':'')+'</span>').join('<span style="opacity:.5">→</span>')+'</div>';
+}
 function hostIsLead(){return !(MP.on&&MP.host)||MP.lead==='host'||!leadValid()}
 function hostClick(i){
   if(hostIsLead()){hostPickIndex(i);return}
@@ -7807,7 +7814,8 @@ function renderEvent(m,mode){
 }
 function hostBar(){
   const mine=hostIsLead();
-  return '<div class="amb" id="leadb" style="margin-bottom:8px">🎯 '+(mine?'<b>ตาคุณตัดสินใจ</b>'+(guests().length?' · เพื่อนโหวตแนะนำได้':''):'ตาของ <b>'+esc(leadName())+'</b> · คุณโหวตแนะนำได้ (กดข้อที่อยากแนะนำ)')+'</div>'+
+  const lm=leadInfo();
+  return (lm?turnStrip(lm.o,lm.i):'')+'<div class="amb" id="leadb" style="margin-bottom:8px">🎯 '+(mine?'<b>ตาคุณตัดสินใจ</b>'+(guests().length?' · เพื่อนโหวตแนะนำได้':''):'ตาของ <b>'+esc(leadName())+'</b> · คุณโหวตแนะนำได้ (กดข้อที่อยากแนะนำ)')+'</div>'+
    '<div class="act3"><button class="btn ghost" id="useVote" disabled>ยังไม่มีใครโหวต</button>'+
    '<label class="chk"><input type="checkbox" id="turnsV"'+(MP.turns?' checked':'')+'> ผลัดกันตัดสินใจทีละฉาก (ปิด = หัวหน้าห้องตัดสินคนเดียว)</label>'+
    '<label class="chk"><input type="checkbox" id="autoV"'+(MP.auto?' checked':'')+'> เดินตามเสียงข้างมากทันทีเมื่อเพื่อนทุกคนโหวตครบ</label></div>';
@@ -7820,13 +7828,13 @@ function bindHostBar(){
   hostTally();
 }
 function guestLeadInfo(m){
-  MP.glead=(m&&m.lead&&typeof m.lead==='object')?{p:clean(m.lead.p,80),n:clean(m.lead.n,24)}:null;
+  MP.glead=(m&&m.lead&&typeof m.lead==='object')?{p:clean(m.lead.p,80),n:clean(m.lead.n,24),o:Array.isArray(m.lead.o)?m.lead.o.slice(0,8).map(x=>clean(x,16)):[],i:gnum(m.lead.i,0,7)}:null;
   MP.iamLead=!!(MP.glead&&MP.glead.p&&MP.glead.p!=='host'&&MP.glead.p===selfPeer());
 }
 function guestBanner(){
   const g=MP.glead;if(!g)return;
   const t=MP.iamLead?'🎯 <b>ถึงตาคุณตัดสินใจ!</b> กดเลือกข้อที่ต้องการ เพื่อนจะเห็นผลทันที (ดูคะแนนโหวตของเพื่อนประกอบได้)':'🎯 ตาของ <b>'+esc(g.n||'หัวหน้าห้อง')+'</b> · กดโหวตแนะนำได้ แล้วคุยกันในแชท';
-  panel.insertAdjacentHTML('afterbegin','<div class="amb" style="margin-bottom:8px">'+t+'</div>');
+  panel.insertAdjacentHTML('afterbegin',turnStrip(g.o,g.i)+'<div class="amb" style="margin-bottom:8px">'+t+'</div>');
   const h=panel.querySelector('p.hint');if(h&&/โหวต|หัวหน้าห้อง|กดเลือก/.test(h.textContent))h.remove();
 }
 function guestAct(i){
