@@ -79,7 +79,7 @@ button:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 .ch .t{font-weight:700;font-size:16.5px;line-height:1.35}
 .chips{display:flex;gap:6px 10px;flex-wrap:wrap;margin-top:5px;font-family:var(--f-n);font-size:11px}
 .chip{display:inline-flex;gap:4px;align-items:center}
-.chip.up{color:var(--good)} .chip.dn{color:var(--bad)} .chip.neu{color:var(--gold2)} .chip.rk{color:var(--ht)}
+.chip.up{color:var(--good)} .chip.dn{color:var(--bad)} .chip.neu{color:var(--gold2)} .chip.rk{color:var(--ht);font-weight:700}
 .chip.txt{font-family:var(--f-b);font-size:12.5px}
 .chip.rk{margin-left:auto;text-align:right}
 .btn{background:var(--gold);color:#06211d;border:0;border-bottom:3px solid #1c8f80;padding:11px 22px;font-family:var(--f-d);font-weight:500;font-size:17px}
@@ -279,6 +279,8 @@ body{background:radial-gradient(900px 500px at 85% -10%,var(--g1),transparent 70
 :root[data-theme=dawn] .fl.up,:root[data-theme=dawn] .good{color:#1f7a4a}
 :root[data-theme=dawn] .ch:disabled,:root[data-theme=dawn] .act:disabled,:root[data-theme=dawn] .mini:disabled{opacity:.72;color:#5e4f3a}
 :root[data-theme=dawn] .ch:disabled *,:root[data-theme=dawn] .act:disabled *{color:#5e4f3a}
+:root[data-theme=dawn] .res.bad{color:#a01f1f}:root[data-theme=dawn] .chip.rk{color:#b8321a;font-weight:700}:root[data-theme=dawn] .chip.dn{color:#a01f1f}:root[data-theme=dawn] .chip.up{color:#1f7a4a}:root[data-theme=dawn] .chip.neu{color:#5a3a12}:root[data-theme=dawn] .card h2.et-dis{color:#b8321a}:root[data-theme=dawn] .card h2.et-rare{color:#7a3fb0}:root[data-theme=dawn] .card h2.et-chain{color:#0f7a70}:root[data-theme=dawn] .card h2.et-late{color:#b85a1a}:root[data-theme=dawn] .card h2.et-legend{color:#8a6400}
+.btn.ghost.urge,:root[data-theme=dawn] .btn.ghost.urge{background:var(--bad);color:#2a0808!important;border-color:#9a3a3a;border-bottom-color:#7a2a2a}
 :root[data-theme=dawn] .hint,:root[data-theme=dawn] small{color:#46392a}
 :root[data-theme=dawn] .tag{color:#1c150d}
 :root[data-theme=dawn] .kick,:root[data-theme=dawn] h4{color:#8a3f06}
@@ -330,6 +332,7 @@ body{background:radial-gradient(900px 500px at 85% -10%,var(--g1),transparent 70
 .act .why{font-size:11px;color:var(--bad)}
 .act .rec{position:absolute;top:-8px;right:6px;font-style:normal;font-size:10.5px;padding:1px 7px;border-radius:9px;background:var(--gold);color:#2a1a00;font-weight:700}
 .card{grid-auto-rows:max-content}
+.letter{background:#fff8e6;border:1px dashed var(--gold);border-radius:8px;padding:12px 14px;margin:6px 0}.letter small{display:block;color:var(--muted);margin-bottom:4px}.letter p{margin:0;white-space:pre-wrap;font-style:italic;line-height:1.55}.lchips{display:flex;flex-wrap:wrap;gap:6px}.lchips .mini.on{background:var(--gold);color:#1a0d00;font-weight:700}
 .card p.sub.clamp{display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .card p.sub.clamp.open{display:block;-webkit-line-clamp:unset}
 .more{justify-self:start;margin-top:-4px;padding:3px 10px!important;min-height:0!important;height:auto!important;font-size:12px}
@@ -4200,6 +4203,157 @@ function gangOutcome(){
  const g=S.gang,sz=gangSize(),w=S.flags.gw|0,e=S.flags.gend|0;
  return {k:g.k,n:g.n,sz,w,e,done:g.st>=5};
 }
+/* ===== แก๊งที่จำคุณได้: ความสัมพันธ์ข้ามชีวิต (ศัตรูกลับมาเอาคืน / พันธมิตรกลับมาช่วย) ===== */
+const RIVK='doom365-rival';
+function getRival(){try{const a=JSON.parse(localStorage.getItem(RIVK)||'null');return a&&a.n&&(a.rel==='foe'||a.rel==='ally')?a:null}catch(e){return null}}
+function saveRival(r){try{if(r)localStorage.setItem(RIVK,JSON.stringify(r));else localStorage.removeItem(RIVK)}catch(e){}}
+/* ตัดสินความสัมพันธ์จากชีวิตที่เพิ่งจบ */
+function rivalFromLife(){
+  const g=S&&S.gang;if(!g||g.st<2)return null;
+  const sz=Math.max(0,S.flags.gz|0),e=S.flags.gend|0,w=S.flags.gw|0;
+  let rel=null;
+  if(g.k==='crime'){rel=(e===2)?'ally':'foe'}
+  else if(g.k==='help'){rel='ally'}
+  else if(g.k==='trade'){rel=(w>=2||e===1||e===2)?'ally':(S.c.steal>=3||(S.kar|0)<=-30?'foe':null)}
+  if(!rel)return null;
+  return {n:g.n,k:g.k,rel,by:(S.name||'')+' · '+(S.role?S.role.n:'')};
+}
+const RVT=(k,sc,head,txt,ch,req)=>{T({k,sc,w:1,cd:5,req:()=>false,head,txt,ch,rv:1});KEYMOOD[k]=/foe/.test(k)?'tense':'warm';KEYCAT[k]=/foe/.test(k)?'danger':'joy';if(/foe/.test(k))EXTRA_KD[k]=['chased','wound','kidnap']};
+const rvOk=(rel,n,a,b)=>S=>!!S.rival&&S.rival.rel===rel&&(S.flags.rv|0)===n&&S.day>=a&&S.day<b;
+const C=(t,x,p,f,fx,r,o)=>Object.assign({t,x,d:1,r,k:{p,e:(o&&o.e)||'fight',x:fx,f}},o&&o.g?{g:o.g}:{},o&&o.al?{al:o.al}:{},o&&o.flag?{flag:o.flag}:{});
+RVT('rv_foe1',['street','alley','market'],'ชายสักลายคนหนึ่งจ้องหน้าคุณไม่วางตา',
+ 'เขาเดินสวนมากลางถนนแล้วหยุดชะงัก รอยสักรูปเดียวกับของแก๊ง “{R}” ที่คุณเคยมีเรื่องด้วยโผล่พ้นปกเสื้อ เขาไม่ได้พูดอะไร แค่ยิ้มมุมปากแล้วยกโทรศัพท์ขึ้นกดเรียกใครสักคน',[
+ C('เผชิญหน้า ถามตรงๆ ว่าต้องการอะไร',{md:3,en:-12},.38,'เขาต่อยโดยไม่พูดอะไร และคนอีกสามคนวิ่งออกมาจากตรอกข้างๆ',{hp:-12,wd:14,md:-8,ht:6},'เขาหัวเราะแล้วหมุนตัวเดินไป “แค่อยากให้รู้ว่าเราจำนายได้” คุณยืนอยู่กลางถนนมือเย็นเฉียบ',{g:'crime',e:'fight'}),
+ C('ยื่นเงินให้และขอโทษเรื่องที่เกิดขึ้นเมื่อก่อน',{mo:-2500,md:-2,en:-6},.25,'เขาฉีกธนบัตรต่อหน้าและตบหน้าคุณเบาๆ “เงินแค่นี้ไม่พอหรอก”',{md:-10,lv:-3},'เขาลังเลก่อนรับเงินไป “ครั้งนี้ไม่เอาเรื่อง แต่หัวหน้าไม่ลืมนะ”',{e:'talk'}),
+ C('วิ่งเข้าไปในฝูงคนที่ตลาดและหายตัวไป',{en:-16,md:-2},.3,'คุณเหยียบเท้าคนจนถูกด่า และวิ่งชนแผงผลไม้ล้มระเนระนาด',{hp:-8,mo:-800,md:-6},'เสียงเขาตะโกนตามหลังหายไปกับฝูงคน คุณมานั่งหอบอยู่หลังตึกพร้อมใจที่ยังเต้นแรง',{}),
+ C('ชวนไปนั่งกินข้าวและคุยกันดีๆ',{food:-1,md:3,lv:3,en:-8},.32,'เขารับข้าวแล้วเอามีดจ่อคอตอนคุณเผลอ “ไม่ต้องเสแสร้ง”',{hp:-10,wd:12,md:-8},'เขากินข้าวเงียบๆ ก่อนพึมพำ “แก๊งเราก็ไม่ได้อยากเอาเรื่องนายเท่าไหร่หรอก”',{g:'help',e:'talk'})
+],rvOk('foe',0,18,140));
+RVT('rv_foe2',['alley','street','village'],'ลูกน้องเก่าของ “{R}” ซุ่มรอหน้าที่พัก',
+ 'ตอนกลับถึงที่พักคุณพบรอยเท้าแปลกที่หน้าประตู และมีกระดาษแผ่นหนึ่งเสียบอยู่ข้อความสั้นๆ “เราจำนายได้” ทั้งซอยเงียบจนผิดสังเกต',[
+ C('ย้ายที่พักทันทีคืนนี้ ไม่ให้ใครรู้',{en:-18,md:-4,mo:-800},.28,'เสียงเท้าหลายคู่ตามมาจากหลังตึกขณะที่คุณหอบของ',{hp:-10,wd:12,md:-8},'คุณหายตัวไปทั้งคืนและเช้าวันต่อมาไม่มีใครตามเจอ รู้สึกโล่งแต่ก็เหนื่อย',{}),
+ C('ซุ่มรอที่หน้าประตู แล้วจับตัวคนที่มาถามให้เล่าเรื่อง',{md:2,en:-16,ht:6},.42,'พวกเขามีมากกว่าที่คิด คุณโดนไม้ฟาดเข้าที่ไหล่ก่อนทันตั้งตัว',{hp:-14,wd:16,md:-8,ht:8},'คุณจับเด็กหนุ่มคนหนึ่งได้และรู้ว่าพวกนั้นก็ไม่อยากสู้ แค่ถูกหัวหน้าบังคับมา',{g:'crime'}),
+ C('ส่งคนไปบอกหัวหน้าให้มาเจรจา',{mo:-1500,md:-2,en:-10},.3,'ผู้ส่งสารหายตัวไปและไม่ได้กลับมา',{md:-8,lv:-3},'หัวหน้าของพวกเขายอมนั่งคุยแบบเงียบๆ และตกลงว่าจะ “ไม่ยุ่งกันสักพัก”',{e:'talk'}),
+ C('ทิ้งอาหารและน้ำไว้หน้าประตูเป็นของขวัญสันติภาพ',{food:-1,water:-1,md:3,lv:2},.2,'อาหารถูกเขวี้ยงทิ้งหน้าบ้านพร้อมคำขู่ที่เขียนด้วยสีแดง',{md:-6,hp:-4},'เช้าวันต่อมาจานว่างวางอยู่หน้าประตูพร้อมโน้ตสั้นๆ “ขอบใจ”',{g:'help',e:'talk'})
+],rvOk('foe',1,120,250));
+RVT('rv_foe3',['alley','bridge','street'],'หัวหน้า “{R}” มาเอาเรื่องตัวต่อตัว',
+ 'คืนหนึ่งหัวหน้าแก๊งที่คุณเคยมีเรื่องด้วยยืนรออยู่กลางสะพานคนเดียว ไม่มีลูกน้อง ไม่มีอาวุธ เขาบอกเพียงว่า “เรื่องนี้เราสองคนต้องจบกันเอง”',[
+ C('รับคำท้า สู้กันตัวต่อตัวจนตัดสินกัน',{md:6,en:-24,ht:8},.5,'เขาแข็งแรงกว่าที่คิด และคุณโดนกระแทกจนล้มลงกับพื้นสะพาน',{hp:-18,wd:22,md:-10},'คุณชนะด้วยแรงที่เหลือเพียงนิดเดียว เขานั่งหายใจหอบแล้วหัวเราะ “โอเค เจ๊ากัน”',{g:'crime',flag:{rvend:1}}),
+ C('วางอาวุธลง ขอให้เรื่องนี้จบด้วยคำพูด',{md:4,lv:3,en:-10},.35,'เขาไม่ฟังและต่อยหน้าคุณจนล้มลงไป',{hp:-12,wd:14,md:-8},'เขาเงียบนาน ก่อนถอนหายใจยาวและวางไม้ที่ซ่อนไว้ลงกับพื้น',{e:'talk',flag:{rvend:2}}),
+ C('ยกเสบียงที่เหลือให้ทั้งหมดแลกกับการยุติเรื่อง',{food:-3,water:-2,mo:-2000,md:2},.2,'เขารับของแล้วยังเตะคุณซ้ำอีกครั้งก่อนเดินจากไป',{hp:-8,md:-10},'เขาจ้องกองเสบียงอยู่นาน “แค่นี้ก็ได้” แล้วเดินจากไปโดยไม่หันกลับมา',{g:'help',e:'talk',flag:{rvend:2}}),
+ C('หนีออกจากเมืองนี้ไปเลย',{en:-20,md:-6,mo:-3000},.3,'ทางออกถูกคนของเขาปิดไว้แล้วทั้งสามทาง',{hp:-12,wd:14,md:-10},'คุณหายไปในความมืดและไม่ได้เห็นเขาอีก แต่คืนนั้นคุณไม่ได้หลับสักนิด',{flag:{rvend:3}})
+],rvOk('foe',2,230,345));
+RVT('rv_ally1',['market','street','park'],'คนเก่าจาก “{R}” ทักคุณกลางตลาด',
+ 'หญิงคนหนึ่งยกมือไหว้คุณกลางตลาด คุณจำเธอไม่ได้ทันที แต่เธอจำคุณได้ เธอคือคนที่เคยอยู่ในกลุ่ม “{R}” เธอยื่นห่อข้าวให้โดยไม่พูดอะไรมากไปกว่า “ครั้งนั้นขอบคุณจริงๆ”',[
+ C('รับห่อข้าวและขอบคุณอย่างจริงใจ',{food:2,lv:4,md:5},.05,'ห่อข้าวถูกคนอื่นแย่งไปกลางทาง',{md:-4,food:-1},'ข้าวร้อนๆ กับสายตาของเธอทำให้คุณจำเรื่องดีๆ ที่เคยทำไว้ได้ทั้งหมด',{g:'help',e:'talk'}),
+ C('ปฏิเสธเบาๆ บอกว่าเก็บไว้ให้คนที่ต้องการกว่า',{lv:3,md:4},.05,'เธอเสียใจและเดินจากไปโดยไม่พูดอะไร',{md:-4,lv:-2},'เธอยิ้มทั้งน้ำตา แล้วแบ่งให้เด็กข้างๆ แทน',{e:'talk',al:'saint'}),
+ C('ชวนไปนั่งคุยแลกเปลี่ยนข่าวสาร',{lv:3,md:3,en:-6},.1,'ข่าวที่ได้ไม่มีอะไรใหม่ แต่ก็ทำให้ใจเบาลงบ้าง',{md:-2},'เธอเล่าว่าเพื่อนเก่าหลายคนยังอยู่ และมีที่ปลอดภัยแห่งหนึ่งที่คุณไปหลบได้',{g:'help',e:'talk',flag:{rvend:2}})
+],rvOk('ally',0,15,150));
+RVT('rv_ally2',['street','village','market'],'พวก “{R}” มาขอความช่วยเหลือจากคุณ',
+ 'ชายสองคนจากกลุ่ม “{R}” มาเคาะประตูตอนดึก คนหนึ่งบาดเจ็บหนักและอีกคนหิวจนมือสั่น พวกเขาไม่ได้ขอร้อง แค่บอกว่า “ไม่มีที่ไหนให้ไปแล้ว”',[
+ C('พาเข้ามาในที่พัก ดูแลแผลและให้อาหาร',{food:-2,water:-1,med:-1,lv:5,md:6,en:-14},.15,'แผลของเขาหนักกว่าที่คิด คุณเองก็เหนื่อยจนล้มพับ',{hp:-6,md:-6,en:-6},'ทั้งสองหลับไปด้วยท้องอิ่ม และเช้าวันต่อมาเขาทิ้งของเล็กๆ ไว้ให้ด้วยความซาบซึ้ง',{g:'help',e:'talk',al:'saint',flag:{rvend:2}}),
+ C('ให้อาหารแล้วบอกให้ไปหาที่อื่น',{food:-1,md:1,lv:1},.1,'พวกเขาเดินจากไปโดยไม่มองหน้า',{md:-4,lv:-2},'พวกเขาไหว้ขอบคุณและเดินจากไปในความมืดอย่างเงียบๆ',{}),
+ C('ปฏิเสธ ปิดประตูแล้วนั่งนิ่งอยู่ในห้อง',{md:-6,lv:-3},.1,'เสียงเคาะประตูหยุดลงและคุณได้ยินแต่เสียงหายใจแผ่วๆ อยู่หลังบาน',{md:-10,lv:-4},'เช้านั้นไม่เห็นใครอยู่หน้าประตู มีเพียงรอยเลือดแห้งตรงขั้นบันได',{g:'crime',al:'vil',flag:{rvend:3}})
+],rvOk('ally',1,110,250));
+RVT('rv_ally3',['street','village','alley'],'พวก “{R}” มาช่วยคุณในคืนที่คุณแย่ที่สุด',
+ 'คืนที่ทุกอย่างเลวร้ายสุดและคุณเหนื่อยจนเดินไม่ไหว ประตูห้องถูกเคาะเบาๆ ใครบางคนจากกลุ่ม “{R}” ที่คุณเคยพบมายืนอยู่พร้อมกระเป๋าใบหนึ่ง “เราตามหานายมาตั้งนานแล้ว”',[
+ C('รับความช่วยเหลือทั้งน้ำตา',{food:3,water:3,med:2,hp:12,wd:-30,md:8,lv:6,en:12},.05,'พวกเขาติดอยู่กับเหตุการณ์ข้างทางและมาถึงช้ากว่าที่ตั้งใจ',{md:-3},'พวกเขาช่วยคุณทำแผล ให้ข้าวและน้ำ คืนนั้นคุณหลับสนิทเป็นครั้งแรกในรอบหลายวัน',{g:'help',e:'talk',flag:{rvend:2}}),
+ C('บอกให้เอาไปให้คนที่ลำบากกว่า',{lv:6,md:6,en:-4},.1,'พวกเขาไม่ฟัง ยืนกรานให้คุณรับไว้ก่อน',{md:-3},'พวกเขายิ้มแล้วพยักหน้า “นายยังเหมือนเดิมเลย” และทิ้งของครึ่งหนึ่งไว้',{g:'help',e:'talk',al:'saint',flag:{rvend:2}})
+],rvOk('ally',2,200,345));
+/* ใส่ข้อความ {R} ให้เป็นชื่อกลุ่ม */
+function rivalFill(e,t){
+  if(!S.rival||!t||!t.rv)return;
+  const R=S.rival.n;const f=s=>typeof s==='string'?s.split('{R}').join(R):s;
+  e.head=f(e.head);e.txt=f(e.txt);
+  for(const c of e.ch)for(const k of ['t','r','f'])c[k]=f(c[k]);
+}
+
+function rivalTick(){
+  if(!S.rival)return null;
+  if(S.rivAt===undefined)S.rivAt=rr(25,90);
+  const n=S.flags.rv|0;
+  if(n>=3||S.day<S.rivAt||S.day>=345)return null;
+  const t=TPL.find(x=>x.k==='rv_'+S.rival.rel+(n+1));
+  if(!t)return null;
+  S.rivAt=S.day+rr(35,65);S.flags.rv=n+1;
+  return t;
+}
+/* ===== เทศกาลไทยตามปฏิทิน: แต่ละชีวิตเริ่มต้นคนละวันของปี เจอเทศกาลตามวันจริง ===== */
+const MON=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'],MD=[31,28,31,30,31,30,31,31,30,31,30,31];
+function calOf(doy){doy=((doy%365)+365)%365;let m=0;while(doy>=MD[m]){doy-=MD[m];m++}return {d:doy+1,m}}
+function calStr(day){if(!S||S.cal0==null)return '';const c=calOf(S.cal0+Math.floor(day));return c.d+' '+MON[c.m]}
+function seasonOf(day){const m=calOf(S.cal0+Math.floor(day)).m;return m>=2&&m<=4?'ร้อนจัด':m>=5&&m<=9?'ฤดูฝน':'ฤดูหนาว'}
+const FEST=[
+ {k:'newyear',doy:0,ic:'🎆',n:'ปีใหม่',sc:['street','market'],w:'fun'},
+ {k:'chinese',doy:40,ic:'🧧',n:'ตรุษจีน',sc:['market','street'],w:'warm'},
+ {k:'valentine',doy:44,ic:'💝',n:'วันแห่งความรัก',sc:['park','street'],w:'warm'},
+ {k:'songkran',doy:103,ic:'💦',n:'สงกรานต์',sc:['street','market','village'],w:'fun'},
+ {k:'visakha',doy:141,ic:'🪔',n:'วิสาขบูชา',sc:['temple'],w:'warm'},
+ {k:'khao',doy:200,ic:'🕯',n:'เข้าพรรษา',sc:['temple','village'],w:'calm'},
+ {k:'mother',doy:223,ic:'💐',n:'วันแม่',sc:['village','street'],w:'warm'},
+ {k:'loy',doy:308,ic:'🪷',n:'ลอยกระทง',sc:['bridge','park'],w:'warm'}
+];
+const FC=(t,x,p,f,fx,r,o)=>Object.assign({t,x,d:1,r,k:{p,e:(o&&o.e)||'talk',x:fx,f}},o&&o.g?{g:o.g}:{},o&&o.al?{al:o.al}:{},o&&o.flag?{flag:o.flag}:{});
+const FEV={
+newyear:['นับถอยหลังปีใหม่กลางถนนคนแน่นขนัด','ผู้คนยืนแน่นถนนเพื่อนับเลขย้อนกลับพร้อมกัน แสงไฟประดับส่องสว่างทั้งเมือง ทุกคนรู้ว่าปีนี้ไม่เหมือนปีไหน และอยากให้ปีใหม่นี้ได้เริ่มอย่างงดงามที่สุดเท่าที่จะทำได้',[
+ FC('ร่วมนับถอยหลังกับคนแปลกหน้าทั้งถนน',{md:8,lv:4,en:-10},.12,'ฝูงคนเบียดจนคุณถูกกระแทกและกระเป๋าตังค์หาย',{mo:-1200,md:-5,hp:-4},'พลุสว่างขึ้นพร้อมเสียงโห่ร้อง คนแปลกหน้าข้างๆ กอดคุณโดยไม่ได้นัดหมาย',{g:'fun'}),
+ FC('ขอพรปีใหม่ให้คนที่รักทางโทรศัพท์',{md:6,lv:6,en:-4},.08,'สัญญาณล่ม คุณยืนถือโทรศัพท์กลางความดังของเสียงพลุโดยไม่ได้พูดสักคำ',{md:-5},'เสียงปลายสายสั่นนิดๆ “ปีใหม่นี้ขอให้ทุกคนปลอดภัยนะ”',{g:'love'}),
+ FC('ตั้งปณิธานปีใหม่ เขียนลงสมุด',{md:5,en:-4},.05,'ปากกาหมดหมึกกลางประโยคและคุณไม่แน่ใจว่าจะเขียนว่าอะไรต่อ',{md:-3},'คุณเขียนสิ่งที่อยากทำลงไป 3 ข้อ และรู้สึกว่าชีวิตยังมีทางไปต่อ',{e:'talk'}),
+ FC('ไม่ไปร่วมงาน อยู่บ้านนอนพักผ่อน',{en:12,md:1},.04,'เสียงพลุข้างนอกทำให้คุณหลับไม่ลงจนหงุดหงิด',{md:-3,en:-4},'คุณฟังเสียงพลุไกลๆ อยู่ใต้ผ้าห่มและยิ้มโดยไม่รู้ตัว',{})]],
+chinese:['ตลาดสีแดงทั้งตลาดวันตรุษจีน','แผงลอยแขวนโคมแดง เสียงกลองสิงโตดังไปทั่วตลาด ร้านค้าแจกซองแดงให้เด็กๆ และกลิ่นธูปลอยมาจากศาลเจ้าใกล้ๆ ทุกคนอยากเริ่มปีนี้ด้วยโชคดี แม้ไม่แน่ใจว่าปีหน้าจะมีไหม',[
+ FC('ไปไหว้เจ้าที่ศาลเจ้าและขอพรให้ทุกคนปลอดภัย',{md:6,lv:3,en:-8,mo:-500},.08,'ควันธูปทำให้คุณสำลักจนต้องเดินออกมาหายใจ',{md:-3},'คุณคุกเข่าอยู่นานจนรู้สึกเหมือนมีใครฟังอยู่ข้างๆ',{g:'faith'}),
+ FC('แจกซองแดงเล็กๆ ให้เด็กในตลาด',{mo:-1500,md:7,lv:5,en:-6},.1,'เด็กคนหนึ่งแย่งซองจากมือเพื่อนจนร้องไห้กันทั้งคู่',{md:-4},'เด็กๆ ยิ้มกว้างจนฟันหลุด แล้ววิ่งไปแสดงซองให้พ่อแม่ดู',{g:'help',al:'saint'}),
+ FC('ดูการแสดงสิงโตและกินอาหารมงคล',{food:2,md:6,en:-6,mo:-800},.08,'สิงโตหันมาชนคุณจนล้มกลางวงคน',{md:-4,hp:-3},'คุณกินเกี๊ยวและขนมโดยไม่ต้องคิดอะไร ท้องอิ่มและใจอุ่นขึ้น',{g:'fun'}),
+ FC('ฉวยโอกาสตอนคนแน่นล้วงของ',{mo:4000,ht:10,md:-4},.4,'ถูกจับได้กลางตลาดและทุกคนหันมาจ้องคุณพร้อมกัน',{ht:18,md:-10,hp:-6,lv:-4},'คุณเดินหลบออกมาพร้อมเงินในกระเป๋า แต่ได้ยินเสียงกลองดังก้องในหัวไม่หยุด',{g:'crime',al:'vil'})]],
+valentine:['วันแห่งความรักในวันที่โลกใกล้สิ้นสุด','ร้านดอกไม้ข้างทางยังเปิดอยู่ มีคู่รักเดินจับมือกันเต็มสวน เด็กขายกุหลาบเดินเข้ามาหาคุณพร้อมรอยยิ้ม บอกว่า “เหลือช่อสุดท้ายแล้วพี่ ไม่ซื้อเดี๋ยวก็หมดโลกก่อนนะ”',[
+ FC('ซื้อกุหลาบช่อสุดท้ายและส่งให้คนที่คิดถึง',{mo:-800,md:8,lv:7,en:-4},.1,'คนที่คุณตั้งใจส่งให้ไม่อยู่บ้านและดอกไม้เหี่ยวในมือคุณ',{md:-6,lv:-2},'ดอกไม้ไปถึงมือเขา และข้อความตอบกลับสั้นๆ ทำให้คุณยิ้มกว้างทั้งวัน',{g:'love'}),
+ FC('บอกความรู้สึกกับคนที่แอบชอบมานาน',{md:6,lv:5,en:-8},.35,'เขาตอบว่า “ขอโทษ ฉันมีคนอื่นแล้ว” คุณยิ้มรับทั้งที่ใจแหลกสลาย',{md:-12,lv:-4},'เขาเงียบไปนานก่อนจะยิ้ม “ฉันก็คิดแบบเดียวกันมาตลอดเลย”',{g:'love',al:'saint'}),
+ FC('ซื้อกุหลาบทั้งถังจากเด็กคนนั้นเพื่อให้เขากลับไปหาแม่',{mo:-2500,md:6,lv:4,en:-4},.1,'เด็กไม่เชื่อและวิ่งหนีเพราะกลัวคุณเป็นคนแปลกหน้า',{md:-4},'เด็กวิ่งกลับบ้านทั้งน้ำตาและตะโกนขอบคุณจนสุดเสียง',{g:'help',al:'saint'}),
+ FC('เดินผ่านไปเงียบๆ คืนนี้ไม่มีอารมณ์',{md:-3,en:-2},.05,'คุณเดินสวนคู่รักคู่หนึ่งและรู้สึกเหงากว่าที่คิด',{md:-6},'คุณเดินผ่านไปพร้อมบทเพลงเก่าๆ ที่ผุดขึ้นมาในใจเอง',{})]],
+songkran:['สงกรานต์กลางถนนที่น้ำสาดทุกทิศทาง','ถนนทั้งสายกลายเป็นสนามน้ำ เด็กๆ ถือปืนฉีดน้ำวิ่งไล่กัน ผู้ใหญ่เปิดรถกระบะขนถังน้ำแข็งมาตั้งกลางถนน กลิ่นแป้งขาวฟุ้งไปทั่ว แม้โลกใกล้จบ ทุกคนก็ยังอยากให้วันนี้เย็นฉ่ำและร่าเริงที่สุด',[
+ FC('ร่วมวงสาดน้ำกับทุกคนและตะโกนเสียงดัง',{md:9,lv:4,en:-12},.2,'น้ำเย็นเข้าหูและคุณเริ่มมีไข้เล็กๆ ตอนกลางคืน',{md:-3,inf:6,en:-8},'คุณหัวเราะจนน้ำตาไหล เปียกทั้งตัวและไม่ได้นึกถึงอะไรเลยสักอย่างตลอดบ่ายนั้น',{g:'fun'}),
+ FC('ไปรดน้ำดำหัวผู้ใหญ่ในชุมชน',{food:1,md:6,lv:5,en:-8},.08,'ผู้ใหญ่ไม่อยู่บ้านและคุณถือขันน้ำยืนอยู่หน้าบ้านร้างอย่างเงอะงะ',{md:-4},'ผู้ใหญ่จับมือคุณและให้พรยาวเหยียด คุณรู้สึกว่ามีอะไรบางอย่างอุ่นขึ้นในอก',{g:'faith',al:'saint'}),
+ FC('ช่วยจัดถังน้ำและแจกน้ำสะอาดให้คนที่เดินผ่านมา',{water:-2,md:5,lv:5,en:-10},.15,'คนกลุ่มหนึ่งแย่งน้ำจนถังล้มและน้ำหกหมด',{water:-1,md:-5},'น้ำสะอาดถังใหญ่หมดเกลี้ยง คนที่ได้รับขอบคุณคุณทั้งที่ไม่รู้จักชื่อ',{g:'help'}),
+ FC('ไม่ลงไปเล่นน้ำ นั่งดูอยู่บนระเบียงแล้วหยิบของจากร้านที่ปิด',{mo:3500,ht:8,md:-2},.38,'เจ้าของร้านกลับมาเห็นพอดีและตะโกนไล่ไปทั้งถนน',{ht:15,md:-8,hp:-5},'ทุกคนเล่นน้ำจนไม่มีใครสังเกตมือคุณ แต่ในใจมีเสียงกระซิบเบาๆ ว่าไม่น่าเลย',{g:'crime',al:'vil'})]],
+visakha:['คืนวิสาขบูชาที่วัดเต็มไปด้วยแสงเทียน','ทั้งวัดเต็มไปด้วยแสงเทียนและกลิ่นดอกไม้ ผู้คนเดินเวียนเทียนรอบพระอุโบสถด้วยความเงียบ เสียงสวดมนต์ดังแผ่วเบา แม้ไม่รู้ว่าพรุ่งนี้จะเป็นอย่างไร ทุกคนก็ยังอยากทำความดีในวันนี้ให้ถึงที่สุด',[
+ FC('เวียนเทียนด้วยความตั้งใจและสวดมนต์ตาม',{md:8,en:-8},.06,'ไฟจากเทียนในมือคุณเอียงมาไหม้ผมจนต้องรีบดับ',{hp:-3,md:-3},'ตลอดสามรอบ คุณไม่ได้คิดอะไรอีกเลยนอกจากลมหายใจของตัวเอง',{g:'faith'}),
+ FC('ช่วยพระและอาสาสมัครจัดระเบียบคนที่มาร่วมงาน',{md:5,lv:4,en:-12},.12,'คนจำนวนมากกดดันและคุณถูกเบียดจนล้มกลางลานวัด',{hp:-5,md:-5},'ผู้คนเดินเรียงเป็นระเบียบ และพระรูปหนึ่งยิ้มให้คุณเงียบๆ',{g:'help'}),
+ FC('ร่วมทำบุญด้วยเงินที่มีเพื่อช่วยคนในชุมชน',{mo:-2500,md:7,lv:4},.08,'กล่องรับบริจาคถูกคนอื่นฉวยไปในความมืด',{mo:-1200,md:-6},'คุณหย่อนเงินลงไปและไม่รู้ว่าทำไมใจเบาลงเยอะ',{g:'help',al:'saint'}),
+ FC('นั่งสมาธิเงียบๆ ในมุมที่ไม่มีใคร',{md:6,en:5},.08,'ใจฟุ้งซ่านมากจนคุณหงุดหงิด',{md:-5},'คุณนั่งอยู่นานจนเทียนไหม้หมดโดยไม่รู้ตัว และรู้สึกสงบกว่าที่เคยเป็น',{g:'faith'})]],
+khao:['วันเข้าพรรษา พระสงฆ์รับเทียนพรรษา','ชาวบ้านทั้งหมู่บ้านรวมตัวกันถือเทียนพรรษาเดินแห่ไปที่วัด เสียงกลองยาวดังคลอกับเสียงฝนที่เริ่มตก คนหนุ่มสาวบางคนอาสาบวชช่วงนี้ และแม่ๆ นั่งทำขนมอยู่ใต้ศาลา',[
+ FC('ช่วยหามเทียนพรรษาเข้าวัดร่วมกับชาวบ้าน',{en:-14,md:6,lv:4},.15,'ฝนตกหนักและคุณลื่นล้มกลางทางพร้อมเทียนในมือ',{hp:-6,wd:8,md:-5},'เทียนเล่มใหญ่ถูกวางลงอย่างภาคภูมิ ทุกคนปรบมือให้กันเอง',{g:'help'}),
+ FC('ช่วยแม่ๆ ทำขนมและแจกจ่ายให้ทุกคน',{food:2,md:5,lv:4,en:-8},.08,'คุณทำขนมไหม้และโดนเพื่อนบ้านล้อทั้งศาลา',{md:-3},'คุณได้ขนมร้อนๆ ติดมือกลับบ้านและรอยยิ้มของคนที่ได้ชิม',{g:'help'}),
+ FC('ไปฟังเทศน์ในศาลาและตั้งใจจดคำสอน',{md:6,en:-4},.05,'คุณหลับไปกลางเทศน์และตื่นมาเจอสายตาขำๆ ของคนรอบข้าง',{md:-2},'พระอาจารย์พูดถึงเรื่อง “การปล่อยวาง” ซึ่งตรงกับเรื่องที่คุณกำลังคิดพอดี',{g:'faith'}),
+ FC('ซุ่มหยิบเงินทำบุญจากตู้ตอนไม่มีใครเห็น',{mo:3000,ht:8,md:-6},.45,'เสียงโลหะดังก้องในศาลาและทุกคนหันมามองคุณ',{ht:18,md:-12,hp:-4,lv:-5},'มือคุณสั่นตลอดทางที่เดินกลับ และเสียงสวดมนต์ยังก้องอยู่ในหู',{g:'crime',al:'vil'})]],
+mother:['วันแม่ที่ทุกคนอยากกลับบ้าน','ทั้งตลาดเต็มไปด้วยดอกมะลิและพวงมาลัย คนส่วนใหญ่กำลังรีบกลับบ้านไปหาแม่ บางคนยืนอยู่ที่ป้ายรถเมล์ถือช่อดอกไม้และมองนาฬิกาซ้ำๆ คุณนึกถึงเสียงเรียกชื่อของคุณจากห้องครัว',[
+ FC('กลับไปหาแม่ที่บ้านและกราบเท้า',{md:9,lv:8,en:-14,food:1},.2,'ทางกลับบ้านถูกปิดเพราะถนนเสีย และคุณต้องเดินอ้อมหลายชั่วโมง',{en:-10,md:-4},'แม่ไม่พูดอะไรมาก แค่ตักข้าวใส่จานให้เต็มและบอกว่า “กินเยอะๆ นะลูก”',{g:'fam'}),
+ FC('โทรหาแม่และคุยกันนานๆ ในวันนี้',{md:7,lv:6,en:-4},.12,'สัญญาณขาดๆ หายๆ และคุณได้ยินแต่คำว่า “ฮัลโหล” ซ้ำๆ',{md:-5},'เสียงแม่บ่นเรื่องข้าวปลาเหมือนทุกครั้ง และคุณไม่เคยคิดถึงมันมากเท่านี้',{g:'fam'}),
+ FC('ไปช่วยคุณแม่ที่ต้องดูแลลูกหลายคนในชุมชน',{food:-1,md:5,lv:5,en:-12},.12,'เด็กๆ วุ่นวายและคุณเหนื่อยจนแทบหมดแรง',{en:-8,md:-3},'คุณเห็นรอยยิ้มของแม่ที่เหนื่อยแต่มีความสุข และเข้าใจอะไรบางอย่างขึ้นมา',{g:'help'}),
+ FC('ไม่กลับ ไม่โทร แต่เขียนข้อความไว้ในสมุด',{md:2},.1,'ข้อความที่เขียนทำให้คุณน้ำตาไหลจนกระดาษเปียก',{md:-6},'คุณเขียนทุกอย่างที่ไม่เคยกล้าพูด และหวังว่าสักวันแม่จะได้อ่าน',{g:'fam'})]],
+loy:['คืนลอยกระทงริมสะพาน','แสงกระทงเรียงเป็นแถวยาวบนผิวน้ำ ผู้คนยืนแน่นบนสะพานเงียบๆ บางคนอธิษฐานเสียงดัง บางคนลอยกระทงของตัวเองด้วยมือสั่น แม้ท้องฟ้ายังเป็นสีแดง แสงเทียนก็ยังเป็นสีทองนุ่มๆ เหมือนเดิม',[
+ FC('ลอยกระทงพร้อมอธิษฐานขอให้ทุกคนปลอดภัย',{mo:-300,md:8,lv:4,en:-6},.1,'กระทงเอียงจมก่อนจะไปถึงกลางน้ำ',{md:-5},'กระทงลอยไปไกลกว่าที่คิด และแสงเทียนยังไม่ดับจนมองไม่เห็นอีกต่อไป',{g:'faith'}),
+ FC('ชวนคนที่รักมาลอยกระทงด้วยกัน',{md:9,lv:8,en:-8,mo:-500},.12,'คนที่คุณชวนปฏิเสธและคุณยืนลอยกระทงคนเดียวด้วยใจที่แหลก',{md:-9,lv:-3},'สองคนลอยกระทงเคียงกัน และน้ำตาของคุณหยดลงบนผิวน้ำ',{g:'love'}),
+ FC('ช่วยเก็บกระทงและขยะริมน้ำให้สะอาด',{en:-12,md:5,lv:3},.1,'คุณลื่นล้มลงบนตลิ่งและเปียกไปครึ่งตัว',{hp:-4,md:-3},'ริมน้ำสะอาดขึ้น และเด็กคนหนึ่งยิ้มให้คุณจากอีกฝั่ง',{g:'help'}),
+ FC('ปล่อยเรื่องที่เสียใจลงไปกับน้ำ เขียนใส่กระทงแล้วปล่อยไป',{md:8,lv:2,en:-4},.06,'กระดาษเปียกก่อนจะเขียนเสร็จและคุณต้องเริ่มใหม่',{md:-3},'กระทงของคุณลอยไปไกลพร้อมเรื่องที่คุณเก็บมาทั้งปี คุณรู้สึกว่าเบาลง',{g:'faith'})]]
+};
+for(const f of FEST){
+  const ev=FEV[f.k];
+  T({k:'fest_'+f.k,sc:f.sc,w:1,cd:5,req:()=>false,head:ev[0],txt:ev[1],ch:ev[2].map(c=>Object.assign({},c)),fest:f.k});
+  KEYMOOD['fest_'+f.k]=f.w==='calm'?'calm':f.w;KEYCAT['fest_'+f.k]='joy';
+}
+function festivalTick(){
+  if(S.cal0==null)return null;
+  S.fest=S.fest||{};
+  for(const f of FEST){
+    if(S.fest[f.k])continue;
+    const off=((f.doy-S.cal0)%365+365)%365;
+    if(S.day>=off&&S.day<=off+5&&S.day<360){
+      const t=TPL.find(x=>x.k==='fest_'+f.k);if(!t)continue;
+      S.fest[f.k]=1;return t;
+    }
+    if(S.day>off+5)S.fest[f.k]=1;
+  }
+  return null;
+}
 /* ===== ตอนจบเพิ่มเติม: ตามความดี/ชั่ว × แนวทางชีวิต, จำนวนวันที่รอด, แก๊ง ===== */
 const END_KT={
  love:{g:'ความรักที่คุณให้ไปไม่ได้เรียกร้องอะไรกลับ คนข้างตัวคุณจึงอบอุ่นเสมอแม้ในวันที่ฟ้าเริ่มสีแดง',n:'คุณรักคนหนึ่งอย่างเต็มที่ และสงสัยบ้างว่าตัวเองรักเป็นหรือเปล่า แต่คืนสุดท้ายก็ยังจับมือเขาไว้',e:'คุณรักแบบที่ทำให้คนอื่นกลัว หวงมากจนเกือบไม่เหลืออะไร แต่คนนั้นก็ยังไม่ปล่อยมือคุณในวินาทีสุดท้าย'},
@@ -4242,6 +4396,13 @@ function endExtra(kind,best){
   const k=S.kar|0,band=k>=25?'g':k<=-25?'e':'n';
   if(best&&END_KT[best]&&kind!=='died')out.push(END_KT[best][band]);
   if(kind==='died'){const d=Math.floor(S.day);const r=END_DAYS.find(x=>d<x[0]);if(r)out.push(pick(r[1]))}
+  try{
+   if(S.rival&&(S.flags.rv|0)>=1){
+    const R=S.rival.n,e=S.flags.rvend|0;
+    if(S.rival.rel==='foe')out.push(e===1?'ศัตรูเก่าจาก “'+R+'” ถูกคุณเอาชนะในที่สุด แต่ชัยชนะนั้นทำให้คุณนึกถึงเรื่องเก่าที่ไม่อยากนึก':e===2?'เรื่องแค้นระหว่างคุณกับ “'+R+'” จบลงด้วยคำพูดไม่กี่คำ ซึ่งกล้าหาญกว่าการต่อสู้ใดๆ':e===3?'คุณหนีจาก “'+R+'” ได้จนถึงวันสุดท้าย แต่ไม่เคยเลิกมองข้างหลัง':'ศัตรูเก่าจาก “'+R+'” ยังตามมาจนถึงตอนจบ ไม่ว่าคุณจะวิ่งไปไกลแค่ไหน');
+    else out.push(e===3?'คนจาก “'+R+'” ที่ขอความช่วยเหลือคุณ ถูกคุณปฏิเสธ คืนสุดท้ายคุณได้ยินเสียงเคาะประตูในหัวซ้ำๆ':'คนจาก “'+R+'” ที่คุณเคยช่วยไว้ กลับมาอยู่ข้างคุณจนถึงวันสุดท้าย ความดีที่ทำไว้ไม่เคยหายไปไหน');
+   }
+  }catch(x){}
   const go=gangOutcome();
   if(go&&go.n){
    const key=go.sz<=0?0:(go.e||(go.w>=2?1:0));
@@ -4284,7 +4445,7 @@ function newGame(c){
      fd:85,wt:85,en:90,wd:0,inf:0,inv:startInv(r.t),sh:{n:sh[0],df:sh[1],hd:sh[2],cond:80},up:{},sk:{},crew:c.lover?[newCrew()]:[],gear:Object.fromEntries(Object.entries(r.gear||{}).filter(x=>x[1])),nextDis:rr(DIFF.disMin,DIFF.disMax),lastDis:'',save:DIFF.save,nd:0,cause:null,cf:0,cs:0,gift:0,
      flags:Object.assign({lover:c.lover?1:0},r.flags||{}),tag:{},c:{steal:0,help:0,spent:0,earned:0,dec:0,jail:0,live:0,acts:0,near:0,eaten:0},
      log:[],seen:{},cool:{},done:{},nextRent:30,finalText:'',finalTag:null,jailed:0,turns:0,mood:'calm'};
-  S.dream=DREAMS[(c.dr!=null?c.dr:rnd(DREAMS.length))%DREAMS.length].id;S.sn={};S.shield=r.t>=10?1:0;S.trace=c.daily?null:getTrace();S.diary=[];S.proph=(c.daily?0:RND()<.8)?rnd(PROPH.length):-1;
+  S.dream=DREAMS[(c.dr!=null?c.dr:rnd(DREAMS.length))%DREAMS.length].id;S.sn={};S.shield=r.t>=10?1:0;S.trace=c.daily?null:getTrace();S.rival=(c.daily||c.wk||RND()>.7)?null:getRival();S.cal0=rnd(365);S.fest={};S.diary=[];S.proph=(c.daily?0:RND()<.8)?rnd(PROPH.length):-1;
   WK=c.wk?WEEKLY.find(w=>w.id===c.wk)||null:null;S.wk=WK?WK.id:'';
   try{S.tf=1}catch(e){S.tf=1}
   try{skillInit();giftApply()}catch(e){}
@@ -4395,14 +4556,16 @@ function genEvent(){
   for(const m of MS){if(!S.done[m.k]&&S.day>=m.at){t=m;isMs=true;break}}
   if(!t&&S.role.rent&&!S.flags.homeless&&S.day>=S.nextRent){t=RENT;S.nextRent+=30}
   if(!t){try{t=gangTick()}catch(x){t=null}}
+  if(!t){try{t=rivalTick()}catch(x){t=null}}
   if(!t){try{t=arcTick()}catch(x){t=null}}
+  if(!t){try{t=festivalTick()}catch(x){t=null}}
   if(!t){try{t=afterTick()}catch(x){t=null}}
   if(!t&&S.day>=S.nextDis&&S.day<345){const c=DIS.filter(d=>d.k!==S.lastDis&&(!d.req||d.req(S)));if(c.length){t=pick(c);S.lastDis=t.k;S.nextDis=S.day+rr(DIFF.disMin+5,DIFF.disMax+12)}}
   if(!t)t=weightedPick();
   if(t.rare)S.rares=(S.rares|0)+1;
   if(!isMs&&t!==RENT)S.cool[t.k]=S.day+(t.cd||15);
   S._cn=t.ct?((S.crew.find(m=>m.tr===t.ct)||{}).n||''):'';
-  const e=build(t,isMs);if(S.gang&&(t.gang||t.k==='gang_found')){const G=S.gang.n;e.head=String(e.head).split('{G}').join(G);e.txt=String(e.txt).split('{G}').join(G);for(const c of e.ch)for(const k of ['t','r','f'])if(typeof c[k]==='string')c[k]=c[k].split('{G}').join(G)}S.mood=e.mood;try{e.tag=evTag(t,isMs)}catch(x){e.tag=null}
+  const e=build(t,isMs);if(S.gang&&(t.gang||t.k==='gang_found')){const G=S.gang.n;e.head=String(e.head).split('{G}').join(G);e.txt=String(e.txt).split('{G}').join(G);for(const c of e.ch)for(const k of ['t','r','f'])if(typeof c[k]==='string')c[k]=c[k].split('{G}').join(G)}try{rivalFill(e,t)}catch(x){}S.mood=e.mood;try{e.tag=evTag(t,isMs)}catch(x){e.tag=null}
   try{if(!isMs&&t!==RENT&&!t.af)afterStart(t,e)}catch(x){}
   return e;
 }
@@ -5099,6 +5262,8 @@ function evTag(t,isMs){
   const k=(t&&t.k)||'';
   if(t.af)return {c:t.af==='rare'?'rare':t.af==='story'?'chain':'dis',i:t.ic,n:'เหตุการณ์ต่อเนื่อง · '+t.nm,s:'ตอนที่ '+t.ep+' จาก '+t.len+(t.ep===t.len?' · ตอนจบ':'')};
   if(t.gang&&S.gang)return {c:'chain',i:GANG_K[t.gang].i,n:'เรื่องของ “'+S.gang.n+'”',s:GANG_K[t.gang].n+' · ตอนที่ '+t.ep+' จาก 5'+(t.ep===5?' · ตอนจบ':'')};
+  if(t.fest){const F=FEST.find(x=>x.k===t.fest);return {c:'late',i:F?F.ic:'🎉',n:'เทศกาล · '+(F?F.n:''),s:calStr(S.day)+' · '+seasonOf(S.day)}}
+  if(t.rv&&S.rival)return {c:'chain',i:S.rival.rel==='foe'?'🗡':'🤝',n:S.rival.rel==='foe'?'ศัตรูเก่ากลับมา':'พันธมิตรเก่ากลับมา',s:'ความสัมพันธ์จากชีวิตก่อน · “'+S.rival.n+'”'};
   if(k==='gang_found')return {c:'chain',i:'🐺',n:'ทางแยกของชีวิต',s:'ตั้งแก๊ง ตั้งกลุ่ม หรืออยู่คนเดียว'};
   if(t.arc)return {c:'dis',i:ARC_I[t.arc],n:'มหันตภัยต่อเนื่อง · '+ARC_N[t.arc],s:'ตอนที่ '+t.ep+' จาก 5'+(t.ep===5?' · ตอนจบ':' · รอดให้ได้จนจบ')};
   if(t.dis)return {c:'dis',i:'☄',n:'มหันตภัย',s:DIS_N[k]||DIS_N_X[k]||'ภัยพิบัติระดับโลก'};
@@ -5203,7 +5368,7 @@ function buildEnding(kind){
   const rest=S.log.slice(1).sort((a,b)=>b.imp-a.imp).slice(0,6);
   const tl=[first].concat(rest).filter(Boolean).sort((a,b)=>a.d-b.d);
   const epitaph=dth?dth.epi:(info&&info.epi)||'“ขอบคุณสำหรับทุกวัน”';
-  return {kind,title,sub,paras,score,grade,stats,tl,best,dream:{n:drm.n,ok:drOk,id:S.dream},proph:pr,diary:(S.diary||[]).slice().sort((a,b)=>b.i-a.i).slice(0,10).sort((a,b)=>a.d-b.d),wk:S.wk||'',cause:dth,epitaph,crew:S.crew.map(m=>m.n),near:S.c.near};
+  return {kind,title,sub,paras,score,grade,stats,tl,best,letter:S.letter||null,dream:{n:drm.n,ok:drOk,id:S.dream},proph:pr,diary:(S.diary||[]).slice().sort((a,b)=>b.i-a.i).slice(0,10).sort((a,b)=>a.d-b.d),wk:S.wk||'',cause:dth,epitaph,crew:S.crew.map(m=>m.n),near:S.c.near};
 }
 /* ===== PIXEL ART ===== */
 const cv=document.getElementById('cv');
@@ -6667,9 +6832,11 @@ function musicLoop(){
   mStep++;
   mTimer=setTimeout(musicLoop,m.ms*(S&&S.day>340?.85:1));
 }
+let lastMusScene=null;
 function setMood(m){
   if(!MUSIC[m])m='calm';
-  if(m===curMood&&mTimer)return;
+  if(m===curMood&&mTimer){const sc=view&&view.scene;if(sc!==lastMusScene){lastMusScene=sc;const t=trackFor(m);if(t!==curTrack){curTrack=t;mStep=0}}return}
+  lastMusScene=view&&view.scene;
   curMood=m;mStep=0;curTrack=trackFor(m);
   if(musicOn&&ac){stinger(m)}
 }
@@ -6690,6 +6857,7 @@ function toggleMusic(){
     musicOn=true;mStep=0;musicLoop();stinger(curMood);ambStart();
   }else{musicOn=false;clearTimeout(mTimer);mTimer=null;ambStop()}
   $('bMusic').setAttribute('aria-pressed',musicOn);
+  try{localStorage.setItem('doom365-music',musicOn?'on':'off')}catch(e){}
   return musicOn;
 }
 function sfx(k){
@@ -6864,10 +7032,102 @@ Object.assign(MUSIC,{
 function trackFor(m){
   const l=VARS[m]||['calm'];
   if(typeof S!=='undefined'&&S&&S.day>=335&&['calm','warm','fun','sad'].includes(m))return pick(S.day>=350?['late2','late2','late']:['late','late2']);
+  {const st=(typeof sceneTrack==='function')?sceneTrack(m):null;if(st)return st}
   return pick(l);
 }
 
 Object.assign(AMB,{netcafe:[[.4,'keys'],[.3,'chatter'],[.1,'beep']],booth:[[.1,'bell'],[.2,'whisper'],[.15,'wind']],stall:[[.3,'chatter'],[.2,'clink'],[.1,'car'],[.06,'bark']],dojo:[[.2,'thud'],[.1,'wind'],[.08,'bell']],base:[[.2,'wind'],[.12,'beep'],[.08,'clank']],alley:[[.2,'drip'],[.12,'whisper'],[.08,'bark'],[.06,'car']],checkpoint:[[.2,'car'],[.12,'beep'],[.08,'horn']],laundry:[[.4,'tick'],[.15,'chatter'],[.1,'drip']]});
+/* ===== เพลงประจำฉาก (เพิ่ม) + เปิดเพลงอัตโนมัติ ===== */
+Object.assign(MUSIC,{
+ /* ระนาด/ฉิ่ง สไตล์ไทย: โน้ตเพนทาโทนิก ไล่ขึ้นลง */
+ thai1:{ms:200,step(i,n){const r=392,sc=PENT,mel=[0,1,2,3,4,3,2,1,0,2,4,2,3,1,2,0];
+   const k=mel[i%16];note(r*SEMI(sc[k%5]+(k>=4?12:0)),.34,'triangle',.06,n);
+   if(i%2===0)note(r*2*SEMI(sc[(k+2)%5]),.18,'sine',.035,n);
+   if(i%4===2)noise(.03,.03,n,7500);
+   if(i%8===0)note(r/4*SEMI(0),.5,'sine',.1,n,{slide:r/4*.8})}},
+ /* ซอ: ทำนองช้า ยืดยาว สั่นเสียง */
+ thai2:{ms:760,step(i,n){const r=293.7,mel=[0,2,4,7,4,2,0,-3,0,2,4,2,0,-3,-5,-3];
+   note(r*SEMI(mel[i%16]),1.5,'triangle',.07,n,{vib:1,atk:.06});
+   if(i%8===0)note(r/4*SEMI(0),6,'sine',.05,n,{atk:.5});
+   if(i%8===4&&Math.random()<.6)note(r*2*SEMI(PENT[rnd(5)]),.9,'sine',.03,n)}},
+ chant:{ms:900,step(i,n){const r=130.8;
+   if(i%8===0){note(r*SEMI(0),7,'sine',.07,n,{atk:1});note(r*SEMI(7),7,'sine',.04,n,{atk:1.4})}
+   if(i%4===1)note(1046*SEMI([0,2,4,7][rnd(4)]-12*rnd(2)),3.2,'sine',.04,n);
+   if(i%16===8)note(440*SEMI(0),.6,'sine',.06,n,{slide:300})}},
+ bazaar:{ms:230,step(i,n){const r=330;
+   if(i%3!==2)note(r*SEMI(PENT[(i*2+(i/8|0))%5]+(i%6<3?0:12)),.14,'square',.04,n);
+   if(i%4===0)kick(n,.12);if(i%2===1)noise(.03,.035,n,6500);
+   if(i%16===15)noise(.2,.05,n,2500,7000)}},
+ sea:{ms:640,step(i,n){const r=261.6,ch=[[0,4,7],[-3,0,4],[-5,-1,2],[-3,0,4]][((i/8)|0)%4];
+   note(r*SEMI(ch[[0,1,2,1][i%4]]+(i%16>=8?12:0)),1.6,'sine',.06,n,{atk:.04});
+   if(i%8===0)noise(3.4,.05,n,350,1800);
+   if(i%8===0)ch.forEach(c=>note(r/2*SEMI(c),4,'triangle',.03,n,{atk:.7}))}},
+ woods:{ms:700,step(i,n){const r=349.2;
+   if(Math.random()<.55)note(r*SEMI(PENT[rnd(5)]-(Math.random()<.4?12:0)),1.8,'sine',.06,n,{vib:1,atk:.12});
+   if(Math.random()<.18)note(2400+rnd(900),.1,'sine',.025,n+.2,{slide:3200});
+   if(i%8===0)note(r/4*SEMI(0),5,'triangle',.04,n,{atk:.6})}},
+ folk:{ms:330,step(i,n){const r=261.6,ch=[[0,4,7],[5,9,12],[7,11,14],[0,4,7]][((i/8)|0)%4];
+   note(r*SEMI(ch[[0,2,1,2,0,1,2,1][i%8]]),.38,'triangle',.07,n);
+   if(i%8===0)note(r/2*SEMI(ch[0]),.8,'triangle',.08,n);if(i%8===4)note(r/2*SEMI(ch[2]),.5,'triangle',.06,n);
+   if(i%2===1)noise(.025,.02,n,6000)}},
+ sky:{ms:520,step(i,n){const r=293.7,sc=[0,2,4,6,7,9,11];
+   if(i%2===0)note(r*SEMI(sc[(i/2*3|0)%7]+(i%16>=8?12:0)),2.4,'sine',.05,n,{atk:.08});
+   if(i%8===0)note(r/2*SEMI(0),5,'triangle',.05,n,{atk:.7});
+   if(Math.random()<.12)noise(1.6,.02,n,800,3500)}},
+ ward:{ms:800,step(i,n){const r=220;
+   if(i%8===0){note(r*SEMI(0),6,'sine',.05,n,{atk:1});note(r*SEMI(3),6,'sine',.035,n,{atk:1.2})}
+   if(i%4===0)note(1000,.09,'sine',.05,n);
+   if(i%8===5&&Math.random()<.6)note(r*2*SEMI(PENT[rnd(5)]),1.4,'sine',.03,n)}},
+ cell:{ms:1000,step(i,n){
+   if(i%6===0)note(55,6,'sawtooth',.035,n,{lp:200,atk:1});
+   if(i%5===2)note(900,.35,'sine',.03,n,{slide:300});
+   if(i%7===3&&Math.random()<.5)noise(1,.025,n,200,1200)}},
+ dance:{ms:150,step(i,n){const r=82.4;
+   if(i%4===0)kick(n,.22);if(i%4===2)noise(.05,.05,n,8000);
+   if(i%2===0)note(r*SEMI([0,0,7,5,3,0,10,7][(i/2|0)%8]),.14,'square',.05,n,{lp:700,dry:true});
+   if(i%16===8)noise(.4,.05,n,1500,6000);
+   note(660*SEMI(MINP[(i*3)%5]),.08,'square',.018,n)}},
+ schoolm:{ms:260,step(i,n){const r=392,mel=[0,4,7,4,0,4,7,12,11,7,4,7,9,5,2,5];
+   note(r*SEMI(mel[i%16]),.22,'triangle',.06,n);
+   if(i%4===0)note(r/4*SEMI([0,5,7,5][(i/4|0)%4]),.5,'triangle',.07,n);
+   if(i%8===4)noise(.03,.03,n,6000)}},
+ transit:{ms:240,step(i,n){const r=196;
+   if(i%2===0)note(r*SEMI(MINP[(i/2|0)%5]),.2,'triangle',.05,n);
+   if(i%4===0)kick(n,.1);if(i%4===3)noise(.04,.03,n,5000);
+   if(i%32===0)note(r*2,2.4,'sine',.03,n,{atk:.4})}},
+ pump:{ms:160,step(i,n){const r=110;
+   if(i%4===0)kick(n,.24);if(i%4===2)kick(n,.1);
+   if(i%2===0)note(r*SEMI([0,0,3,0,5,3,7,3][(i/2|0)%8]),.14,'sawtooth',.045,n,{lp:1000,dry:true});
+   if(i%2===1)noise(.03,.04,n,7000)}},
+ bunk:{ms:760,step(i,n){
+   if(i%8===0)note(49,6,'sawtooth',.05,n,{lp:180,atk:.8});
+   if(i%6===3)note(1200,.06,'square',.02,n);
+   if(i%12===0)noise(1.2,.04,n,150,900)}}
+});
+const SCN_TRK={temple:['chant','thai2'],market:['bazaar','thai1'],stall:['bazaar','thai1'],laundry:['folk','thai1'],beach:['sea','thai1'],harbor:['sea'],
+ forest:['woods','thai2'],mountain:['woods','sky'],farm:['folk','thai1'],village:['folk','thai1','thai2'],park:['woods','folk','thai1'],street:['transit','thai1'],alley:['transit'],
+ rooftop:['sky'],hospital:['ward'],jail:['cell'],club:['dance'],school:['schoolm'],station:['transit'],gym:['pump'],bunker:['bunk'],road:['transit','woods'],
+ office:['transit','schoolm'],store:['bazaar','schoolm'],super:['bazaar'],netcafe:['dance','transit'],room:['folk','sky'],bridge:['sea','sky']};
+function sceneTrack(m){
+  if(!['calm','warm','fun','sad','regret'].includes(m))return null;
+  const sc=view&&view.scene,l=SCN_TRK[sc];
+  if(!l||Math.random()>.75)return null;
+  return pick(l);
+}
+/* เปิดเพลงอัตโนมัติเมื่อผู้เล่นแตะ/กดครั้งแรก (เบราว์เซอร์ห้ามเปิดเสียงก่อนมีการกด) ถ้าเคยปิดไว้เองจะไม่เปิด */
+const MUPREF='doom365-music';
+(function(){
+  let done=false;
+  function pref(){try{return localStorage.getItem(MUPREF)}catch(e){return null}}
+  function go(e){
+    if(done)return;done=true;
+    document.removeEventListener('pointerdown',go,true);document.removeEventListener('keydown',go,true);
+    if(e&&e.target&&e.target.closest&&e.target.closest('#bMusic,#ovvm'))return;
+    if(pref()==='off'||musicOn)return;
+    try{toggleMusic()}catch(x){}
+  }
+  document.addEventListener('pointerdown',go,true);document.addEventListener('keydown',go,true);
+})();
 /* ===== เสียงประกอบเหตุการณ์: ภัยพิบัติ สัตว์ประหลาด เทพเจ้า เอเลี่ยน ฯลฯ (สังเคราะห์ด้วย WebAudio) ===== */
 let _evLast='';
 function sweepNoise(dur,vol,lp0,lp1,when,hp){
@@ -7798,7 +8058,7 @@ function renderEvent(m,mode){
   // mode: 'host' | 'solo' | 'guest'
   const mood=MOODNAME[m.mood]||'';
   panel.innerHTML=
-   '<div class="kick"><span>'+esc(sceneName(m.scene))+'</span><span>'+esc(TOD_NAME[m.tod]||'')+'</span><span>วันที่ '+(Math.floor(m.day)+1)+'</span>'+(mood?'<span class="tag mood">บรรยากาศ: '+mood+'</span>':'')+(S&&S.dream&&mode!=='guest'?'<span class="tag">ฝัน: '+esc(dreamOf().n)+'</span>':'')+(S&&S.proph>=0&&mode!=='guest'?'<span class="tag">ทำนาย: '+esc(prophOf().n)+'</span>':'')+((S&&S.shield|0)>0&&mode!=='guest'?'<span class="tag">โล่ ×'+S.shield+'</span>':'')+'</div>'+
+   '<div class="kick"><span>'+esc(sceneName(m.scene))+'</span><span>'+esc(TOD_NAME[m.tod]||'')+'</span><span>วันที่ '+(Math.floor(m.day)+1)+(typeof calStr==='function'&&mode!=='guest'&&calStr(m.day)?' · '+calStr(m.day):'')+'</span>'+(mood?'<span class="tag mood">บรรยากาศ: '+mood+'</span>':'')+(S&&S.dream&&mode!=='guest'?'<span class="tag">ฝัน: '+esc(dreamOf().n)+'</span>':'')+(S&&S.proph>=0&&mode!=='guest'?'<span class="tag">ทำนาย: '+esc(prophOf().n)+'</span>':'')+((S&&S.shield|0)>0&&mode!=='guest'?'<span class="tag">โล่ ×'+S.shield+'</span>':'')+'</div>'+
    '<div class="amb q">'+esc(m.quote)+'</div>'+
    (m.tag?'<div class="evtag '+esc(m.tag.c)+'" role="status"><i>'+m.tag.i+'</i><span><b>'+esc(m.tag.n)+'</b><small>'+esc(m.tag.s)+'</small></span></div>':'')+
    '<h2'+(m.tag?' class="et-'+esc(m.tag.c)+'"':'')+'>'+esc(m.head)+'</h2><p class="sub clamp">'+esc(m.txt)+'</p><button class="mini more" id="evmore" style="display:none">อ่านต่อ ▾</button>'+
@@ -7974,6 +8234,7 @@ function showBirth(){
 }
 
 function showEvent(){
+  if(shouldLetter()){showLetter();return}
   stage='play';busy=false;MP.votes={};MP.tally=null;
   ev=genEvent();codexAdd(ev.k);const ctx=viewFor(ev);renderHUD();
   {const e0=ev;if(!(MP.on&&MP.guest)&&(ALBUM.length===0||Math.floor(S.day)>=358&&ALBUM.length<14&&RND()<.5||(e0.cat==='danger'||e0.cat==='joy')&&RND()<.2))setTimeout(()=>{if(stage==='play')albumShot(e0.head)},500)}
@@ -8134,7 +8395,7 @@ function morningPick(i){
 /* ===== ตอนจบ ===== */
 const DSCENE={giveup:'rooftop',yacht:'harbor',jetski:'harbor',drown:'harbor',elevator:'bunker',safe:'room',fugu:'club',kidnap:'harbor',pool:'rooftop',supercar:'road',crash:'road',bus:'road',cliff:'mountain',fall:'rooftop',selfie:'rooftop',snake:'forest',bee:'forest',mushroom:'forest',collapse:'village',starve:'street',thirst:'beach',chased:'street',karaoke:'club',sleep:'club',liver:'club',spicy:'market',banana:'market',coconut:'beach',choke:'market',allergy:'market',veg:'room',laugh:'room',heartbreak:'cemetery',wound:'hospital',infect:'hospital',heartattack:'hospital',heartplay:'street',lightning:'village',electric:'street',exhaust:'road',titan:'wall',monster:'rift',alien:'rift',ghost:'haunt',flood:'bridge',quake:'street',meteor:'mountain',kaiju:'harbor'};
 function endModel(E,kind){
-  return {k:'end',kind,title:E.title,sub:E.sub,paras:E.paras,score:E.score,grade:E.grade,stats:E.stats,epitaph:E.epitaph,cause:E.cause?{t:E.cause.t,c:E.cause.c}:null,
+  return {k:'end',kind,title:E.title,sub:E.sub,paras:E.paras,score:E.score,grade:E.grade,stats:E.stats,epitaph:E.epitaph,cause:E.cause?{t:E.cause.t,c:E.cause.c}:null,letter:E.letter?{to:clean(E.letter.to,30),txt:clean(E.letter.txt,260)}:null,
     crew:E.crew,tl:E.tl.map(l=>({d:l.d,t:l.t,ok:l.ok})),name:S.name,role:S.role.n,hud:hudOf(),mood:kind==='died'?'sad':kind==='jail'?'regret':'warm',day:S.day,
     scene:kind==='died'?(DSCENE[S.cause]||'cemetery'):kind==='jail'?'jail':(E.dream&&E.dream.ok&&DREAM_SCENE[E.dream.id])||'rooftop',tod:'dusk',look:S.role.look,doomId:S.doom.id,endfx:kind==='died'?'died':kind==='final'?'final':'jail',crewv:S.crew.map(m=>({look:m.look}))};
 }
@@ -8148,7 +8409,7 @@ function endHTML(m,lives){
    (m.cause?'<div class="tomb"><small>สาเหตุการจากไป · '+esc(m.cause.c)+'</small><b>'+esc(m.cause.t)+'</b><em>'+esc(m.epitaph)+'</em></div>':'<div class="tomb"><small>คำสุดท้ายของปีนี้</small><em>'+esc(m.epitaph)+'</em></div>')+
    '<h2 class="big">'+esc(m.title)+'</h2><p class="sub" style="margin-top:-6px">'+esc(m.sub)+'</p>'+
    '<div class="facts"><div class="fact"><small>คะแนนชีวิต</small><b>'+m.score+' / 100</b></div><div class="fact"><small>สรุป</small><b>'+esc(m.grade)+'</b></div>'+(m.crew&&m.crew.length?'<div class="fact"><small>คนที่อยู่ข้างๆ</small><b style="font-size:15px">'+m.crew.map(esc).join(', ')+'</b></div>':'')+'</div>'+
-   m.paras.map(p=>'<p class="res">'+esc(p)+'</p>').join('')+
+   m.paras.map(p=>'<p class="res">'+esc(p)+'</p>').join('')+(m.letter&&m.letter.txt?'<div class="letter"><small>จดหมายฉบับสุดท้ายถึง '+esc(m.letter.to)+'</small><p>“'+esc(m.letter.txt)+'”</p></div>':'')+
    '<div class="facts">'+m.stats.map(s=>'<div class="fact"><small>'+esc(s[0])+'</small><b style="font-size:15px">'+esc(s[1])+'</b></div>').join('')+'</div>'+
    '<p class="hint" style="margin-bottom:-6px">เส้นเวลาของชีวิต</p><ul class="tlist act3">'+act3+'</ul>'+(lives||'');
 }
@@ -8156,7 +8417,7 @@ function showEnding(kind){
   stage='ending';const E=buildEnding(kind);
   if(S.cause==='giveup'&&kind==='died'){E.score=Math.min(E.score,5);E.grade='ยอมแพ้'}
   lsSet(SAVEKEY,'');
-  if(!(MP.on&&MP.guest))saveLegacy();
+  if(!(MP.on&&MP.guest)){saveLegacy();try{if(!S.wk&&S.cause!=='giveup'){const rv=rivalFromLife();if(rv)saveRival(rv);else if(S.rival&&(S.flags.rv|0)>=3)saveRival(null)}}catch(e){}}
   if(S.cause==='giveup'&&kind==='died'&&!(MP.on&&MP.guest))tset(DW_KEY,Date.now()+DW_MS);
   let hist=[];try{hist=JSON.parse(lsGet(HISTKEY)||'[]')}catch(e){}
   hist.unshift({t:E.title,s:E.score,r:S.role.n});lsSet(HISTKEY,JSON.stringify(hist.slice(0,5)));
@@ -8239,7 +8500,7 @@ function guestRender(m){
     stage='guest';
   }else if(m.k==='end'){
     const em={title:clean(m.title,120),sub:clean(m.sub,120),paras:(Array.isArray(m.paras)?m.paras:[]).slice(0,10).map(p=>clean(p,700)),score:gnum(m.score,0,100),grade:clean(m.grade,40),
-      stats:(Array.isArray(m.stats)?m.stats:[]).slice(0,20).map(s=>[clean(s&&s[0],40),clean(s&&s[1],40)]),epitaph:clean(m.epitaph,160),
+      stats:(Array.isArray(m.stats)?m.stats:[]).slice(0,20).map(s=>[clean(s&&s[0],40),clean(s&&s[1],40)]),epitaph:clean(m.epitaph,160),letter:m.letter&&typeof m.letter==='object'?{to:clean(m.letter.to,30),txt:clean(m.letter.txt,260)}:null,
       cause:m.cause&&typeof m.cause==='object'?{t:clean(m.cause.t,60),c:clean(m.cause.c,30)}:null,crew:(Array.isArray(m.crew)?m.crew:[]).slice(0,5).map(n=>clean(n,16)),
       tl:(Array.isArray(m.tl)?m.tl:[]).slice(0,10).map(l=>({d:gnum(l&&l.d,0,400),t:clean(l&&l.t,100),ok:!!(l&&l.ok)})),name:clean(m.name,24),role:clean(m.role,40)};
     panel.innerHTML=endHTML(em,'')+'<div class="row"><button class="btn ghost" id="leave">ออกจากห้อง</button></div>';
@@ -8438,10 +8699,10 @@ async function makeShareCard(E,kind){
    const ls=cardWrap(x,ch[1],cw-28,'700 28px '+F);x.font='700 28px '+F;ls.slice(0,2).forEach((l,j)=>x.fillText(l,cx+16,cy+70+j*30));
   });
   // คำสุดท้าย
-  const ep=E.cause?E.epitaph:E.epitaph;
+  const ep=E.letter&&E.letter.txt?('จดหมายถึง '+E.letter.to+': '+E.letter.txt):E.epitaph;
   x.fillStyle='rgba(255,255,255,.8)';x.font='italic 500 28px '+F;
   const el=cardWrap(x,(E.cause?'สาเหตุ: '+E.cause.t+'\n':'')+String(ep||'').replace(/[“”"]/g,''),960,'italic 500 28px '+F);
-  let ey=cy+160;el.slice(0,3).forEach(l=>{x.fillText(l,60,ey);ey+=38});
+  let ey=cy+160;{const sl=el.slice(0,3);if(el.length>3)sl[2]=sl[2].slice(0,-1)+'…';sl.forEach(l=>{x.fillText(l,60,ey);ey+=38})}
   x.fillStyle='rgba(255,255,255,.45)';x.font='500 24px '+F;x.textAlign='right';
   x.fillText('bassuto.github.io/doom365',W-60,H-42);
   return c;
@@ -8460,5 +8721,50 @@ async function saveShareCard(E,kind){
     if(!done){const u=URL.createObjectURL(blob);const l=document.createElement('a');l.href=u;l.download='doom365-card.png';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)}
     toast('บันทึกการ์ดแล้ว');
   }catch(e){toast('สร้างการ์ดไม่สำเร็จ')}
+}
+/* ===== จดหมายฉบับสุดท้ายถึงคนที่รัก: เขียนก่อนวันสุดท้าย แล้วถูกอ่านตอนจบ ===== */
+const LET_TPL={
+ love:['ขอบคุณที่ยังอยู่ตรงนี้นะ ถ้าพรุ่งนี้เป็นวันสุดท้ายจริงๆ ฉันอยากให้เธอรู้ว่าทุกวันที่ผ่านมา มีเธออยู่ในนั้นเสมอ','ฉันไม่เก่งเรื่องพูด แต่ขอพูดวันนี้ว่ารักเธอ และไม่เสียใจเลยที่เลือกเธอ','ถ้ายังมีเวลา ฉันอยากกลับไปนั่งกินข้าวกับเธอที่โต๊ะตัวเดิมอีกสักมื้อ'],
+ fam:['พ่อแม่คะ/ครับ ขอโทษที่ไม่ค่อยโทรกลับ แต่ฉันคิดถึงทุกคนทุกวันเลย','ขอบคุณที่เลี้ยงฉันมาจนวันนี้ ถ้ามีชาติหน้า ขอเกิดมาเป็นลูกบ้านนี้อีก','ฝากดูแลกันและกันด้วยนะ ฉันภูมิใจที่ได้เป็นส่วนหนึ่งของบ้านนี้'],
+ friend:['ขอบคุณที่อยู่ข้างกันในปีที่บ้าที่สุดนี้ ถ้าไม่มีนาย/เธอ ฉันคงไม่รอดมาถึงตรงนี้','ที่เคยทะเลาะกัน ลืมไปเถอะ ฉันแค่อยากให้รู้ว่าเรายังเป็นเพื่อนกัน','คืนสุดท้ายนี้ ขอให้ได้หัวเราะด้วยกันอีกสักครั้ง'],
+ foe:['ฉันไม่โกรธแล้ว เรื่องที่เกิดขึ้นมันผ่านไปแล้ว ขอให้เธอ/นายเจอแต่เรื่องดีๆ ในวันที่เหลือ','ถ้าเคยทำให้เธอ/นายเจ็บ ฉันขอโทษจริงๆ','ไม่ต้องตอบกลับก็ได้ แค่อยากให้รู้ว่าฉันปล่อยวางแล้ว'],
+ self:['ถึงตัวฉันเอง เธอทำดีที่สุดแล้วนะ ไม่ว่าผลจะเป็นอย่างไร','ถึงฉันในวันก่อน ถ้าย้อนกลับไปได้ ฉันจะบอกว่าอย่ากลัวเลย','พักได้แล้วนะ ปีนี้เหนื่อยมามากพอ'],
+ all:['ถ้าใครอ่านจดหมายนี้อยู่ ขอให้รู้ว่าวันนี้มีใครสักคนคิดถึงคุณ','ขอบคุณทุกคนที่เคยยิ้มให้ ทักทาย หรือแบ่งข้าวกันในปีนี้','ให้ทุกคนใช้เวลาที่เหลือกับคนที่รักนะ']
+};
+function letterTargets(){
+  const a=[];
+  if(S.flags.lover)a.push({k:'love',t:'คนรัก'});
+  for(const m of S.crew.slice(0,3))a.push({k:'friend',t:m.n});
+  a.push({k:'fam',t:'ครอบครัว'});
+  if(!a.some(x=>x.k==='friend'))a.push({k:'friend',t:'เพื่อนเก่า'});
+  if((S.kar|0)<=-10||S.c.steal>=3||S.rival)a.push({k:'foe',t:'คนที่เคยมีเรื่องกัน'});
+  a.push({k:'self',t:'ตัวฉันเอง'});a.push({k:'all',t:'ทุกคน'});
+  return a;
+}
+function shouldLetter(){return !(MP.on&&MP.guest)&&!S.letterDone&&S.day>=350&&S.day<364.5}
+function showLetter(){
+  stage='letter';busy=false;renderHUD();
+  const T=letterTargets();let sel=0;
+  panel.innerHTML='<div class="kick"><span>ก่อนวันสุดท้าย</span><span>วันที่ '+(Math.floor(S.day)+1)+'</span></div>'+
+   '<h2 style="font-size:24px">จดหมายฉบับสุดท้าย</h2>'+
+   '<p class="sub">เหลืออีกไม่กี่วัน คุณหยิบกระดาษแผ่นหนึ่งขึ้นมา จะเขียนถึงใครสักคนไหม ข้อความนี้จะถูกอ่านออกมาในตอนจบของชีวิตนี้</p>'+
+   '<div class="lchips" id="lchips">'+T.map((x,i)=>'<button type="button" class="mini'+(i===0?' on':'')+'" data-i="'+i+'">'+esc(x.t)+'</button>').join('')+'</div>'+
+   '<textarea id="ltxt" maxlength="240" rows="5" placeholder="เขียนสิ่งที่อยากบอก (ไม่เกิน 240 ตัวอักษร)" style="width:100%;box-sizing:border-box;padding:10px;border-radius:8px;border:1px solid var(--line);background:#fffdf6;color:#2a1a08;font:inherit"></textarea>'+
+   '<div class="row" style="justify-content:space-between;align-items:center"><small id="lcnt" class="hint">0 / 240</small><button type="button" class="mini" id="lex">💡 ขอตัวอย่างข้อความ</button></div>'+
+   '<div class="row"><button class="btn" id="lsend">ส่งจดหมาย</button><button class="btn ghost" id="lskip">ไม่เขียน</button></div>';
+  const ta=$('ltxt'),cnt=$('lcnt');
+  const upd=()=>{cnt.textContent=ta.value.length+' / 240'};ta.oninput=upd;
+  $('lchips').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;sel=+b.dataset.i;$('lchips').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b))};
+  let ti=0;$('lex').onclick=()=>{const l=LET_TPL[T[sel].k]||LET_TPL.all;ta.value=l[ti++%l.length];upd();ta.focus()};
+  const done=()=>{S.letterDone=1;saveGame(true);showEvent()};
+  $('lsend').onclick=()=>{
+    const txt=clean(ta.value,240).trim();
+    if(txt.length<4){toast('เขียนอีกสักหน่อยนะ');return}
+    S.letter={to:T[sel].t,txt};S.md=clamp(S.md+6,0,100);S.lv=clamp(S.lv+3,0,100);
+    sfx('ok');toast('ส่งจดหมายแล้ว ใจเบาลงเยอะเลย');done();
+  };
+  $('lskip').onclick=done;
+  hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
+  setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
 </script></body></html>
