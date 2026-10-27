@@ -374,6 +374,7 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
         <small id="pool"></small>
         <div class="bt">
           <button class="mini" id="bMusic" aria-pressed="false">♪ เพลง</button>
+          <button class="mini" id="bRisk">ตัวเลขเสี่ยง</button>
           <button class="mini" id="bVol">ระดับเสียง</button>
           <button class="mini" id="bTheme">ธีม</button>
           <button class="mini" id="bHelp">วิธีเล่น</button>
@@ -7115,19 +7116,26 @@ function sceneTrack(m){
   if(!l||Math.random()>.75)return null;
   return pick(l);
 }
-/* เปิดเพลงอัตโนมัติเมื่อผู้เล่นแตะ/กดครั้งแรก (เบราว์เซอร์ห้ามเปิดเสียงก่อนมีการกด) ถ้าเคยปิดไว้เองจะไม่เปิด */
+/* เปิดเพลงอัตโนมัติเมื่อผู้เล่นแตะ/กดครั้งแรก (เบราว์เซอร์ห้ามเปิดเสียงก่อนมีการกด) ถ้าเคยปิดไว้เองจะไม่เปิด
+   มือถือนับ pointerup/touchend/click เป็นการกดที่เปิดเสียงได้ จึงดักหลายเหตุการณ์และลองเรียก resume ซ้ำจนกว่าจะเล่นจริง */
 const MUPREF='doom365-music';
 (function(){
-  let done=false;
+  const evs=['pointerdown','pointerup','touchend','click','keydown'];
   function pref(){try{return localStorage.getItem(MUPREF)}catch(e){return null}}
+  function stop(){evs.forEach(n=>document.removeEventListener(n,go,true))}
   function go(e){
-    if(done)return;done=true;
-    document.removeEventListener('pointerdown',go,true);document.removeEventListener('keydown',go,true);
-    if(e&&e.target&&e.target.closest&&e.target.closest('#bMusic,#ovvm'))return;
-    if(pref()==='off'||musicOn)return;
-    try{toggleMusic()}catch(x){}
+    if(pref()==='off'){stop();return}
+    if(e&&e.target&&e.target.closest&&e.target.closest('#bMusic,#ovvm')){stop();return}
+    try{
+      if(!musicOn){toggleMusic()}
+      else if(ac&&ac.state==='suspended'){ac.resume()}
+      if(musicOn&&ac){
+        if(ac.state==='running')stop();
+        else ac.resume().then(()=>{if(ac.state==='running')stop()}).catch(()=>{});
+      }
+    }catch(x){}
   }
-  document.addEventListener('pointerdown',go,true);document.addEventListener('keydown',go,true);
+  evs.forEach(n=>document.addEventListener(n,go,true));
 })();
 /* ===== เสียงประกอบเหตุการณ์: ภัยพิบัติ สัตว์ประหลาด เทพเจ้า เอเลี่ยน ฯลฯ (สังเคราะห์ด้วย WebAudio) ===== */
 let _evLast='';
@@ -8040,11 +8048,17 @@ $('cform').onsubmit=e=>{
 
 /* ===== ตัวแสดงผลการ์ด (ใช้กับทั้งเจ้าของเกมและแขก) ===== */
 const sceneName=s=>SCENE_NAME[s]||'ที่ไหนสักแห่ง';
+let RISKMODE='pct';try{const v=localStorage.getItem('doom365-risk');if(v==='txt'||v==='off')RISKMODE=v}catch(e){}
+function riskWord(p){return p<.15?'เสี่ยงต่ำ':p<.35?'เสี่ยงปานกลาง':p<.55?'เสี่ยงสูง':'เสี่ยงสูงมาก'}
+const RISKLBL={pct:'ตัวเลขเสี่ยง: เปอร์เซ็นต์',txt:'ตัวเลขเสี่ยง: ข้อความ',off:'ตัวเลขเสี่ยง: ซ่อน'};
+function cycleRisk(){RISKMODE=RISKMODE==='pct'?'txt':RISKMODE==='txt'?'off':'pct';try{localStorage.setItem('doom365-risk',RISKMODE)}catch(e){}
+  const b=$('bRisk');if(b)b.textContent=RISKLBL[RISKMODE];toast(RISKLBL[RISKMODE]);
+  if(stage==='play'&&ev&&!(MP.on&&MP.guest)){busy=false;renderEvent(evModel(ev),MP.on&&MP.host?'host':'solo')}}
 function chipsOf(c){
   let ch=chipsFor(c.x);
   if(c.dice)ch+='<span class="chip neu txt">ทอยลูกเต๋า ลุ้นผล</span>';
   else ch+='<span class="chip neu">'+ic('d')+c.d+' วัน</span>';
-  if(c.p)ch+='<span class="chip rk txt">เสี่ยงพลาด ~'+Math.round(c.p*100)+'%</span>';
+  if(c.p&&RISKMODE!=='off')ch+='<span class="chip rk txt">'+(RISKMODE==='txt'?riskWord(c.p):'เสี่ยงพลาด ~'+Math.round(c.p*100)+'%')+'</span>';
   if(!c.ok)ch+='<span class="chip dn txt">เงินหรือของไม่พอ</span>';
   return ch;
 }
@@ -8529,6 +8543,7 @@ document.addEventListener('keydown',e=>{
   if(n>=1&&n<=9){const b=panel.querySelector('[data-i="'+(n-1)+'"]');if(b&&!b.disabled)b.click()}
 });
 $('bMusic').onclick=()=>{toggleMusic()};
+{const rb=$('bRisk');if(rb){rb.textContent=RISKLBL[RISKMODE];rb.onclick=cycleRisk}}
 $('bSave').onclick=()=>saveGame(false);
 $('bLegend').onclick=showLegend;
 $('bQuit').onclick=askQuit;
@@ -8768,5 +8783,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 28/10 06:08';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 28/10 06:13';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
