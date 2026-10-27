@@ -7661,7 +7661,7 @@ function showTut(){
   const tips=[
    ['เลือกชะตา','ทุกวันจะมีเหตุการณ์ให้เลือก 3–6 ข้อ แต่ละข้อมีผลต่อเลือด กำลังใจ เงิน และความรัก'],
    ['ช่วงเช้า ทำมาหากิน','ในแต่ละเหตุการณ์ทำกิจกรรมได้ 3 ครั้ง (หาเงิน หาอาหาร น้ำ ซ่อมที่พัก) และพักฟรีได้อีก 1 ครั้ง'],
-   ['จับจังหวะ','ตอนเสี่ยงอันตราย จะมีมินิเกมกดหยุดให้ตรงช่วงสีเขียว ยิ่งแม่นยิ่งเสี่ยงน้อยลง'],
+   ['ลุ้นโชค','ตอนเลือกข้อที่เสี่ยง ผลออกตามเปอร์เซ็นต์ที่เห็น ไม่มีมินิเกม ลุ้นด้วยกันได้เลย'],
    ['โล่ ความฝัน คำทำนาย','โล่กันภัยช่วยกันเหตุร้ายได้ 1 ครั้ง ความฝันสุดท้ายและคำทำนายของหมอดูมีผลต่อคะแนนตอนจบ'],
    ['เพื่อนร่วมทาง','แต่ละคนมีนิสัยต่างกัน ดูแลดีๆ จะผูกพันขึ้น ถ้าละเลย เขาอาจจากไป'],
    ['15 วันสุดท้าย','ทุกอย่างจะเปลี่ยนเป็นโทนไฟ ลูกไฟตกลงมา และทุกการตัดสินใจจะมีน้ำหนักมากขึ้น']
@@ -8260,7 +8260,7 @@ function showEvent(){
 }
 
 const MGK='doom365-mg';
-function mgOn(){try{return localStorage.getItem(MGK)!=='off'}catch(e){return true}}
+function mgOn(){return false} /* ถอดมินิเกมจับจังหวะออกแล้ว: ผลเสี่ยงขึ้นกับโชคตามเปอร์เซ็นต์ล้วนๆ */
 function mgPlay(c,done){
   const ov=document.createElement('div');ov.className='ov';
   const zw=.2+(1-Math.min(.9,c.risk.p))*.08,zc=.25+Math.random()*.5;
@@ -8783,5 +8783,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 28/10 06:13';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 28/10 06:18';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
