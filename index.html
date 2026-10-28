@@ -370,6 +370,16 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
 .olist .op.t1{background:rgba(245,197,66,.16);border-left-color:#f5c542}.olist .op.t2{background:rgba(190,196,210,.2);border-left-color:#c0c6d4}.olist .op.t3{background:rgba(205,127,50,.18);border-left-color:#cd7f32}.olist .op.t4{background:rgba(220,70,70,.13);border-left-color:#dc4646}
 .olist .op>span{min-width:0}.olist .om{color:var(--gold2,#b8860b)!important;font-weight:700}
 .olist{overscroll-behavior:contain}
+
+.chatw{display:grid;gap:6px;border:1px solid var(--line);background:var(--bg2);padding:10px 12px;margin-top:8px}
+.chatw .chh{display:flex;justify-content:space-between;align-items:center;color:var(--gold2);font-size:14px}
+.cmsgs{max-height:190px;overflow:auto;display:grid;gap:3px;align-content:start;overscroll-behavior:contain;font-size:14px;line-height:1.35;min-height:60px}
+.cm{word-break:break-word;overflow-wrap:anywhere}.cm.dim{color:var(--muted);font-size:13px}
+.cm.inv{background:rgba(245,197,66,.13);border-left:3px solid #f5c542;padding:3px 6px;border-radius:6px}
+.cn{cursor:pointer}.cn.me{color:var(--gold2);cursor:default}.cn i{font-style:normal;font-weight:400;color:var(--muted);font-size:11px}
+.cform{display:flex;gap:6px;flex-wrap:wrap}.cform input{flex:1 1 140px;min-width:0;background:var(--bg);border:1px solid var(--line);color:var(--text);padding:7px 10px;font:inherit}
+.cform .btn{padding:7px 12px;font-size:14px}.cnote{font-size:11px!important;margin:0!important}.cerr{color:var(--bad,#c0392b);margin:0!important;min-height:0}
+.rcb{font-size:12px;color:var(--gold2)}
 </style></head><body>
 
 <div class="app" id="app">
@@ -406,6 +416,7 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
           <button class="mini" id="bAch">เหรียญ</button>
           <button class="mini" id="bCod">สมุดบันทึก</button>
           <button class="mini hot" id="bBoard">🏆 อันดับ</button>
+          <button class="mini" id="bChat">💬 แชท</button>
           <button class="mini" id="bSave">บันทึกชีวิต</button>
           <button class="mini" id="bQuit">ยอมแพ้</button>
         </div>
@@ -8298,7 +8309,7 @@ const NERF_AT=Date.UTC(2026,9,28,18,0,0);
 function lbRow(id,d){
   d=d||{};
   const dd=clean(d.dd,10),today=dayKey();
-  const row={id:String(id),nick:clean(d.nick,16)||'ผู้เล่น',lives:num(d.lives,99999),survived:num(d.survived,99999),richest:num(d.richest),meds:num(d.meds,99999),joy:num(d.joy,100),best:num(d.best,100),role:clean(d.role,40),title:clean(d.title,80),daily:dd===today?num(d.ds,100):0,wk:num(d.wk,9999),dr:num(d.dr,99999),tt:clean(d.tt,30),
+  const row={id:String(id),nick:(typeof chatMask==='function'?chatMask(clean(d.nick,16)):clean(d.nick,16))||'ผู้เล่น',lives:num(d.lives,99999),survived:num(d.survived,99999),richest:num(d.richest),meds:num(d.meds,99999),joy:num(d.joy,100),best:num(d.best,100),role:clean(d.role,40),title:clean(d.title,80),daily:dd===today?num(d.ds,100):0,wk:num(d.wk,9999),dr:num(d.dr,99999),tt:clean(d.tt,30),
     arms:num(d.arms,200),banana:num(d.banana,99999),ghost:num(d.ghost,999999),
     causes:Array.isArray(d.causes)?d.causes.slice(0,90).map(x=>clean(x,20)):[],roles:Array.isArray(d.roles)?d.roles.slice(0,120).map(x=>num(x,999)):[]};
   row.at=num(d.at,4e12);row.at0=num(d.at0,4e12);row.sig=clean(d.sig,16);
@@ -8463,11 +8474,13 @@ function lobbyInit(){
   if(!MP.api||onlUnsub||typeof MP.api.onPeers!=='function')return;
   try{onlUnsub=MP.api.onPeers(()=>{renderOnline();updOnc()})}catch(e){}
   try{giftInit()}catch(e){}
+  try{chatInit()}catch(e){}
   try{if(typeof MP.api.onConnection==='function')MP.api.onConnection(()=>{renderOnline();updOnc()})}catch(e){}
   lobbyPresence();updOnc();
 }
 function renderOnline(){
   updOnc();
+  try{const cw=$('chat');if(cw&&cw.querySelector('input[disabled]')&&MP.api&&typeof MP.api.emit==='function')chatMount(cw)}catch(e){}
   const el=$('onl');if(!el||!MP.api||typeof MP.api.peers!=='function')return;
   const ps=MP.api.peers().filter(p=>p.kind==='viewer');
   let tp={};try{rankList('survived').slice(0,10).forEach((r,i)=>{tp[r.id]=i+1});}catch(e){}
@@ -8480,7 +8493,7 @@ function renderOnline(){
      const cls=rk?(rk<=3?' t'+rk:' t4'):rr2?(rr2<=3?' t'+rr2:' t4'):'';
      const tag=(rk?'<i class="tt sv g'+Math.min(4,rk)+'">'+(['🥇','🥈','🥉'][rk-1]||'🛡')+' ท็อป '+rk+' ผู้รอด</i>':'')+(rr2?'<i class="tt sv g'+Math.min(4,rr2)+'">'+(['🥇','🥈','🥉'][rr2-1]||'👑')+' ท็อป '+rr2+' เศรษฐี</i>':'');
      const mo=typeof pr.mo==='number'&&isFinite(pr.mo)&&pr.mo>=0?Math.min(5e8,Math.round(pr.mo)):null;
-     return '<div class="op'+cls+'"><span><b>'+esc(clean(pr.nm,16)||'ผู้เล่น')+(p.sameTab?' (คุณ)':'')+'</b>'+tag+'<small>'+esc(clean(pr.st,50)||'')+'</small>'+(mo!==null?'<small class="om">💰 '+fmt(mo)+'</small>':/^กำลังเล่น/.test(clean(pr.st,50)||'')?'<small>💰 ไม่ทราบ (เขายังใช้เกมเวอร์ชันเก่า)</small>':'')+'</span>'+(canJoin?'<button class="mini" data-rc="'+rc+'">เข้าห้อง</button>':'')+'</div>';
+     return '<div class="op'+cls+'"><span><b>'+esc(chatMask(clean(pr.nm,16))||'ผู้เล่น')+(p.sameTab?' (คุณ)':'')+'</b>'+tag+'<small>'+esc(clean(pr.st,50)||'')+'</small>'+(mo!==null?'<small class="om">💰 '+fmt(mo)+'</small>':/^กำลังเล่น/.test(clean(pr.st,50)||'')?'<small>💰 ไม่ทราบ (เขายังใช้เกมเวอร์ชันเก่า)</small>':'')+'</span>'+(canJoin?'<button class="mini" data-rc="'+rc+'">เข้าห้อง</button>':'')+'</div>';
    }).join(''):'<div class="op"><span><small>ยังไม่มีใคร</small></span></div>')+'</div>';
   el.style.display='grid';
   if(el._h===html)return;
@@ -8829,6 +8842,14 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-10-29d',date:'29 ต.ค. 2569',title:'แชท: กรองคำหยาบและสแปมเข้มขึ้น',items:[
+  'กรองคำหยาบภาษาไทย/อังกฤษ (รวมพิมพ์เลี่ยง เช่น เว้นวรรคแทรกตัวอักษร) ข้อความที่มีคำหยาบจะส่งไม่ได้ และชื่อผู้เล่นที่หยาบจะถูกปิดเป็น ***',
+  'บล็อกโฆษณา/พนัน/ชวนเข้าไลน์ เลขโทรศัพท์ ไอดี @ ลิงก์ อีโมจิหรือตัวอักษรซ้ำๆ เยอะเกินไป และข้อความซ้ำ',
+  'คนที่สแปมซ้ำ 3 ครั้งจะถูกซ่อนข้อความอัตโนมัติในรอบนั้น']},
+ {id:'2026-10-29c',date:'29 ต.ค. 2569',title:'แชทโลก — คุยและชวนเล่นกับคนออนไลน์',items:[
+  '💬 มีช่องแชทใต้รายชื่อ "คนออนไลน์ตอนนี้" ในหน้าแรก และปุ่ม "💬 แชท" ในเมนูระหว่างเล่น ข้อความมองเห็นเฉพาะคนที่ออนไลน์ตอนนั้น ไม่ถูกบันทึก',
+  '📣 ปุ่ม "ชวนเล่น": ถ้าคุณเปิดห้องเล่นกับเพื่อนอยู่ ข้อความชวนจะมีปุ่ม "เข้าห้อง" ให้คนอื่นกดเข้าได้ทันที',
+  '🛡 ซ่อนลิงก์อัตโนมัติ ส่งได้ทุก 2 วินาที แตะชื่อใครเพื่อซ่อนข้อความของคนนั้น และมีปุ่มซ่อนแชททั้งหมด']},
  {id:'2026-10-29b',date:'29 ต.ค. 2569',title:'เปลี่ยนอาชีพระหว่างเล่น + พักผ่อนลดลง + เนิฟทายาท',items:[
   '💼 ระบบอาชีพแฝง: กดปุ่ม "📋 หางานใหม่" ตอนเช้า (หรือรอโดนชวนในเหตุการณ์) เพื่อเลือกงานใหม่ 20 แบบ โดยอาชีพเดิมของคุณยังอยู่และเหตุการณ์เฉพาะอาชีพเดิมก็ยังเกิดตามปกติ',
   '💰 งานรวยเร็ว (นักพนัน ตลาดมืด นักล่าสมบัติ ทหารรับจ้าง ฯลฯ) · 😊 งานสุขใจ (นักดนตรี เชฟข้างทาง ครูอาสา ฯลฯ) · 🛡 งานปลอดภัย (ยาม ช่างซ่อมบังเกอร์ พยาบาลอาสา ฯลฯ) แต่บางงานเสี่ยงสูงและตำรวจจับตา',
@@ -9443,12 +9464,14 @@ function showStart(){
    '<p class="hint">🏅 '+esc(wkSummary())+'</p>'+
    epiBox()+
    '<div id="onl"></div>'+
+   '<div id="chat"></div>'+
    '<p class="hint">กดปุ่มเลข 1–6 เพื่อเลือก · กด “เพลง” เพื่อเปิดเสียง · “สัญลักษณ์” อธิบายไอคอนทั้งหมด · “อันดับ” ดูตารางผู้เล่น</p>';
   $('nick').onchange=e=>{setNick(e.target.value);if(LB.signed&&NICK)LB.db.doc('board/'+LB.id).update({nick:NICK}).catch(()=>{})};
   {const sg=$('showg');if(sg)sg.onchange=e=>{try{localStorage.setItem('doom365-showg',e.target.checked?'1':'0')}catch(x){}const g=gnameNow();if(LB.signed){if(g)LB.db.doc('board/'+LB.id).update({gname:g}).catch(()=>{});else LB.db.doc('board/'+LB.id).get().then(sn=>{if(sn.exists){const d=sn.data();delete d.gname;LB.db.doc('board/'+LB.id).set(d).catch(()=>{})}}).catch(()=>{})}}}
   {const nb=$('newsbtn');if(nb)nb.onclick=showNews}
   {const rh=$('rankhot');if(rh)rh.onclick=()=>showBoard(showStart)}
   try{lobbyInit();renderOnline()}catch(e){}
+  try{chatMount($('chat'))}catch(e){}
   try{renderAcct()}catch(e){}
   $('go').onclick=()=>{if(tget(DW_KEY)>Date.now())return;mpClose();if(KEPT&&!KEPT.wk&&!KEPT.daily){cand=KEPT}else{rrLeft=2;cand=rollBirth()}showBirth()};
   waitBtn('go',DW_KEY,'ลืมตาตื่นขึ้นมา');
@@ -9855,6 +9878,182 @@ lbInit();
 $('chatbox').style.display='none';
 requestAnimationFrame(frame);
 showStart();
+/* ===== v60: แชทโลก — คุยและชวนเล่นกับคนออนไลน์ (ข้อความไม่ถูกเก็บถาวร) ===== */
+function chatSt(){
+  if(!window.__chat)window.__chat={msgs:[],mut:{},last:0,unread:0,hide:false,inb:{},on:false,seq:0};
+  return window.__chat;
+}
+function chatClean(s){
+  s=String(s==null?'':s).replace(/[\u0000-\u001f\u007f<>]/g,' ').replace(/\s+/g,' ').trim().slice(0,140);
+  return s.replace(/(https?:\/\/|www\.)\S+/gi,'[ลิงก์ถูกซ่อน]').replace(/\b[\w.-]+\.(com|net|org|io|th|co|me|xyz|gg|ly)\b\S*/gi,'[ลิงก์ถูกซ่อน]');
+}
+function chatInit(){
+  const c=chatSt();if(c.on||!MP.api||typeof MP.api.on!=='function')return;
+  c.on=true;
+  try{MP.api.on('chat',ev=>chatRecv(ev))}catch(e){c.on=false}
+}
+function chatRecv(ev){
+  const c=chatSt();
+  try{
+    const d=ev&&ev.data;if(!d||typeof d!=='object')return;
+    const me=!!(ev.isMe||ev.sameTab&&ev.isMe);
+    const pid=String(ev.peer||'').slice(0,20);
+    if(!me){
+      const now=Date.now(),b=c.inb[pid]=(c.inb[pid]||[]).filter(t=>now-t<20000);
+      if(b.length>=5)return;b.push(now);
+      if(c.mut[pid])return;
+    }
+    const t=chatClean(d.t);if(!t)return;
+    const rc=String(d.rc||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,4);
+    const m={id:++c.seq,pid,me,n:(clean(d.n,16)||'ผู้เล่น'),tag:pid.slice(-3),t,rc:rc.length===4?rc:'',at:Date.now(),inv:!!d.inv};
+    c.msgs.push(m);if(c.msgs.length>80)c.msgs.shift();
+    if(!me&&!chatOpenNow())c.unread++;
+    chatRefresh();
+  }catch(e){}
+}
+function chatOpenNow(){
+  const ws=document.querySelectorAll('.chatw');for(const w of ws){if(w.offsetParent!==null)return true}return false;
+}
+function chatSend(text,inv){
+  const c=chatSt();
+  if(!MP.api||typeof MP.api.emit!=='function')return 'ยังไม่ได้เชื่อมต่อออนไลน์';
+  const now=Date.now();if(now-c.last<1800)return 'ส่งเร็วเกินไป รอสักครู่';
+  const t=chatClean(text);if(!t&&!inv)return '';
+  c.last=now;
+  const d={t:t||'ชวนเล่นด้วยกัน',n:NICK||'ผู้เล่น',inv:inv?1:0};
+  if(inv&&MP.on&&MP.host&&MP.code)d.rc=MP.code;
+  try{MP.api.emit('chat',d).catch(()=>{})}catch(e){return 'ส่งไม่สำเร็จ'}
+  return '';
+}
+function chatLineHtml(m){
+  const mu=!m.me&&m.pid;
+  const nm='<b class="cn'+(m.me?' me':'')+'"'+(mu?' data-mu="'+esc(m.pid)+'" title="แตะที่ชื่อเพื่อซ่อนข้อความของคนนี้"':'')+'>'+esc(m.n)+(m.me?' (คุณ)':' <i>#'+esc(m.tag)+'</i>')+'</b>';
+  const join=m.rc&&!MP.on&&!m.me?' <button class="mini" data-jrc="'+esc(m.rc)+'">เข้าห้อง '+esc(m.rc.toUpperCase())+'</button>':m.rc?' <span class="rcb">ห้อง '+esc(m.rc.toUpperCase())+'</span>':'';
+  return '<div class="cm'+(m.inv?' inv':'')+'">'+(m.inv?'📣 ':'')+nm+' '+esc(m.t)+join+'</div>';
+}
+function chatRefresh(){
+  const c=chatSt();
+  document.querySelectorAll('.chatw').forEach(w=>{
+    const box=w.querySelector('.cmsgs');if(!box)return;
+    const near=box.scrollHeight-box.scrollTop-box.clientHeight<40;
+    const html=c.hide?'<div class="cm dim">ซ่อนแชทอยู่ กด “แสดงแชท” เพื่อกลับมาอ่าน</div>':(c.msgs.length?c.msgs.map(chatLineHtml).join(''):'<div class="cm dim">ยังไม่มีข้อความ ลองทักทายคนออนไลน์ดูสิ</div>');
+    if(box._h!==html){box._h=html;box.innerHTML=html;if(near)box.scrollTop=box.scrollHeight;chatBind(w)}
+  });
+  chatBadge();
+}
+function chatBadge(){
+  const c=chatSt(),b=document.getElementById('bChat');
+  if(b)b.textContent='💬 แชท'+(c.unread>0?' ('+Math.min(99,c.unread)+')':'');
+}
+function chatBind(w){
+  w.querySelectorAll('[data-jrc]').forEach(b=>b.onclick=async()=>{
+    if(MP.on)return;if(!NICK)NICK='ผู้เล่น';
+    try{if(await mpOpen(b.dataset.jrc,NICK,false)){const ov=document.getElementById('ovchat');if(ov)ov.remove();stage='guest';guestWait()}}catch(e){}
+  });
+  w.querySelectorAll('[data-mu]').forEach(b=>b.onclick=()=>{
+    const c=chatSt(),id=b.dataset.mu;if(!id)return;
+    if(confirm('ซ่อนข้อความของ '+b.textContent.trim()+' ในรอบนี้?')){c.mut[id]=1;c.msgs=c.msgs.filter(m=>m.pid!==id);chatRefresh()}
+  });
+}
+function chatMount(el){
+  if(!el)return;
+  const c=chatSt();chatInit();
+  const hasApi=!!(MP.api&&typeof MP.api.emit==='function');
+  el.className='chatw';
+  el.innerHTML='<div class="chh"><b>💬 แชทโลก</b><span><button class="mini" data-ch="hide">'+(c.hide?'แสดงแชท':'ซ่อนแชท')+'</button></span></div>'+
+   '<div class="cmsgs" aria-live="polite"></div>'+
+   '<form class="cform"><input maxlength="140" placeholder="'+(hasApi?'พิมพ์ข้อความ (สูงสุด 140 ตัวอักษร)':'ยังไม่ได้เชื่อมต่อออนไลน์')+'" '+(hasApi?'':'disabled')+'><button class="btn" type="submit" '+(hasApi?'':'disabled')+'>ส่ง</button><button class="btn ghost" type="button" data-ch="inv" '+(hasApi?'':'disabled')+'>📣 ชวนเล่น</button></form>'+
+   '<p class="hint cnote">ข้อความมองเห็นได้เฉพาะคนที่ออนไลน์ตอนนี้ ไม่ถูกบันทึก · ชื่อสวมรอยได้ จึงมีรหัส # ต่อท้าย · อย่าบอกข้อมูลส่วนตัว · ลิงก์ถูกซ่อนอัตโนมัติ · แตะชื่อใครเพื่อซ่อนข้อความของคนนั้น</p><p class="cerr hint"></p>';
+  const form=el.querySelector('.cform'),inp=form.querySelector('input'),err=el.querySelector('.cerr');
+  form.onsubmit=e=>{e.preventDefault();const r=chatSend(inp.value,false);err.textContent=r;if(!r)inp.value=''};
+  el.querySelector('[data-ch=inv]').onclick=()=>{const r=chatSend(MP.on&&MP.host?'มาเล่นด้วยกันในห้องของฉัน':'ใครว่างมาเล่นด้วยกันไหม',true);err.textContent=r||(MP.on&&MP.host?'':'ทิป: เปิดห้องเล่นกับเพื่อนก่อน ข้อความชวนจะมีปุ่มเข้าห้องให้คนอื่นกดได้')};
+  el.querySelector('[data-ch=hide]').onclick=()=>{c.hide=!c.hide;chatMount(el)};
+  c.unread=0;
+  const box=el.querySelector('.cmsgs');box._h=null;chatRefresh();
+  box.scrollTop=box.scrollHeight;chatBadge();
+}
+function ovChat(){
+  let ov=document.getElementById('ovchat');
+  if(ov){ov.remove();return}
+  ov=document.createElement('div');ov.className='ov';ov.id='ovchat';document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()});
+  ov.innerHTML='<div class="ovb" role="dialog" aria-label="แชทโลก"><div class="ovh"><b>💬 แชทโลก</b><button class="mini" id="ovcx">ปิด</button></div><div id="ovcw"></div><div class="row" style="margin-top:8px"><button class="btn" id="ovcok">กลับไปเล่นต่อ</button></div></div>';
+  ov.querySelector('#ovcx').onclick=ov.querySelector('#ovcok').onclick=()=>ov.remove();
+  chatMount(ov.querySelector('#ovcw'));
+}
+{const b=document.getElementById('bChat');if(b)b.onclick=()=>{if(stage==='start'||stage==='board'){const w=document.querySelector('#chat');if(w)w.scrollIntoView({behavior:'smooth',block:'center'});else ovChat()}else ovChat()}}
+
+/* ===== ตัวกรองคำหยาบ + สแปม ===== */
+var CHAT_BAD_TH=['ควย','เหี้ย','เย็ด','เหี้ย','ชิบหาย','ชิปหาย','ระยำ','ตอแหล','ส้นตีน','สัส(?!ดี)','แม่ง','เเม่ง','ไอ้เหี้ย','อีดอก','กะหรี่','กระหรี่','หี(?!บ|น|ด)','หำ','ไอ้สัตว์','อีสัตว์','พ่อมึงตาย','แม่มึงตาย','ไปตาย(?!ก่อน)','ไปฆ่าตัวตาย','ฆ่าตัวตายซะ','เฮงซวย','ปัญญาอ่อน','โง่เง่า','ไอ้โง่','ไอ้บ้า','ไอ้ควาย','อีควาย','อีบ้า'];
+var CHAT_BAD_EN=['fuck','fuk','shit','bitch','asshole','dick','pussy','cunt','nigg','faggot','slut','whore','bastard'];
+function chatBadRe(){
+  if(window.__chatRe)return window.__chatRe;
+  const sep='[\\s._\\-*,|]*';
+  const mk=w=>/[()?=!|]/.test(w)?w:w.split('').join(sep);
+  window.__chatRe=new RegExp(CHAT_BAD_TH.filter(w=>!/x$/.test(w)).map(mk).join('|')+'|'+CHAT_BAD_EN.map(w=>w.split('').join(sep)).join('|'),'gi');
+  return window.__chatRe;
+}
+var CHAT_AD=/สล็อต|บาคาร่า|แทงบอล|เว็บตรง|เครดิตฟรี|แจกเครดิต|ฝากถอน|ปั่นสล็อต|ทางเข้า|กู้เงิน|ปล่อยกู้|รับจ้างปั่น|ขายเพจ|ขายไอดี|ไลน์\s*@|แอดไลน์|ทักไลน์|line\s*id|telegram|เทเลแกรม|discord\.gg|ซื้อติดตาม|ปั้มไลค์|หารายได้|รายได้เสริม|ลงทุนวันนี้|คริปโตแจก|18\+|xxx|เสียว|โป๊|คลิปหลุด|รับสมัครงาน/i;
+function chatMask(s){
+  s=String(s==null?'':s);
+  try{s=s.normalize('NFC').replace(/เเ/g,'แ').replace(/[​-‍⁠﻿]/g,'')}catch(e){}
+  return s.replace(chatBadRe(),m=>'*'.repeat(Math.min(6,Math.max(3,m.length))));
+}
+function chatFilter(t,isSelf){
+  const t0=t;t=chatMask(t);
+  if(isSelf&&t!==t0)return {drop:'ข้อความมีคำไม่สุภาพ กรุณาแก้ไขก่อนส่ง'};
+  t=t.replace(/(.)\1{3,}/gu,'$1$1$1').replace(/([^\s]{2,6})\1{3,}/gu,'$1$1$1');
+  t=t.replace(/(\+?\d[\d\s\-().]{7,}\d)/g,'[เลขถูกซ่อน]').replace(/@[\w.]{3,}/g,'[ไอดีถูกซ่อน]');
+  const em=(t.match(/\p{Extended_Pictographic}/gu)||[]).length;
+  if(em>10)return {drop:'อีโมจิเยอะเกินไป'};
+  const letters=t.replace(/\*/g,'').replace(/[^\p{L}\p{M}\p{N}]/gu,'');
+  if(t.length>=6&&letters.length<t.length*.35)return {drop:'ข้อความมีแต่สัญลักษณ์'};
+  if(letters.length>=8&&new Set(letters.split('')).size<=Math.ceil(letters.length*.18))return {drop:'ข้อความซ้ำๆ เกินไป'};
+  if(CHAT_AD.test(t))return {drop:'ข้อความโฆษณา/ชวนเชื่อ ไม่สามารถส่งได้'};
+  if((t.match(/\[ลิงก์ถูกซ่อน\]|\[เลขถูกซ่อน\]|\[ไอดีถูกซ่อน\]/g)||[]).length>=2)return {drop:'มีลิงก์/เลข/ไอดีเยอะเกินไป'};
+  return {t:t.trim()};
+}
+/* แทนที่ฟังก์ชันรับ/ส่ง ให้ผ่านตัวกรอง */
+{
+  const _cr=chatRecv,_cs=chatSend;
+  chatRecv=function(ev){
+    try{
+      const c=chatSt(),d=ev&&ev.data;if(!d||typeof d!=='object')return;
+      const me=!!ev.isMe,pid=String(ev.peer||'').slice(0,20);
+      const f=chatFilter(chatClean(d.t),me);
+      if(f.drop){
+        if(!me){c.strk=c.strk||{};c.strk[pid]=(c.strk[pid]||0)+1;if(c.strk[pid]>=3)c.mut[pid]=1}
+        return;
+      }
+      /* ข้อความซ้ำจากหลายคนภายใน 60 วินาที = สแปมกลุ่ม */
+      const key=f.t.toLowerCase().replace(/\s+/g,'');const now=Date.now();
+      c.dup=c.dup||{};for(const k in c.dup)if(now-c.dup[k].at>60000)delete c.dup[k];
+      const dd=c.dup[key]||(c.dup[key]={at:now,n:0,p:{}});dd.n++;
+      if(!me&&(dd.n>2||dd.p[pid])){c.strk=c.strk||{};c.strk[pid]=(c.strk[pid]||0)+1;if(c.strk[pid]>=3)c.mut[pid]=1;return}
+      dd.p[pid]=1;
+      /* ทั้งห้อง ไม่เกิน 14 ข้อความ / 10 วินาที */
+      c.g=(c.g||[]).filter(x=>now-x<10000);if(!me&&c.g.length>=14)return;c.g.push(now);
+      const d2=Object.assign({},d,{t:f.t,n:chatMask(clean(d.n,16))});
+      return _cr(Object.assign({},ev,{data:d2}));
+    }catch(e){}
+  };
+  chatSend=function(text,inv){
+    const c=chatSt();
+    const raw=chatClean(text);
+    if(raw||!inv){
+      const f=chatFilter(raw,true);
+      if(f.drop)return f.drop;
+      if(f.t!==raw&&/\*{3,}/.test(f.t))return 'ข้อความมีคำไม่สุภาพ กรุณาแก้ไขก่อนส่ง';
+      const key=f.t.toLowerCase().replace(/\s+/g,'');
+      if(c.lastKey===key&&Date.now()-(c.lastAt||0)<30000)return 'ข้อความซ้ำกับที่เพิ่งส่ง';
+      c.lastKey=key;c.lastAt=Date.now();
+      text=f.t;
+    }
+    c.sent=(c.sent||[]).filter(x=>Date.now()-x<30000);
+    if(c.sent.length>=6)return 'ส่งถี่เกินไป รอสักครู่';
+    const r=_cs(text,inv);if(!r)c.sent.push(Date.now());return r;
+  };
+}
 /* ===== v18: หน้าปรับปรุงที่พัก / ทักษะ / ส่งของให้เพื่อน ===== */
 function hostIdle(msg){
   if(MP.on&&MP.host)mpSend({k:'idle',msg,hud:hudOf(),mood:'calm',scene:'room',tod:ev?ev.tod:'day',seed:'home',look:S.role.look,doomId:S.doom.id,day:S.day,up:upIds(),crew:S.crew.map(m=>({look:m.look}))});
@@ -10151,5 +10350,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 00:37';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 00:47';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
