@@ -5215,7 +5215,6 @@ const ACTIONS=[
  {id:'heal',t:'รักษาแผล',en:5,i:'🩹',d:'ลดแผลและการติดเชื้อ ใช้ยา 1',ok:()=>S.inv.med>0&&(S.wd>0||S.inf>0||S.hp<80)},
  {id:'work',t:'ทำงานหาเงิน',en:22,i:'💼',d:'รับจ้างหาเงินวันนี้',ok:()=>S.mo>=-1e12},
  {id:'chat',t:'นั่งเงียบๆ',en:6,i:'💬',d:'ใจดีขึ้นนิดหน่อย',ok:()=>true},
- {id:'jobq',t:'หางานใหม่',en:6,i:'📋',d:'เลือกงานแฝงเองจากกว่า 50 งาน (เปลี่ยนได้ทุกวัน)',ok:()=>S.day>=3},
  {id:'move',t:'หาที่พักใหม่',en:30,i:'🏚',d:'ลองหาที่พักใหม่ เสี่ยงแต่อาจดีกว่าเดิม',ok:()=>true}
 ];
 const SHORT_TF=4.6,tfx=()=>(S&&S.tf)||1;
@@ -6052,37 +6051,21 @@ function setJob(id,o){
 }
 /* ----- กระดานงาน: สุ่ม 3 งานให้เลือก ----- */
 KEYMOOD.job_board='calm';KEYCAT.job_board='money';
-function rollJobOffer(){
-  const pool=CAREERS.filter(c=>c.id!==S.job);
-  const pick3=[];const grp={rich:pool.filter(c=>c.inc>=1.6),joy:pool.filter(c=>(c.md||0)>=1),safe:pool.filter(c=>(c.sf||0)>=.03),other:pool};
-  for(const g of shuffle(['rich','joy','safe'])){const c=pick(grp[g].filter(x=>!pick3.includes(x.id)).map(x=>x)||[]);if(c)pick3.push(c.id)}
-  while(pick3.length<4){const c=pick(pool);if(!pick3.includes(c.id))pick3.push(c.id)}
-  S.jobOffer=pick3.slice(0,RND()<.5?4:3);
+/* ----- v70: งานแฝงทั้งหมดกลายเป็น 'อาชีพตั้งต้น' (สุ่มตอนเกิด เปลี่ยนไม่ได้) ----- */
+(function(){
+  const MO={rich:[200,3000],joy:[0,1200],safe:[200,1600],risk:[0,1800],bal:[100,2000]};
+  const SC={rich:'market',joy:'street',safe:'village',risk:'street',bal:'market'};
+  const LK=[L('#c58f66','#222','#d9534f','#2a2f44'),L('#d9a273','#1a1a1a','#4a7a9a','#3b3a30'),L('#b57b52','#3b2a1e','#7a8a4a','#4a4030','#d9b14a'),L('#f1c9a5','#2a1e18','#e8e8f0','#2a2f44'),L('#c58f66','#222','#9a5ab0','#2a2f44','#444')];
+  const have=new Set(ROLES.map(r=>r.n));
+  CAREERS.forEach((j,ix)=>{
+    const n=have.has(j.n)?j.n+'มืออาชีพ':j.n;
+    ROLES.push({n,a:[20,58],mo:MO[j.cat].slice(),t:1,rent:j.cat==='rich'?1:(j.cat==='safe'?0:1),sc:SC[j.cat],edge:{},look:LK[ix%LK.length],perk:j.i+' '+j.tag+' · '+j.lab,bio:j.r,hm:1,jobId:j.id});
+  });
+})();
+{
+  const _ng=newGame;
+  newGame=function(c){const s=_ng.apply(this,arguments);const r=ROLES[c.ri];if(r&&r.jobId){s.job=r.jobId;s.jobDay=0;s.jobN=1}return s};
 }
-const JB={k:'job_board',sc:['market','street','village'],w:.7,cd:50,noex:1,req:S=>S.day>=14&&S.day<330,head:'ตลาดงานใต้ดินเปิดรับสมัคร',
- txt:'(อยากเลือกเองจากทุกงาน กดปุ่ม “หางานใหม่” ในแผนตอนเช้า) ป้ายประกาศหน้าตลาดมีข้อเสนองานจากหลายคน บางงานรวยเร็ว บางงานทำแล้วใจฟู บางงานปลอดภัยกว่าใคร และบางงานเสี่ยงจนต้องลงชื่อด้วยมือสั่น',
- ch:[].concat(CAREERS.map((j,ix)=>({t:'สมัครเป็น '+j.i+' '+j.n+' ('+j.tag+')',x:j.fee?{mo:-j.fee}:{md:1},d:1,g:'adv',job:j.id,flag:{},show:S=>(S.jobOffer||[]).includes(j.id),r:j.r})),
-  [{t:'กลับไปทำอาชีพเดิมตามที่เคยเป็น',x:{md:1},d:1,job:'none',flag:{},show:S=>!!S.job,r:'คุณพับป้ายงานแฝงเก็บเข้ากระเป๋าและกลับมายืนในที่เดิม บางครั้งการกลับมาก็คือการตัดสินใจเหมือนกัน'},
-   {t:'ยังไม่ตัดสินใจ ไว้ทีหลัง',x:{md:-1},d:1,flag:{},r:'คุณมองป้ายประกาศอีกครั้งแล้วถอยออกมาเงียบๆ บางงานอาจมีโอกาสกลับมาอีกครั้ง'}])};
-TPL.push(JB);
-/* ----- มีคนมาชวนงานแฝงในเหตุการณ์ ----- */
-const JE=(id,sc,mood,head,txt,acc,tri)=>{
-  const j=CAREER_BY[id];KEYMOOD['jo_'+id]=mood;KEYCAT['jo_'+id]='money';
-  T({k:'jo_'+id,sc,w:1.0,cd:90,req:S=>S.day>=12&&S.day<330&&S.job!==id,head,txt,ch:[
-   {t:acc+' (เปลี่ยนเป็น '+j.n+')',x:j.fee?{mo:-j.fee}:{md:1},d:1,g:'adv',job:id,r:j.r},
-   {t:'ลองทำดูหนึ่งวันก่อน ไม่ผูกมัด',x:{mo:Math.round(j.fee/4)||100,en:-8,md:tri[0]},d:1,r:tri[1]},
-   {t:'ปฏิเสธและขอทำอาชีพเดิมต่อไป',x:{md:-1},d:1,r:'คุณปฏิเสธอย่างสุภาพ เขาพยักหน้าและบอกว่าข้อเสนอนี้ไม่มีวันหมดอายุจริงๆ แต่คุณรู้ว่ามันมี'}]});
-};
-JE('gambler',['alley','club','street'],'tense','ชายแปลกหน้าชวนเข้าวงไพ่','ชายในเสื้อแขนยาวคนหนึ่งแตะไหล่คุณและบอกว่า ผมเห็นคุณแกะไพ่ได้ดีกว่าใครในซอยนี้ สนใจมาทำงานด้วยกันไหม','รับข้อเสนอเข้าวงพนัน',[2,'วันหนึ่งผ่านไปด้วยกำไรเล็กน้อย และคุณพบว่าความตื่นเต้นทำให้ใจเต้นแรงกว่าที่เคย']);
-JE('busker',['park','street','rooftop'],'warm','คนฟังเพลงถามว่าอยากเล่นเป็นอาชีพไหม','ชายแก่ที่นั่งฟังคุณฮัมเพลงมาตลอดสามคืน เดินมาบอกว่า ถ้าลองเล่นให้ทั้งตลาดฟังทุกวัน คุณอาจมีความสุขกว่านี้','ไปเล่นดนตรีทุกวัน',[5,'คุณเล่นสามเพลงและคนหยุดฟังยี่สิบกว่าคน ทิปมากกว่าที่คิด และรอยยิ้มของคุณไม่ได้เสแสร้ง']);
-JE('guard',['village','road','wall'],'calm','ผู้ใหญ่บ้านต้องการคนเฝ้ายาม','ผู้ใหญ่บ้านเรียกคุณมาที่หน้าศาลาและบอกว่า คืนนี้มีเสียงแปลกๆ ในป่า ใครสักคนต้องเดินเวร และคุณดูน่าเชื่อถือที่สุด','รับงานเดินเวรยาม',[1,'คุณเดินรอบหมู่บ้านสามรอบและไม่พบอะไร ยกเว้นแมวตัวหนึ่งที่ตามคุณมาตลอดทาง']);
-JE('hunter',['alley','market','road'],'chaos','แผนที่ซากตึกที่ใครบางคนขายให้','คนแปลกหน้าขายแผนที่ตึกร้างแห่งหนึ่งให้คุณในราคาถูกเกินไป และบอกว่า ข้างในมีของที่เจ้าของไม่เคยกลับมาเอา','ไปสำรวจซากตึกตามแผนที่',[2,'คุณเข้าไปได้ชั้นเดียวก่อนเสียงโครงสร้างลั่นกึกกัก แล้ววิ่งออกมาพร้อมของใช้สองสามชิ้น']);
-JE('chef',['market','village','street'],'fun','เพื่อนบ้านขอให้ทำอาหารขาย','เพื่อนบ้านได้กลิ่นอาหารจากห้องคุณแล้วยืนต่อแถวหน้าประตูโดยไม่บอกใคร ก่อนพูดว่า ฉันจ่ายให้ ขอจานเดียวก็ได้','ตั้งเตาขายอาหารริมทาง',[4,'คุณทำสามจาน คนข้างหลังยืนต่ออีกสิบ และคุณลืมไปว่าตัวเองเหนื่อย']);
-JE('reporter',['street','market','office'],'tense','บรรณาธิการเก่าติดต่อมา','ชายแก่คนหนึ่งยื่นกล้องวิดีโอให้คุณ พร้อมบอกว่า ผมเคยเป็นบรรณาธิการ ตอนนี้ไม่มีใครเหลืออยู่ นอกจากคุณที่กล้าไปถามความจริง','รับกล้องแล้วออกเก็บข่าว',[1,'คุณสัมภาษณ์คนสามคนและได้คำพูดที่น่าจดจำจากเด็กคนหนึ่ง แต่ก็เจอสายตาที่ไม่ต้อนรับจากคนอีกสองคน']);
-JE('mech',['village','base','road'],'calm','บังเกอร์รั่วและเจ้าของกำลังตามหาช่าง','ชายในชุดสูทยืนหน้าประตูห้องใต้ดินที่รั่วและถามว่า คุณซ่อมกลอนได้ไหม ผมจ่ายแพงเพราะไม่มีช่างคนอื่นเหลือแล้ว','รับงานซ่อมบังเกอร์',[1,'คุณซ่อมกลอนประตูหนึ่งบานและเจ้าของจ่ายตรงเวลา มันเป็นงานที่เหนื่อยแต่รู้สึกว่าเป็นประโยชน์']);
-JE('courier',['road','street','market'],'fun','คนฝากของข้ามเมือง','หญิงสาวยื่นห่อเล็กๆ ให้คุณและบอกว่า ฝากส่งที่ตึกตรงข้ามวัดภายในชั่วโมงนี้ ฉันจ่ายสองเท่า และห้ามเปิดดู','รับงานส่งของเป็นอาชีพ',[2,'คุณส่งห่อนั้นถึงมือผู้รับก่อนกำหนดสิบนาที และเขากอดคุณแน่นโดยไม่พูดอะไรเลย']);
-JE('nurse',['village','base','park'],'warm','ชาวบ้านต้องการคนทำแผล','ผู้หญิงคนหนึ่งยืนหน้าบ้านพร้อมลูกชายที่ขาเป็นแผลยาว เธอบอกว่า ไม่มีหมอในละแวกนี้แล้ว คุณช่วยดูให้หน่อยได้ไหม','รับเป็นพยาบาลอาสา',[4,'คุณพันแผลให้เด็กชายและเขากอดคุณแน่นทั้งที่ยังเจ็บ ความรู้สึกที่ได้ช่วยใครสักคนอยู่ติดตัวคุณทั้งวัน']);
-JE('bmarket',['alley','market','street'],'creepy','ชายใส่แมสก์เสนอสินค้า','ชายสวมแมสก์ดำเปิดกระเป๋าเล็กๆ ให้ดูของที่หาไม่ได้แล้วในตลาดปกติ และถามว่า สนใจเป็นตัวแทนขายไหม ส่วนแบ่งหกสิบสี่สิบ','รับเป็นตัวแทนตลาดมืด',[-1,'ของสองชิ้นขายออกได้ราคาแพงลิบ แต่ตลอดทางกลับบ้านคุณรู้สึกเหมือนมีคนมองอยู่']);
 
 /* ----- ทายาทรวยเกินไป: เนิฟ 30% (เงินตั้งต้น; รายได้อยู่ใน addStat) ----- */
 ROLES.forEach(r=>{if(/^ทายาท/.test(r.n)){r.mo=[Math.round(r.mo[0]*.7),Math.round(r.mo[1]*.7)]}});
@@ -8882,10 +8865,9 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
- {id:'2026-10-29f',date:'29 ต.ค. 2569',title:'ตลาดงานแฝง: เลือกเองได้ทุกวัน + งานใหม่ 30 งาน',items:[
-  '📋 ปุ่ม “หางานใหม่” ในแผนตอนเช้าไม่ต้องรอ 12 วันแล้ว กดได้ทุกวัน (ตั้งแต่วันที่ 3) และเปิดตลาดงานให้เลือกเองได้ทันที',
-  '🆕 เพิ่มงานแฝงอีก 30 งาน รวม 50 งาน แบ่งหมวด รวยเร็ว / สุขใจ / ปลอดภัย / เสี่ยงสูง / สมดุล',
-  '🎲 งานแบบสุ่มในเหตุการณ์ยังมีอยู่ แต่ไม่ต้องรอโชคอีกต่อไป']},
+ {id:'2026-10-29f',date:'29 ต.ค. 2569',title:'งานแฝงกลายเป็นอาชีพตั้งต้น +51 อาชีพ',items:[
+  '🎭 ยกเลิกระบบงานแฝง แล้วเปลี่ยนงานทั้ง 51 แบบเป็น “อาชีพ” ที่สุ่มได้ตอนเกิด เช่น นักขุดเหรียญเถื่อน ช่างกลอนประตู สายลับรับจ้าง',
+  '⚖ แต่ละอาชีพมีผลต่างกัน: บางอาชีพรวยเร็วแต่เสี่ยง บางอาชีพสุขใจ บางอาชีพปลอดภัยกว่า']},
  {id:'2026-10-29e',date:'29 ต.ค. 2569',title:'แชทเก็บประวัติ + ป้ายท็อป/ฉายาในแชท',items:[
   '💬 แชทเก็บข้อความล่าสุดไว้ ไม่หายเมื่อรีเฟรช และคนที่เพิ่งเข้ามาก็อ่านย้อนหลังได้',
   '🏆 คนที่ติดท็อป (ผู้รอด 365 วัน / เศรษฐี) หรือมีฉายาคนดี/คนชั่วจากตารางอันดับ จะมีป้ายต่อท้ายชื่อในแชท (ต้องล็อกอิน)']},
@@ -9090,7 +9072,7 @@ function toast(m){
 /* ===== มุมมองข้อมูลผู้เล่น (ใช้ร่วมกันทั้งเล่นคนเดียวและแขกออนไลน์) ===== */
 function hudOf(){
   if(!S)return null;
-  return {nm:S.name,rl:S.role.perk+((typeof jobOf==='function'&&jobOf())?' · งานแฝง: '+jobOf().n:''),rn:S.role.n,age:S.age,doom:S.doom.n,day:S.day,hp:S.hp,md:S.md,lv:S.lv,ht:S.ht,fd:S.fd,wt:S.wt,en:S.en,wd:S.wd,inf:S.inf,mo:S.mo,
+  return {nm:S.name,rl:S.role.perk,rn:S.role.n,age:S.age,doom:S.doom.n,day:S.day,hp:S.hp,md:S.md,lv:S.lv,ht:S.ht,fd:S.fd,wt:S.wt,en:S.en,wd:S.wd,inf:S.inf,mo:S.mo,
     sh:{n:S.sh.n,df:shDf(),hd:shHd(),cond:Math.round(S.sh.cond)},up:upIds(),inv:Object.assign({},S.inv),crew:S.crew.map(m=>m.n+(m.tr?' · '+TRN[m.tr]:'')),save:S.save,gear:GEARK.filter(k=>S.gear[k]),st:activeStories(),kr:S.kar|0,
     jr:S.log.slice(-4).map(l=>({d:Math.floor(l.d)+1,t:l.t}))};
 }
@@ -10192,32 +10174,6 @@ function chatRetSend(text){
     return _cs2(text,inv);
   };
 }
-/* ===== ตลาดงานแฝง: เลือกเองจากทุกงาน ===== */
-var JOBCATS=[['all','ทั้งหมด'],['rich','💰 รวยเร็ว'],['joy','😊 สุขใจ'],['safe','🛡 ปลอดภัย'],['risk','☠ เสี่ยงสูง'],['bal','⚖ สมดุล']];
-function ovJobs(cb){
-  let ov=document.getElementById('ovjobs');if(ov)ov.remove();
-  ov=document.createElement('div');ov.className='ov';ov.id='ovjobs';document.body.appendChild(ov);
-  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()});
-  let cat='all';
-  function draw(){
-    const cur=S.job;
-    const list=CAREERS.filter(j=>cat==='all'||j.cat===cat);
-    let h='<div class="ovb" role="dialog" aria-label="ตลาดงานแฝง"><div class="ovh"><b>📋 ตลาดงานแฝง ('+CAREERS.length+' งาน)</b><button class="mini" id="ojx">ปิด</button></div>';
-    h+='<div class="row" style="flex-wrap:wrap;gap:4px;margin:6px 0">'+JOBCATS.map(c=>'<button class="mini'+(c[0]===cat?' hot':'')+'" data-c="'+c[0]+'">'+c[1]+'</button>').join('')+'</div>';
-    h+='<div style="max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:6px">';
-    if(cur)h+='<button class="btn" data-j="none">↩ กลับไปใช้ชีวิตตามอาชีพเดิม (เลิกงานแฝง)</button>';
-    h+=list.map(j=>{
-      const fee=j.fee?scaleMoney(j.fee):0,no=S.mo<fee;
-      return '<button class="btn" data-j="'+j.id+'"'+(j.id===cur||no?' disabled':'')+' style="text-align:left"><b>'+j.i+' '+j.n+'</b>'+(j.id===cur?' ✅ ทำอยู่':'')+'<br><small>'+j.tag+' · ค่าสมัคร '+(fee?fmt(fee):'ฟรี')+(no?' (เงินไม่พอ)':'')+'</small></button>';
-    }).join('');
-    h+='</div><div class="row" style="margin-top:8px"><button class="btn" id="ojok">ยังไม่เลือก</button></div></div>';
-    ov.innerHTML=h;
-    ov.querySelector('#ojx').onclick=ov.querySelector('#ojok').onclick=()=>ov.remove();
-    ov.querySelectorAll('[data-c]').forEach(b=>b.onclick=()=>{cat=b.dataset.c;draw()});
-    ov.querySelectorAll('[data-j]').forEach(b=>b.onclick=()=>{ov.remove();cb(b.dataset.j)});
-  }
-  draw();
-}
 /* ===== v18: หน้าปรับปรุงที่พัก / ทักษะ / ส่งของให้เพื่อน ===== */
 function hostIdle(msg){
   if(MP.on&&MP.host)mpSend({k:'idle',msg,hud:hudOf(),mood:'calm',scene:'room',tod:ev?ev.tod:'day',seed:'home',look:S.role.look,doomId:S.doom.id,day:S.day,up:upIds(),crew:S.crew.map(m=>({look:m.look}))});
@@ -10514,5 +10470,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 01:24';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 02:01';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
