@@ -4942,7 +4942,7 @@ function build(t,isMs){
     base=base.slice();while(base.length>4)base.splice(rnd(base.length),1);
   }
   let list=base.slice();
-  if(t.k!=='final'&&t.k!=='rent'){
+  if(t.k!=='final'&&t.k!=='rent'&&!t.noex){
     const nx=Math.max(1,Math.min(6-base.length,base.length<=3?3:2));
     list=list.concat(pickExtras(t,nx).map(mkExtra));
   }
@@ -4956,6 +4956,7 @@ function build(t,isMs){
       if(cat==='danger')p-=shDf()/700;
       p-=skRisk(c.k.e,cat);
       p-=gearBonus(c.k.e);
+      p+=(typeof jobRisk==='function'?jobRisk(c.k.e,cat):0);
       p+=DIFF.riskAdd||0;
       if(S.crew.length)p-=.02*S.crew.length;
       if((S.kar|0)<=-30&&c.k.e==='talk')p+=.07;if((S.kar|0)>=30&&(c.k.e==='talk'||c.k.e==='help'))p-=.05;if((S.kar|0)<=-30&&c.k.e==='steal')p-=.04;
@@ -4978,6 +4979,7 @@ function genEvent(){
   let t=null,isMs=false;
   S.actN=0;S.restU=0;S.tixEv=0;rollShop();
   for(const m of MS){if(!S.done[m.k]&&S.day>=m.at){t=m;isMs=true;break}}
+  if(!t&&S.jobBoard&&typeof JB!=='undefined'){t=JB;S.jobBoard=0}
   if(!t&&S.role.rent&&!S.flags.homeless&&S.day>=S.nextRent){t=RENT;S.nextRent+=30}
   if(!t){try{t=gangTick()}catch(x){t=null}}
   if(!t){try{t=rivalTick()}catch(x){t=null}}
@@ -4987,6 +4989,7 @@ function genEvent(){
   if(!t&&S.day>=S.nextDis&&S.day<345){const c=DIS.filter(d=>d.k!==S.lastDis&&(!d.req||d.req(S)));if(c.length){t=pick(c);S.lastDis=t.k;S.nextDis=S.day+rr(DIFF.disMin+5,DIFF.disMax+12)}}
   if(!t&&S.day>20&&S.day<345&&S.day-(S.lastThr||0)>=DIFF.pity){const c=DIS.filter(d=>d.k!==S.lastDis&&(!d.req||d.req(S)));if(c.length){t=pick(c);S.lastDis=t.k;S.nextDis=S.day+rr(DIFF.disMin+5,DIFF.disMax+12)}}
   if(!t)t=weightedPick();
+  if(t.k==='job_board'&&typeof rollJobOffer==='function')rollJobOffer();
   if(typeof isThreat==='function'&&!isMs&&isThreat(t))S.lastThr=S.day;
   if(t.rare)S.rares=(S.rares|0)+1;
   if(!isMs&&t!==RENT)S.cool[t.k]=S.day+(t.cd||15);
@@ -5002,7 +5005,7 @@ function addStat(k,v,o){
   if(!v)return;
   if(INVK.includes(k)){const b=S.inv[k];S.inv[k]=Math.max(0,b+v);const dv=S.inv[k]-b;if(dv){o.inv=o.inv||{};o.inv[k]=(o.inv[k]||0)+dv}return}
   if(k==='ix')return;
-  if(k==='mo'&&v>0&&typeof MONEYX==='function')v=Math.round(v*MONEYX());
+  if(k==='mo'&&v>0&&typeof MONEYX==='function')v=Math.round(v*MONEYX()*((S.role&&/^ทายาท/.test(S.role.n))?.7:1));
   if(k==='mo'&&tfx()>1)v=Math.round(v*(1+(tfx()-1)*.9));
   const b=S[k];
   S[k]=k==='mo'?S[k]+v:clamp(S[k]+v,0,100);
@@ -5154,6 +5157,8 @@ function resolve(ev,i){
   if(c.raw.gear&&o.ok){for(const k in c.raw.gear)S.gear[k]=1;o.extra.push('คุณได้ <b>'+Object.keys(c.raw.gear).map(k=>GEAR[k].n).join(', ')+'</b> เพิ่มเข้ามาในคลัง')}
   if(c.raw.flag)for(const k in c.raw.flag)S.flags[k]=(S.flags[k]||0)+c.raw.flag[k];
   if(c.raw.rise&&o.ok&&typeof riseUp==='function')riseUp(c.raw.rise,o);
+  if(c.raw.job&&o.ok&&typeof setJob==='function')setJob(c.raw.job,o);
+  if(typeof jobTick==='function')jobTick(o);
   if((c.raw.cbn||c.raw.cb||c.raw.cbl)&&o.ok){const m=S.crew.find(m=>m.n===(c.raw.cbn||S._cn));if(m){const w=c.raw.cbl?'leave':'bond';
     if(w==='bond'){m.b=(m.b|0)+1;o.extra.push('ความผูกพันกับ <b>'+m.n+'</b> เพิ่มขึ้น')}
     else if(w==='leave'){S.crew=S.crew.filter(x=>x!==m);o.extra.push('<b>'+m.n+'</b> ขอแยกทางไปแล้ว')}}}
@@ -5192,12 +5197,13 @@ function resolve(ev,i){
 const ACTIONS=[
  {id:'food',t:'หาอาหาร',en:18,i:'🥫',d:'ได้ของกิน 1-3 มื้อ เก็บไว้ในคลัง',ok:()=>true},
  {id:'water',t:'หาน้ำ',en:12,i:'💧',d:'ได้น้ำสะอาด 1-3 ขวด เก็บไว้ในคลัง',ok:()=>true},
- {id:'rest',t:'พักผ่อน',en:0,i:'🛏',d:'แรง +45 สุขภาพ +5 (ฟรี วันละครั้ง)',ok:()=>true},
+ {id:'rest',t:'พักผ่อน',en:0,i:'🛏',d:'แรง +25 สุขภาพ +5 (ฟรี วันละครั้ง)',ok:()=>true},
  {id:'fix',t:'ซ่อมที่พัก',en:15,i:'🔨',d:'ซ่อมและเสริมที่พัก ใช้วัสดุ 1',ok:()=>S.inv.mat>0},
  {id:'scav',t:'ค้นหาของ',en:22,i:'🔦',d:'ลุ้นเจอวัสดุ ยา หรือเงิน',ok:()=>true},
  {id:'heal',t:'รักษาแผล',en:5,i:'🩹',d:'ลดแผลและการติดเชื้อ ใช้ยา 1',ok:()=>S.inv.med>0&&(S.wd>0||S.inf>0||S.hp<80)},
  {id:'work',t:'ทำงานหาเงิน',en:22,i:'💼',d:'รับจ้างหาเงินวันนี้',ok:()=>S.mo>=-1e12},
  {id:'chat',t:'นั่งเงียบๆ',en:6,i:'💬',d:'ใจดีขึ้นนิดหน่อย',ok:()=>true},
+ {id:'jobq',t:'หางานใหม่',en:6,i:'📋',d:'ดูตลาดงาน เปลี่ยนอาชีพแฝงได้ (รวยเร็ว/สุขใจ/ปลอดภัย/เสี่ยง)',ok:()=>S.day>=8&&(S.day-(S.jobAsk==null?-99:S.jobAsk))>=12},
  {id:'move',t:'หาที่พักใหม่',en:30,i:'🏚',d:'ลองหาที่พักใหม่ เสี่ยงแต่อาจดีกว่าเดิม',ok:()=>true}
 ];
 const SHORT_TF=4.6,tfx=()=>(S&&S.tf)||1;
@@ -5214,6 +5220,7 @@ function actionList(){
       else if(left<=0)why='ครบจำนวนแผนแล้ว';
       else if(S.en<a.en)why='แรงไม่พอ';
       else if(a.id==='fix')why='ไม่มีวัสดุ';
+      else if(a.id==='jobq')why='เพิ่งดูตลาดงานไป รออีกสักพัก';
       else if(a.id==='heal')why=S.inv.med>0?'ยังไม่บาดเจ็บ':'ไม่มียา';
     }
     return {id:a.id,t:a.t,en:a.en,i:a.i,d:a.d,ok,why};
@@ -5235,7 +5242,9 @@ function doAction(id){
     if(RND()<.82){const n=yieldN()+bonusN();addStat('water',n,o);o.text=pick(['คุณเจอก๊อกน้ำที่ยังไหลและเติมขวดจนเต็ม','ฝนเมื่อคืนทิ้งน้ำใสไว้ในถัง คุณกรองด้วยผ้า'])}
     else{o.ok=false;o.text='ก๊อกน้ำทุกที่แห้งสนิท คุณเหลือเพียงความกระหาย';S.wt-=6}
   }else if(id==='rest'){
-    addStat('en',45+(upOwn('solar')?8:0),o);addStat('hp',5,o);addStat('md',2+(upOwn('solar')?1:0),o);o.text=pick(['คุณนอนหลับสนิทกว่าหลายคืน ตื่นมาตัวเบา','เสียงลมที่ผ่านหลังคาทำให้คุณหลับลึก']);
+    addStat('en',25+(upOwn('solar')?8:0),o);addStat('hp',5,o);addStat('md',2+(upOwn('solar')?1:0),o);o.text=pick(['คุณนอนหลับสนิทกว่าหลายคืน ตื่นมาตัวเบา','เสียงลมที่ผ่านหลังคาทำให้คุณหลับลึก']);
+  }else if(id==='jobq'){
+    S.jobAsk=S.day;S.jobBoard=1;o.text='คุณเดินดูป้ายประกาศรับสมัครงานและฟังข่าวจากตลาดแรงงานใต้ดิน เหตุการณ์ถัดไปจะมีข้อเสนองานให้เลือก';
   }else if(id==='fix'){
     addStat('mat',-1,o);{const bl=skLv('build');S.sh.df=Math.min(90,S.sh.df+8+bl);S.sh.hd=Math.min(90,S.sh.hd+4);S.sh.cond=Math.min(100,S.sh.cond+15+bl*3)}o.text='คุณปะรูรั่วและเสริมประตูให้แน่นขึ้น ที่พักปลอดภัยขึ้นเล็กน้อย (ป้องกัน '+S.sh.df+')';
   }else if(id==='scav'){
@@ -5405,7 +5414,7 @@ const HUS={
  'นักล่าผีออนไลน์':['ไลฟ์เดินบ้านร้าง',['ยอดวิวสูงและมีคนส่งของขวัญ','ผีไม่โผล่แต่เงินโผล่มา']],
  'ผู้ดูแลสุสานกะดึก':['เฝ้าสุสานกะดึก',['ญาติผู้ล่วงลับจ่ายค่าดูแลหลุม','คุณได้ค่ากะและชาร้อนหนึ่งแก้ว']]
 };
-const hustleInfo=()=>HUS[S.role.n]||['ทำงานหาเงิน',HUS_DEF];
+let hustleInfo=()=>HUS[S.role.n]||['ทำงานหาเงิน',HUS_DEF];
 const SHIELDERS={'หมอดูปากเก่ง':'คุณเห็นลางบอกเหตุเมื่อกี้ ดวงเลยช่วยกันภัยไว้ให้หนึ่งครั้ง','ยามหน้าหมู่บ้านจัดสรร':'คุณสังเกตเห็นความผิดปกติและเตรียมทางหนีไว้แล้ว','ร่างทรงประจำตลาด':'ท่านมาบอกก่อนว่าจะมีเรื่อง คุณเตรียมรับไว้พอดี','พระหนุ่มวัดป่า':'ความสงบในใจทำให้คุณเตรียมรับสิ่งที่จะมาถึงได้ดี','ตำรวจชั้นผู้น้อย':'คุณจับสัญญาณอันตรายได้จากสัญชาตญาณ'};
 const TROUBLE={'คนขายยาบ้าซอยท้ายตลาด':'มีคนแปลกหน้าสะกดรอยตามคุณกลับห้อง','ตำรวจปลอม':'คนที่ผ่านด่านมองเครื่องแบบคุณนานผิดปกติ','นักพนันบอลตลอดกาล':'คู่พนันเก่าเดินมาถามถึงเงินที่ค้างไว้','นักมายากลข้างถนน':'ลูกค้าคนหนึ่งจับได้ว่ากลของคุณใช้มือซ้ายซ่อนเหรียญ'};
 function doHustle(o){
@@ -5919,7 +5928,7 @@ const CA={
   loyal:['ให้ {n} อยู่เคียงข้างคุณในเรื่องนี้','{n} ไม่พูดอะไรเลย แต่การมีเขาอยู่ข้างๆ ก็เพียงพอให้ใจเย็นลง',null,{md:6,lv:4},0,0,0]}};
 function crewAssist(e){
   try{
-    if(!e||!S||!S.crew||!S.crew.length||!e.ch||e.ms||e.k==='final'||e.k==='rent'||/^cr_|^cm_|^gang|^rival/.test(e.k||''))return;
+    if(!e||!S||!S.crew||!S.crew.length||!e.ch||e.ms||e.k==='final'||e.k==='rent'||/^cr_|^cm_|^gang|^rival|^job_board|^jo_/.test(e.k||''))return;
     if(RND()>.4)return;
     if(e.ch.length>=6){let ri=-1;for(let i=e.ch.length-1;i>=0;i--)if(e.ch[i].raw&&e.ch[i].raw.ex){ri=i;break}if(ri<0)return;e.ch.splice(ri,1)}
     const m=pick(S.crew),grp=e.cat==='danger'?'danger':e.cat==='money'?'money':'other';
@@ -5938,6 +5947,94 @@ function crewAssist(e){
   }catch(x){}
 }
 { const _g=genEvent; genEvent=function(){const e=_g.apply(this,arguments);crewAssist(e);return e}; }
+/* ===== v59: ระบบอาชีพแฝง — เปลี่ยนอาชีพระหว่างเล่นได้ + เนิฟทายาท ===== */
+/* inc=ตัวคูณรายได้จากปุ่มทำงาน md=ใจ/เหตุการณ์ sf=ลดความเสี่ยงอันตราย rk=เพิ่มความเสี่ยงทุกอย่าง ht=ความร้อนตำรวจ gain=ของที่ได้เป็นระยะ */
+const CAREERS=[
+ {id:'gambler',n:'นักพนันมือโปร',i:'🎲',tag:'รวยเร็ว · เสี่ยงสูง',fee:600,inc:1.9,rk:.06,md:-.5,lab:'ลงวงพนันใต้ดิน',lines:['คุณคว่ำไพ่ใบสุดท้ายแล้วเงินกองโตก็ไหลมาทางคุณ','คืนนี้ดวงดีผิดปกติ แต่เจ้ามือมองคุณตาขวางๆ'],r:'คุณเดินเข้าวงพนันที่ซ่อนอยู่หลังตลาด หน้าไพ่ที่คุณจำได้แม่นเปลี่ยนชีวิตคุณตั้งแต่คืนแรก'},
+ {id:'bmarket',n:'พ่อค้าตลาดมืด',i:'🕶',tag:'รวยเร็ว · ตำรวจจับตา',fee:800,inc:1.8,rk:.05,ht:2,lab:'ขายของใต้ผ้าคลุม',lines:['ของที่คุณซื้อมาราคาห้าสิบถูกขายต่อเป็นห้าร้อยภายในหนึ่งชั่วโมง','ลูกค้าหน้าใหม่จ่ายเงินสดแล้วไม่ขอใบเสร็จ'],r:'คุณได้แผงลับในซอยที่ไม่มีป้ายชื่อ ของทุกอย่างราคาแพงกว่าตลาดสามเท่า และขายหมดทุกชิ้น'},
+ {id:'hoarder',n:'นักเก็งกำไรอาหาร',i:'🥫',tag:'รวยเร็ว · เสี่ยงปานกลาง',fee:900,inc:1.6,rk:.03,lab:'กักตุนแล้วขายตอนขาดตลาด',lines:['คุณขายกระป๋องปลาในราคาสิบเท่าตอนบ่ายสามและไม่มีใครต่อรอง','สต็อกอาหารเต็มโกดัง ขายออกแค่ครึ่งก็คุ้มแล้ว'],r:'คุณเช่าโกดังเล็กๆ และเริ่มกักตุนของกินด้วยสมุดบัญชีเล่มเดียว หลายคนเรียกคุณว่าเจ้าสัวจำเป็น',gain:'food'},
+ {id:'insure',n:'ตัวแทนประกันวันสิ้นโลก',i:'📑',tag:'รวยดี · ปลอดภัย',fee:300,inc:1.5,lab:'ขายกรมธรรม์โลกแตก',lines:['ลูกค้ารายหนึ่งซื้อกรมธรรม์ครอบคลุมทุกภัยพิบัติ ยกเว้นโลกแตก','คุณพูดว่าไม่มีเงื่อนไขซ่อนเร้น และมีคนเซ็นจริงๆ'],r:'คุณกลายเป็นตัวแทนประกันคนเดียวในเมืองที่ยังเปิดสำนักงาน ลูกค้าเข้ามาไม่ขาด'},
+ {id:'gangman',n:'ลูกน้องแก๊งประจำซอย',i:'🦹',tag:'รวยเร็ว · เสี่ยงสูงมาก',fee:0,inc:1.7,rk:.08,ht:3,md:-1,lab:'ทำงานให้เจ้าพ่อ',lines:['เจ้าพ่อจ่ายเงินสดและบอกว่าห้ามถามอะไร','คุณยืนเฝ้าหน้าประตูทั้งคืนและได้ค่าตอบแทนเท่าเงินเดือนสองเดือน'],r:'เจ้าพ่อประจำซอยจับมือคุณและบอกว่า ตั้งแต่วันนี้คุณคือคนของเรา ซึ่งน่าจะดีและไม่ดีพอๆ กัน'},
+ {id:'busker',n:'นักดนตรีข้างถนน',i:'🎸',tag:'สุขใจ · รายได้พอกิน',fee:400,inc:.9,md:1.6,lab:'เล่นดนตรีรับทิป',lines:['คนหยุดฟังเพลงสุดท้ายของคุณนานกว่าที่ใครคาดคิด','เด็กคนหนึ่งใส่เหรียญและบอกว่าเพลงนี้ทำให้คิดถึงแม่'],r:'คุณซื้อกีตาร์ตัวเก่าจากร้านรับจำนำ สายขาดสองเส้นแต่เสียงยังไพเราะ คุณเล่นจนฟ้ามืดโดยไม่รู้ตัว'},
+ {id:'chef',n:'เชฟข้างทาง',i:'🍜',tag:'สุขใจ · มีกินเสมอ',fee:700,inc:1.1,md:1.2,gain:'food',lab:'ตั้งเตาขายก๋วยเตี๋ยว',lines:['น้ำซุปของคุณเปลี่ยนความรู้สึกของทั้งซอยให้อบอุ่นขึ้น','ลูกค้าแถวยาวแปดสิบเมตร และคุณกินเศษที่เหลือเป็นมื้อค่ำ'],r:'คุณขอยืมหม้อใบใหญ่ใบหนึ่งและตั้งเตาริมทาง กลิ่นหอมทำให้คนหยุดเดินกันทั้งสาย'},
+ {id:'teacher',n:'ครูอาสาสอนเด็ก',i:'📚',tag:'สุขใจมาก · รายได้น้อย',fee:100,inc:.5,md:2.2,lab:'สอนเด็กใต้ต้นไม้',lines:['เด็กๆ ตั้งใจฟังจนลืมว่าวันนี้ไม่มีอาหารกลางวัน','คุณได้ไข่ต้มสองฟองและบทกวีจากนักเรียนตัวเล็ก'],r:'คุณเขียนกระดานดำบนกำแพงเก่าและเด็กสิบกว่าคนมานั่งรอตั้งแต่เช้า ไม่มีใครถามว่าวิชาอะไรจะมีประโยชน์ตอนโลกแตก'},
+ {id:'petkeep',n:'คนเลี้ยงสัตว์ในซอย',i:'🐕',tag:'สุขใจ · ปลอดภัยเล็กน้อย',fee:300,inc:.7,md:1.5,sf:.02,lab:'ดูแลแมวหมาจรจัด',lines:['เจ้าของเก่ามาขอซื้อแมวคืนด้วยเงินก้อนเล็ก','หมาตัวใหญ่ตัวหนึ่งตามคุณมาทั้งวันโดยไม่ต้องบอกให้ตาม'],r:'คุณเปิดประตูหลังบ้านให้สุนัขสามตัวและแมวสองตัว พวกมันรู้ทันทีว่าที่นี่ปลอดภัย'},
+ {id:'photo',n:'ช่างภาพเก็บความทรงจำ',i:'📷',tag:'สุขใจ · รายได้พอดี',fee:900,inc:1.0,md:1.0,lab:'ถ่ายรูปครอบครัวก่อนโลกแตก',lines:['ครอบครัวหนึ่งจ่ายเงินเพื่อให้ถ่ายรูปรวมครั้งสุดท้ายบนดาดฟ้า','คุณกดชัตเตอร์ท่ามกลางแสงสีส้มของท้องฟ้าที่แปลกตา'],r:'คุณได้กล้องฟิล์มเก่าและม้วนฟิล์มสิบม้วน ทุกใบที่ถ่ายเหมือนจะมีความหมายพิเศษ'},
+ {id:'guard',n:'ยามเฝ้าหมู่บ้าน',i:'💂',tag:'ปลอดภัย · รายได้พอกิน',fee:200,inc:.9,sf:.06,lab:'เดินเวรยามกลางคืน',lines:['คุณเดินรอบหมู่บ้านและเจอคนแปลกหน้าสองคนที่รีบวิ่งหนีเมื่อเห็นไฟฉาย','ผู้ใหญ่บ้านจ่ายค่าเวรเป็นอาหารกระป๋องและเงินเล็กน้อย'],r:'คุณได้ไฟฉายหนึ่งอันกับกุญแจประตูหมู่บ้านหนึ่งดอก ทุกคนเดินผ่านคุณด้วยความรู้สึกปลอดภัยขึ้น'},
+ {id:'mech',n:'ช่างซ่อมบำรุงบังเกอร์',i:'🔧',tag:'ปลอดภัย · รายได้ดี',fee:500,inc:1.1,sf:.05,lab:'ซ่อมประตูเหล็กและกลอน',lines:['คุณซ่อมกลอนบังเกอร์ให้ครอบครัวเศรษฐีและได้ค่าแรงเต็มจำนวน','ท่อน้ำรั่วที่ซ่อมวันนี้อาจช่วยชีวิตใครสักคนพรุ่งนี้'],r:'คุณได้เครื่องมือซ่อมชุดใหญ่และเริ่มรับงานเสริมกำลังประตูกับหน้าต่างให้ทุกบ้านในแถบนั้น'},
+ {id:'nurse',n:'พยาบาลอาสา',i:'⛑',tag:'ปลอดภัย · ได้ยา',fee:200,inc:.7,sf:.04,md:.5,gain:'med',lab:'ทำแผลให้ชาวบ้าน',lines:['ชาวบ้านแบ่งยาให้คุณเป็นค่าตอบแทนแทนเงินสด','คุณเย็บแผลหนึ่งเข็มและได้รับกอดจากเด็กชายตัวเล็ก'],r:'คุณได้ผ้าพันแผลหนึ่งม้วนและกล่องปฐมพยาบาลที่ใครบางคนหามาให้ ทุกคนเรียกคุณว่าหมอทั้งที่คุณไม่ใช่'},
+ {id:'storekeep',n:'ผู้ดูแลคลังเสบียงชุมชน',i:'📦',tag:'ปลอดภัย · ไม่อดอยาก',fee:100,inc:1.0,sf:.04,gain:'water',lab:'แจกจ่ายเสบียงให้ชุมชน',lines:['คุณจดบัญชีน้ำและข้าวทุกกระสอบ และไม่มีใครกล้าโกงต่อหน้าคุณ','ผู้ใหญ่บ้านขอบคุณและแบ่งน้ำสะอาดให้คุณเพิ่มสองขวด'],r:'คุณถูกเลือกให้ถือกุญแจคลังเสบียง ความไว้วางใจคือสิ่งที่หนักกว่าลูกกุญแจ'},
+ {id:'guide',n:'ไกด์พาคนหนีภัย',i:'🧭',tag:'รวยดี · เสี่ยงปานกลาง',fee:300,inc:1.3,sf:.03,rk:.03,lab:'นำทางผู้ลี้ภัย',lines:['คุณพาครอบครัวห้าคนผ่านด่านที่ไม่มีใครรู้ว่ามี','เส้นทางที่คุณจำได้แม่นช่วยให้กลุ่มหนึ่งรอดจากน้ำท่วม'],r:'คุณวาดแผนที่ลับลงบนผ้าผืนเก่าและเริ่มรับพาคนผ่านทางที่ปลอดภัยที่สุด คนที่ตามหลังคุณมักได้กลับมาเล่าให้เพื่อนฟัง'},
+ {id:'hunter',n:'นักล่าสมบัติซากเมือง',i:'⛏',tag:'รวยเร็วมาก · เสี่ยงสูง',fee:700,inc:2.0,rk:.1,lab:'ขุดซากตึกพังหาของมีค่า',lines:['ในตู้เซฟที่เกือบถล่มมีนาฬิกาเรือนหนึ่งราคาเท่าบ้านหลังเล็ก','คุณเจอห้องใต้ดินที่ไม่มีใครเคยเปิดมาก่อน'],r:'คุณได้เสียมกับไฟฉายคาดหัว และเริ่มต้นเสี่ยงชีวิตกับซากตึกที่ยังไม่ถล่ม ซึ่งอาจเป็นตึกที่รวยที่สุดในจังหวัด'},
+ {id:'reporter',n:'นักข่าวภาคสนาม',i:'🎙',tag:'รายได้ดี · เสี่ยง · สนุก',fee:500,inc:1.3,rk:.05,md:.6,lab:'ลงพื้นที่เก็บข่าว',lines:['ข่าวของคุณกลายเป็นหัวข้อพูดคุยของทั้งอำเภอ','แหล่งข่าวที่คุณเชื่อใจมอบข้อมูลที่คุณไม่ควรรู้'],r:'คุณได้ไมค์เก่าและกล้องวิดีโอตัวหนึ่ง การเล่าความจริงสุดท้ายของโลกอาจเป็นงานที่คุณถนัดที่สุด'},
+ {id:'merc',n:'ทหารรับจ้าง',i:'🪖',tag:'รวยเร็วมาก · เสี่ยงสูงมาก',fee:900,inc:2.2,rk:.12,ht:2,md:-.8,lab:'รับงานคุ้มกันขบวน',lines:['ขบวนรถผ่านมาได้โดยไม่มีใครบาดเจ็บ และคุณได้ค่าจ้างก้อนใหญ่','เจ้านายจ่ายเงินแล้วบอกว่า รอบหน้าอาจต้องเสี่ยงมากกว่านี้'],r:'คุณเซ็นสัญญาที่ไม่มีวันหมดอายุกับกลุ่มคนที่ไม่เปิดเผยชื่อ เงินดี งานหนัก และคนใหม่ที่คุณต้องไว้ใจในสนาม'},
+ {id:'quack',n:'หมอเถื่อนประจำตลาด',i:'💉',tag:'รวยเร็ว · เสี่ยงสูง',fee:700,inc:1.8,rk:.07,ht:1,gain:'med',lab:'รักษาโรคแบบเร่งด่วน',lines:['คนไข้จ่ายเงินล่วงหน้าเพราะไม่มีหมอคนอื่นเหลืออยู่','ยาที่คุณปรุงเองได้ผลครั้งหนึ่งและไม่ได้ผลอีกครั้งหนึ่ง'],r:'คุณเอาป้ายหมอไปแขวนหน้าบ้านและเปิดรับรักษาทุกอย่าง ตั้งแต่ปวดหัวไปจนถึงอกหัก'},
+ {id:'cult',n:'ผู้นำลัทธิจิ๋วท้ายซอย',i:'🔮',tag:'รวยดี · มีคนรัก · ตำรวจสนใจ',fee:500,inc:1.7,rk:.04,ht:1,md:.8,lab:'เทศน์รับบริจาค',lines:['สาวกใหม่สามคนบริจาคเงินเก็บทั้งหมดให้คุณ','คุณเทศน์เรื่องโลกใหม่หลังโลกแตกจนผู้ฟังร้องไห้'],r:'คุณขึ้นยืนบนลังไม้และเปล่งเสียงว่า ถึงเวลาแล้ว ผู้คนหยุดเดินและฟัง ทั้งที่คุณเองก็ไม่แน่ใจว่าคุณพูดเรื่องอะไรอยู่'},
+ {id:'courier',n:'คนส่งของวันสิ้นโลก',i:'🛵',tag:'สมดุล · รายได้ดี',fee:400,inc:1.2,sf:.01,lab:'ส่งของข้ามเมือง',lines:['คุณส่งของครบทุกชิ้นก่อนฝนตกและลูกค้าให้ทิปเป็นขนมปัง','เส้นทางลัดที่คุณคิดเองประหยัดเวลาไปครึ่งชั่วโมง'],r:'คุณได้มอเตอร์ไซค์เก่าคันหนึ่งและกระเป๋าส่งของ ลูกค้าไม่ถามว่าส่งอะไร ถามแค่ว่าส่งทันไหม'}
+];
+const CAREER_BY=Object.fromEntries(CAREERS.map(c=>[c.id,c]));
+function jobOf(){return S&&S.job?(CAREER_BY[S.job]||null):null}
+function jobRisk(e,cat){const j=jobOf();if(!j)return 0;return (j.rk||0)-(cat==='danger'?(j.sf||0):(j.sf||0)*.4)}
+function jobTick(o){
+  const j=jobOf();if(!j||!o||!o.extra)return;
+  if(j.md)addStat('md',Math.round(j.md*10)/10,o);
+  if(j.gain&&RND()<.28)addStat(j.gain,1,o);
+  if(j.ht&&RND()<.22)addStat('ht',j.ht,o);
+}
+function setJob(id,o){
+  if(id==='none'){S.job='';if(o)o.extra.push('<b>คุณกลับมาใช้ชีวิตตามอาชีพเดิมแล้ว</b>');return}
+  const j=CAREER_BY[id];if(!j)return;
+  S.job=id;S.jobDay=S.day;S.jobN=(S.jobN|0)+1;
+  if(o)o.extra.push('💼 <b>อาชีพแฝงใหม่:</b> '+j.i+' '+j.n+' · '+j.tag);
+}
+{
+  const _hi=hustleInfo;
+  hustleInfo=function(){const j=jobOf();return j?[j.lab,j.lines]:_hi.apply(this,arguments)};
+  const _dh=doHustle;
+  doHustle=function(o){
+    _dh(o);
+    const j=jobOf();if(!j||j.inc===1)return;
+    const adj=Math.round(scaleMoney(rr(800,1800))*(j.inc-1));
+    if(adj)addStat('mo',adj,o);
+    if(j.rk>=.06&&RND()<.1){const lose=Math.min(Math.max(0,S.mo),scaleMoney(rr(800,2500)));if(lose>0){addStat('mo',-lose,o);o.extra.push('งานเสี่ยงๆ แบบนี้ไม่ได้ราบรื่นเสมอ คุณเสียเงินไปบางส่วนกับเรื่องไม่คาดคิด')}}
+  };
+}
+/* ----- กระดานงาน: สุ่ม 3 งานให้เลือก ----- */
+KEYMOOD.job_board='calm';KEYCAT.job_board='money';
+function rollJobOffer(){
+  const pool=CAREERS.filter(c=>c.id!==S.job);
+  const pick3=[];const grp={rich:pool.filter(c=>c.inc>=1.6),joy:pool.filter(c=>(c.md||0)>=1),safe:pool.filter(c=>(c.sf||0)>=.03),other:pool};
+  for(const g of shuffle(['rich','joy','safe'])){const c=pick(grp[g].filter(x=>!pick3.includes(x.id)).map(x=>x)||[]);if(c)pick3.push(c.id)}
+  while(pick3.length<4){const c=pick(pool);if(!pick3.includes(c.id))pick3.push(c.id)}
+  S.jobOffer=pick3.slice(0,RND()<.5?4:3);
+}
+const JB={k:'job_board',sc:['market','street','village'],w:.7,cd:50,noex:1,req:S=>S.day>=14&&S.day<330,head:'ตลาดงานใต้ดินเปิดรับสมัคร',
+ txt:'ป้ายประกาศหน้าตลาดมีข้อเสนองานจากหลายคน บางงานรวยเร็ว บางงานทำแล้วใจฟู บางงานปลอดภัยกว่าใคร และบางงานเสี่ยงจนต้องลงชื่อด้วยมือสั่น',
+ ch:[].concat(CAREERS.map((j,ix)=>({t:'สมัครเป็น '+j.i+' '+j.n+' ('+j.tag+')',x:j.fee?{mo:-j.fee}:{md:1},d:1,g:'adv',job:j.id,flag:{},show:S=>(S.jobOffer||[]).includes(j.id),r:j.r})),
+  [{t:'กลับไปทำอาชีพเดิมตามที่เคยเป็น',x:{md:1},d:1,job:'none',flag:{},show:S=>!!S.job,r:'คุณพับป้ายงานแฝงเก็บเข้ากระเป๋าและกลับมายืนในที่เดิม บางครั้งการกลับมาก็คือการตัดสินใจเหมือนกัน'},
+   {t:'ยังไม่ตัดสินใจ ไว้ทีหลัง',x:{md:-1},d:1,flag:{},r:'คุณมองป้ายประกาศอีกครั้งแล้วถอยออกมาเงียบๆ บางงานอาจมีโอกาสกลับมาอีกครั้ง'}])};
+TPL.push(JB);
+/* ----- มีคนมาชวนงานแฝงในเหตุการณ์ ----- */
+const JE=(id,sc,mood,head,txt,acc,tri)=>{
+  const j=CAREER_BY[id];KEYMOOD['jo_'+id]=mood;KEYCAT['jo_'+id]='money';
+  T({k:'jo_'+id,sc,w:1.0,cd:90,req:S=>S.day>=12&&S.day<330&&S.job!==id,head,txt,ch:[
+   {t:acc+' (เปลี่ยนเป็น '+j.n+')',x:j.fee?{mo:-j.fee}:{md:1},d:1,g:'adv',job:id,r:j.r},
+   {t:'ลองทำดูหนึ่งวันก่อน ไม่ผูกมัด',x:{mo:Math.round(j.fee/4)||100,en:-8,md:tri[0]},d:1,r:tri[1]},
+   {t:'ปฏิเสธและขอทำอาชีพเดิมต่อไป',x:{md:-1},d:1,r:'คุณปฏิเสธอย่างสุภาพ เขาพยักหน้าและบอกว่าข้อเสนอนี้ไม่มีวันหมดอายุจริงๆ แต่คุณรู้ว่ามันมี'}]});
+};
+JE('gambler',['alley','club','street'],'tense','ชายแปลกหน้าชวนเข้าวงไพ่','ชายในเสื้อแขนยาวคนหนึ่งแตะไหล่คุณและบอกว่า ผมเห็นคุณแกะไพ่ได้ดีกว่าใครในซอยนี้ สนใจมาทำงานด้วยกันไหม','รับข้อเสนอเข้าวงพนัน',[2,'วันหนึ่งผ่านไปด้วยกำไรเล็กน้อย และคุณพบว่าความตื่นเต้นทำให้ใจเต้นแรงกว่าที่เคย']);
+JE('busker',['park','street','rooftop'],'warm','คนฟังเพลงถามว่าอยากเล่นเป็นอาชีพไหม','ชายแก่ที่นั่งฟังคุณฮัมเพลงมาตลอดสามคืน เดินมาบอกว่า ถ้าลองเล่นให้ทั้งตลาดฟังทุกวัน คุณอาจมีความสุขกว่านี้','ไปเล่นดนตรีทุกวัน',[5,'คุณเล่นสามเพลงและคนหยุดฟังยี่สิบกว่าคน ทิปมากกว่าที่คิด และรอยยิ้มของคุณไม่ได้เสแสร้ง']);
+JE('guard',['village','road','wall'],'calm','ผู้ใหญ่บ้านต้องการคนเฝ้ายาม','ผู้ใหญ่บ้านเรียกคุณมาที่หน้าศาลาและบอกว่า คืนนี้มีเสียงแปลกๆ ในป่า ใครสักคนต้องเดินเวร และคุณดูน่าเชื่อถือที่สุด','รับงานเดินเวรยาม',[1,'คุณเดินรอบหมู่บ้านสามรอบและไม่พบอะไร ยกเว้นแมวตัวหนึ่งที่ตามคุณมาตลอดทาง']);
+JE('hunter',['alley','market','road'],'chaos','แผนที่ซากตึกที่ใครบางคนขายให้','คนแปลกหน้าขายแผนที่ตึกร้างแห่งหนึ่งให้คุณในราคาถูกเกินไป และบอกว่า ข้างในมีของที่เจ้าของไม่เคยกลับมาเอา','ไปสำรวจซากตึกตามแผนที่',[2,'คุณเข้าไปได้ชั้นเดียวก่อนเสียงโครงสร้างลั่นกึกกัก แล้ววิ่งออกมาพร้อมของใช้สองสามชิ้น']);
+JE('chef',['market','village','street'],'fun','เพื่อนบ้านขอให้ทำอาหารขาย','เพื่อนบ้านได้กลิ่นอาหารจากห้องคุณแล้วยืนต่อแถวหน้าประตูโดยไม่บอกใคร ก่อนพูดว่า ฉันจ่ายให้ ขอจานเดียวก็ได้','ตั้งเตาขายอาหารริมทาง',[4,'คุณทำสามจาน คนข้างหลังยืนต่ออีกสิบ และคุณลืมไปว่าตัวเองเหนื่อย']);
+JE('reporter',['street','market','office'],'tense','บรรณาธิการเก่าติดต่อมา','ชายแก่คนหนึ่งยื่นกล้องวิดีโอให้คุณ พร้อมบอกว่า ผมเคยเป็นบรรณาธิการ ตอนนี้ไม่มีใครเหลืออยู่ นอกจากคุณที่กล้าไปถามความจริง','รับกล้องแล้วออกเก็บข่าว',[1,'คุณสัมภาษณ์คนสามคนและได้คำพูดที่น่าจดจำจากเด็กคนหนึ่ง แต่ก็เจอสายตาที่ไม่ต้อนรับจากคนอีกสองคน']);
+JE('mech',['village','base','road'],'calm','บังเกอร์รั่วและเจ้าของกำลังตามหาช่าง','ชายในชุดสูทยืนหน้าประตูห้องใต้ดินที่รั่วและถามว่า คุณซ่อมกลอนได้ไหม ผมจ่ายแพงเพราะไม่มีช่างคนอื่นเหลือแล้ว','รับงานซ่อมบังเกอร์',[1,'คุณซ่อมกลอนประตูหนึ่งบานและเจ้าของจ่ายตรงเวลา มันเป็นงานที่เหนื่อยแต่รู้สึกว่าเป็นประโยชน์']);
+JE('courier',['road','street','market'],'fun','คนฝากของข้ามเมือง','หญิงสาวยื่นห่อเล็กๆ ให้คุณและบอกว่า ฝากส่งที่ตึกตรงข้ามวัดภายในชั่วโมงนี้ ฉันจ่ายสองเท่า และห้ามเปิดดู','รับงานส่งของเป็นอาชีพ',[2,'คุณส่งห่อนั้นถึงมือผู้รับก่อนกำหนดสิบนาที และเขากอดคุณแน่นโดยไม่พูดอะไรเลย']);
+JE('nurse',['village','base','park'],'warm','ชาวบ้านต้องการคนทำแผล','ผู้หญิงคนหนึ่งยืนหน้าบ้านพร้อมลูกชายที่ขาเป็นแผลยาว เธอบอกว่า ไม่มีหมอในละแวกนี้แล้ว คุณช่วยดูให้หน่อยได้ไหม','รับเป็นพยาบาลอาสา',[4,'คุณพันแผลให้เด็กชายและเขากอดคุณแน่นทั้งที่ยังเจ็บ ความรู้สึกที่ได้ช่วยใครสักคนอยู่ติดตัวคุณทั้งวัน']);
+JE('bmarket',['alley','market','street'],'creepy','ชายใส่แมสก์เสนอสินค้า','ชายสวมแมสก์ดำเปิดกระเป๋าเล็กๆ ให้ดูของที่หาไม่ได้แล้วในตลาดปกติ และถามว่า สนใจเป็นตัวแทนขายไหม ส่วนแบ่งหกสิบสี่สิบ','รับเป็นตัวแทนตลาดมืด',[-1,'ของสองชิ้นขายออกได้ราคาแพงลิบ แต่ตลอดทางกลับบ้านคุณรู้สึกเหมือนมีคนมองอยู่']);
+
+/* ----- ทายาทรวยเกินไป: เนิฟ 30% (เงินตั้งต้น; รายได้อยู่ใน addStat) ----- */
+ROLES.forEach(r=>{if(/^ทายาท/.test(r.n)){r.mo=[Math.round(r.mo[0]*.7),Math.round(r.mo[1]*.7)]}});
 /* ===== ENDINGS ===== */
 const END_TAG={
  love:{t:'คนที่ไม่ปล่อยมือ',p:['ในปีสุดท้าย คุณเลือกใช้เวลากับคนที่สำคัญมากกว่าสิ่งอื่นใด ไม่ใช่เพราะไม่มีทางเลือก แต่เพราะคุณรู้แล้วว่าอะไรคือสิ่งที่จะไม่เสียดายทีหลัง','คุณใช้เวลาไปกับการบอกรัก ขอโทษ และขอบคุณ ซึ่งเป็นคำสามคำที่คนส่วนใหญ่เก็บไว้ถึงวันสุดท้ายแต่ไม่เคยได้ใช้จริง']},
@@ -6767,7 +6864,7 @@ function animKind(c){
   if(x.en>5)return{k:'rest'};
   return{k:'talk'};
 }
-const ACTANIM={food:'search',water:'search',rest:'rest',fix:'work',scav:'search',heal:'heal',work:'work',chat:'talk',move:'run'};
+const ACTANIM={food:'search',water:'search',rest:'rest',fix:'work',scav:'search',heal:'heal',work:'work',chat:'talk',jobq:'talk',move:'run'};
 
 /* ===== ผู้เล่นคนอื่นในห้อง อีโมจิ และฟ้าปลายปี ===== */
 const EMOS=['👍','😂','😱','😭','🔥','💪','❤️','🙏'];
@@ -8197,6 +8294,7 @@ const LB_SALT='d365-v1-';
 function lbSig(r){return hash(LB_SALT+[r.id,r.lives,r.survived,Math.round(r.richest),r.meds,r.joy,r.best,r.wk,r.dr,r.arms,r.banana,r.ghost,r.roles.length,r.causes.length,r.at,r.at0].join('|')).toString(16)}
 function lbSigOk(r){return !!r.sig&&r.sig===lbSig(r)}
 function lbTimeOk(r){return r.at0>0&&r.at>=r.at0&&r.lives<=Math.floor((r.at-r.at0)/150000)+1}
+const NERF_AT=Date.UTC(2026,9,28,18,0,0);
 function lbRow(id,d){
   d=d||{};
   const dd=clean(d.dd,10),today=dayKey();
@@ -8208,6 +8306,7 @@ function lbRow(id,d){
   row.funny=new Set(row.causes).size;row.rolesN=new Set(row.roles).size;
   row.bs=num(d.bs,99999);row.cs=num(d.cs,99999);row.gd=num(d.gd,99999);row.ev=num(d.ev,99999);row.rate=row.lives>=5?Math.round(row.survived/row.lives*100):0;
   row.bad=row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60||row.bs>row.survived||row.cs>row.bs||row.gd>row.lives*60||row.ev>row.lives*60;
+  row.richestRaw=row.richest;if(row.at<NERF_AT&&/^ทายาท/.test(row.rr.richest||''))row.richest=Math.round(row.richest*.7);
   return row;
 }
 const FBon=()=>!!(window.D365_FB&&D365_FB.ok);
@@ -8249,7 +8348,7 @@ async function lbRecord(E,kind){
   if(!LB.signed)return false;
   try{
     const ref=LB.db.doc('board/'+LB.id);
-    const sn=await ref.get();const cur=sn.exists?lbRow(LB.id,sn.data()):lbRow(LB.id,{});
+    const sn=await ref.get();const cur=sn.exists?lbRow(LB.id,sn.data()):lbRow(LB.id,{});cur.richest=cur.richestRaw!=null?cur.richestRaw:cur.richest;
     const nv={nick:NICK||cur.nick||'ผู้เล่น',lives:cur.lives+1,survived:cur.survived+(kind==='final'?1:0),richest:Math.max(cur.richest,Math.max(0,Math.round(S.mo))),
       meds:Math.max(cur.meds,Math.min(80,S.inv.med)),joy:Math.max(cur.joy,Math.round(S.md)),best:Math.max(cur.best,E.score),role:S.role.n,title:E.title,at:Date.now(),
       wk:Math.min(cur.lives+1,Math.max(cur.wk,wkCount())),dr:cur.dr+(E.dream&&E.dream.ok?1:0),tt:(S.wk&&kind!=='died'&&WKTITLE[S.wk])||cur.tt||'',
@@ -8730,6 +8829,11 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-10-29b',date:'29 ต.ค. 2569',title:'เปลี่ยนอาชีพระหว่างเล่น + พักผ่อนลดลง + เนิฟทายาท',items:[
+  '💼 ระบบอาชีพแฝง: กดปุ่ม "📋 หางานใหม่" ตอนเช้า (หรือรอโดนชวนในเหตุการณ์) เพื่อเลือกงานใหม่ 20 แบบ โดยอาชีพเดิมของคุณยังอยู่และเหตุการณ์เฉพาะอาชีพเดิมก็ยังเกิดตามปกติ',
+  '💰 งานรวยเร็ว (นักพนัน ตลาดมืด นักล่าสมบัติ ทหารรับจ้าง ฯลฯ) · 😊 งานสุขใจ (นักดนตรี เชฟข้างทาง ครูอาสา ฯลฯ) · 🛡 งานปลอดภัย (ยาม ช่างซ่อมบังเกอร์ พยาบาลอาสา ฯลฯ) แต่บางงานเสี่ยงสูงและตำรวจจับตา',
+  '🛏 พักผ่อนได้แรงลดจาก +45 เหลือ +25',
+  '⚖ เนิฟ "ทายาท" ลงประมาณ 30% ทั้งเงินตั้งต้นและรายได้ ส่วนในตารางอันดับ "รวยที่สุด" ที่เป็นสถิติเก่าของทายาทก็ลดแสดงผล 30% เช่นกัน']},
  {id:'2026-10-29a',date:'29 ต.ค. 2569',title:'แก้รายชื่อคนออนไลน์ + โชว์เงินและสีท็อป',items:[
   'แก้บั๊กรายชื่อ "คนออนไลน์ตอนนี้" ที่เลื่อนดูแล้วเด้งกลับขึ้นบนสุด ตอนนี้เลื่อนค้างตรงที่ดูได้',
   '💰 รายชื่อคนออนไลน์แสดงเงินปัจจุบันของแต่ละคนที่กำลังเล่น',
@@ -8919,7 +9023,7 @@ function toast(m){
 /* ===== มุมมองข้อมูลผู้เล่น (ใช้ร่วมกันทั้งเล่นคนเดียวและแขกออนไลน์) ===== */
 function hudOf(){
   if(!S)return null;
-  return {nm:S.name,rl:S.role.perk,rn:S.role.n,age:S.age,doom:S.doom.n,day:S.day,hp:S.hp,md:S.md,lv:S.lv,ht:S.ht,fd:S.fd,wt:S.wt,en:S.en,wd:S.wd,inf:S.inf,mo:S.mo,
+  return {nm:S.name,rl:S.role.perk+((typeof jobOf==='function'&&jobOf())?' · งานแฝง: '+jobOf().n:''),rn:S.role.n,age:S.age,doom:S.doom.n,day:S.day,hp:S.hp,md:S.md,lv:S.lv,ht:S.ht,fd:S.fd,wt:S.wt,en:S.en,wd:S.wd,inf:S.inf,mo:S.mo,
     sh:{n:S.sh.n,df:shDf(),hd:shHd(),cond:Math.round(S.sh.cond)},up:upIds(),inv:Object.assign({},S.inv),crew:S.crew.map(m=>m.n+(m.tr?' · '+TRN[m.tr]:'')),save:S.save,gear:GEARK.filter(k=>S.gear[k]),st:activeStories(),kr:S.kar|0,
     jr:S.log.slice(-4).map(l=>({d:Math.floor(l.d)+1,t:l.t}))};
 }
@@ -10047,5 +10151,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 00:00';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 00:37';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
