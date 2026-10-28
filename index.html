@@ -8846,9 +8846,8 @@ const NEWS=[
   'กรองคำหยาบภาษาไทย/อังกฤษ (รวมพิมพ์เลี่ยง เช่น เว้นวรรคแทรกตัวอักษร) ข้อความที่มีคำหยาบจะส่งไม่ได้ และชื่อผู้เล่นที่หยาบจะถูกปิดเป็น ***',
   'บล็อกโฆษณา/พนัน/ชวนเข้าไลน์ เลขโทรศัพท์ ไอดี @ ลิงก์ อีโมจิหรือตัวอักษรซ้ำๆ เยอะเกินไป และข้อความซ้ำ',
   'คนที่สแปมซ้ำ 3 ครั้งจะถูกซ่อนข้อความอัตโนมัติในรอบนั้น']},
- {id:'2026-10-29c',date:'29 ต.ค. 2569',title:'แชทโลก — คุยและชวนเล่นกับคนออนไลน์',items:[
+ {id:'2026-10-29c',date:'29 ต.ค. 2569',title:'แชทโลก — คุยกับคนออนไลน์',items:[
   '💬 มีช่องแชทใต้รายชื่อ "คนออนไลน์ตอนนี้" ในหน้าแรก และปุ่ม "💬 แชท" ในเมนูระหว่างเล่น ข้อความมองเห็นเฉพาะคนที่ออนไลน์ตอนนั้น ไม่ถูกบันทึก',
-  '📣 ปุ่ม "ชวนเล่น": ถ้าคุณเปิดห้องเล่นกับเพื่อนอยู่ ข้อความชวนจะมีปุ่ม "เข้าห้อง" ให้คนอื่นกดเข้าได้ทันที',
   '🛡 ซ่อนลิงก์อัตโนมัติ ส่งได้ทุก 2 วินาที แตะชื่อใครเพื่อซ่อนข้อความของคนนั้น และมีปุ่มซ่อนแชททั้งหมด']},
  {id:'2026-10-29b',date:'29 ต.ค. 2569',title:'เปลี่ยนอาชีพระหว่างเล่น + พักผ่อนลดลง + เนิฟทายาท',items:[
   '💼 ระบบอาชีพแฝง: กดปุ่ม "📋 หางานใหม่" ตอนเช้า (หรือรอโดนชวนในเหตุการณ์) เพื่อเลือกงานใหม่ 20 แบบ โดยอาชีพเดิมของคุณยังอยู่และเหตุการณ์เฉพาะอาชีพเดิมก็ยังเกิดตามปกติ',
@@ -9904,8 +9903,8 @@ function chatRecv(ev){
       if(c.mut[pid])return;
     }
     const t=chatClean(d.t);if(!t)return;
-    const rc=String(d.rc||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,4);
-    const m={id:++c.seq,pid,me,n:(clean(d.n,16)||'ผู้เล่น'),tag:pid.slice(-3),t,rc:rc.length===4?rc:'',at:Date.now(),inv:!!d.inv};
+    const rc='';
+    const m={id:++c.seq,pid,me,n:(clean(d.n,16)||'ผู้เล่น'),tag:pid.slice(-3),t,rc:rc.length===4?rc:'',at:Date.now(),inv:false};
     c.msgs.push(m);if(c.msgs.length>80)c.msgs.shift();
     if(!me&&!chatOpenNow())c.unread++;
     chatRefresh();
@@ -9962,11 +9961,10 @@ function chatMount(el){
   el.className='chatw';
   el.innerHTML='<div class="chh"><b>💬 แชทโลก</b><span><button class="mini" data-ch="hide">'+(c.hide?'แสดงแชท':'ซ่อนแชท')+'</button></span></div>'+
    '<div class="cmsgs" aria-live="polite"></div>'+
-   '<form class="cform"><input maxlength="140" placeholder="'+(hasApi?'พิมพ์ข้อความ (สูงสุด 140 ตัวอักษร)':'ยังไม่ได้เชื่อมต่อออนไลน์')+'" '+(hasApi?'':'disabled')+'><button class="btn" type="submit" '+(hasApi?'':'disabled')+'>ส่ง</button><button class="btn ghost" type="button" data-ch="inv" '+(hasApi?'':'disabled')+'>📣 ชวนเล่น</button></form>'+
+   '<form class="cform"><input maxlength="140" placeholder="'+(hasApi?'พิมพ์ข้อความ (สูงสุด 140 ตัวอักษร)':'ยังไม่ได้เชื่อมต่อออนไลน์')+'" '+(hasApi?'':'disabled')+'><button class="btn" type="submit" '+(hasApi?'':'disabled')+'>ส่ง</button></form>'+
    '<p class="hint cnote">ข้อความมองเห็นได้เฉพาะคนที่ออนไลน์ตอนนี้ ไม่ถูกบันทึก · ชื่อสวมรอยได้ จึงมีรหัส # ต่อท้าย · อย่าบอกข้อมูลส่วนตัว · ลิงก์ถูกซ่อนอัตโนมัติ · แตะชื่อใครเพื่อซ่อนข้อความของคนนั้น</p><p class="cerr hint"></p>';
   const form=el.querySelector('.cform'),inp=form.querySelector('input'),err=el.querySelector('.cerr');
   form.onsubmit=e=>{e.preventDefault();const r=chatSend(inp.value,false);err.textContent=r;if(!r)inp.value=''};
-  el.querySelector('[data-ch=inv]').onclick=()=>{const r=chatSend(MP.on&&MP.host?'มาเล่นด้วยกันในห้องของฉัน':'ใครว่างมาเล่นด้วยกันไหม',true);err.textContent=r||(MP.on&&MP.host?'':'ทิป: เปิดห้องเล่นกับเพื่อนก่อน ข้อความชวนจะมีปุ่มเข้าห้องให้คนอื่นกดได้')};
   el.querySelector('[data-ch=hide]').onclick=()=>{c.hide=!c.hide;chatMount(el)};
   c.unread=0;
   const box=el.querySelector('.cmsgs');box._h=null;chatRefresh();
@@ -10350,5 +10348,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 00:47';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 00:58';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
