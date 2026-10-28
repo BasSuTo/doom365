@@ -598,6 +598,7 @@ const rootApi={
 /* ---------- ฐานข้อมูลอันดับ (ข้อความ retained บนโบรกเกอร์) ---------- */
 const DBT=NS+'db/';
 let dbObj=null;
+window.D365_MQDB=()=>{if(!dbObj)dbObj=makeDb();return dbObj};
 function makeDb(){
   const cache=new Map(),subs=new Set(),watchers=[];let tm=null;
   const mq=Mqtt({onMsg(topic,str){
@@ -8842,6 +8843,9 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-10-29e',date:'29 ต.ค. 2569',title:'แชทเก็บประวัติ + ป้ายท็อป/ฉายาในแชท',items:[
+  '💬 แชทเก็บข้อความล่าสุดไว้ ไม่หายเมื่อรีเฟรช และคนที่เพิ่งเข้ามาก็อ่านย้อนหลังได้',
+  '🏆 คนที่ติดท็อป (ผู้รอด 365 วัน / เศรษฐี) หรือมีฉายาคนดี/คนชั่วจากตารางอันดับ จะมีป้ายต่อท้ายชื่อในแชท (ต้องล็อกอิน)']},
  {id:'2026-10-29d',date:'29 ต.ค. 2569',title:'แชท: กรองคำหยาบและสแปมเข้มขึ้น',items:[
   'กรองคำหยาบภาษาไทย/อังกฤษ (รวมพิมพ์เลี่ยง เช่น เว้นวรรคแทรกตัวอักษร) ข้อความที่มีคำหยาบจะส่งไม่ได้ และชื่อผู้เล่นที่หยาบจะถูกปิดเป็น ***',
   'บล็อกโฆษณา/พนัน/ชวนเข้าไลน์ เลขโทรศัพท์ ไอดี @ ลิงก์ อีโมจิหรือตัวอักษรซ้ำๆ เยอะเกินไป และข้อความซ้ำ',
@@ -9889,6 +9893,7 @@ function chatClean(s){
 function chatInit(){
   const c=chatSt();if(c.on||!MP.api||typeof MP.api.on!=='function')return;
   c.on=true;
+  if(typeof window.D365_MQDB==='function'){chatRetInit();return}
   try{MP.api.on('chat',ev=>chatRecv(ev))}catch(e){c.on=false}
 }
 function chatRecv(ev){
@@ -9928,7 +9933,7 @@ function chatLineHtml(m){
   const mu=!m.me&&m.pid;
   const nm='<b class="cn'+(m.me?' me':'')+'"'+(mu?' data-mu="'+esc(m.pid)+'" title="แตะที่ชื่อเพื่อซ่อนข้อความของคนนี้"':'')+'>'+esc(m.n)+(m.me?' (คุณ)':' <i>#'+esc(m.tag)+'</i>')+'</b>';
   const join=m.rc&&!MP.on&&!m.me?' <button class="mini" data-jrc="'+esc(m.rc)+'">เข้าห้อง '+esc(m.rc.toUpperCase())+'</button>':m.rc?' <span class="rcb">ห้อง '+esc(m.rc.toUpperCase())+'</span>':'';
-  return '<div class="cm'+(m.inv?' inv':'')+'">'+(m.inv?'📣 ':'')+nm+' '+esc(m.t)+join+'</div>';
+  return '<div class="cm">'+nm+chatTagsHtml(m.u)+' '+esc(m.t)+'</div>';
 }
 function chatRefresh(){
   const c=chatSt();
@@ -9957,12 +9962,12 @@ function chatBind(w){
 function chatMount(el){
   if(!el)return;
   const c=chatSt();chatInit();
-  const hasApi=!!(MP.api&&typeof MP.api.emit==='function');
+  const hasApi=!!(window.D365_MQDB||(MP.api&&typeof MP.api.emit==='function'));
   el.className='chatw';
   el.innerHTML='<div class="chh"><b>💬 แชทโลก</b><span><button class="mini" data-ch="hide">'+(c.hide?'แสดงแชท':'ซ่อนแชท')+'</button></span></div>'+
    '<div class="cmsgs" aria-live="polite"></div>'+
    '<form class="cform"><input maxlength="140" placeholder="'+(hasApi?'พิมพ์ข้อความ (สูงสุด 140 ตัวอักษร)':'ยังไม่ได้เชื่อมต่อออนไลน์')+'" '+(hasApi?'':'disabled')+'><button class="btn" type="submit" '+(hasApi?'':'disabled')+'>ส่ง</button></form>'+
-   '<p class="hint cnote">ข้อความมองเห็นได้เฉพาะคนที่ออนไลน์ตอนนี้ ไม่ถูกบันทึก · ชื่อสวมรอยได้ จึงมีรหัส # ต่อท้าย · อย่าบอกข้อมูลส่วนตัว · ลิงก์ถูกซ่อนอัตโนมัติ · แตะชื่อใครเพื่อซ่อนข้อความของคนนั้น</p><p class="cerr hint"></p>';
+   '<p class="hint cnote">เก็บข้อความล่าสุดไว้ให้อ่านย้อนหลังได้ · ชื่อสวมรอยได้ จึงมีรหัส # ต่อท้าย · ป้ายท็อป/ฉายาตามตารางอันดับ · อย่าบอกข้อมูลส่วนตัว · แตะชื่อใครเพื่อซ่อนข้อความของคนนั้น</p><p class="cerr hint"></p>';
   const form=el.querySelector('.cform'),inp=form.querySelector('input'),err=el.querySelector('.cerr');
   form.onsubmit=e=>{e.preventDefault();const r=chatSend(inp.value,false);err.textContent=r;if(!r)inp.value=''};
   el.querySelector('[data-ch=hide]').onclick=()=>{c.hide=!c.hide;chatMount(el)};
@@ -10050,6 +10055,97 @@ function chatFilter(t,isSelf){
     c.sent=(c.sent||[]).filter(x=>Date.now()-x<30000);
     if(c.sent.length>=6)return 'ส่งถี่เกินไป รอสักครู่';
     const r=_cs(text,inv);if(!r)c.sent.push(Date.now());return r;
+  };
+}
+
+
+/* ===== เก็บประวัติแชท (โบรกเกอร์เก็บข้อความล่าสุด + จำในเครื่อง) และคำต่อท้ายตามอันดับ/ฉายา ===== */
+function chatRanks(){
+  const key=((LB.rows||[]).length)+':'+(LB.at||0);
+  if(window.__cr&&window.__cr.k===key)return window.__cr;
+  const o={k:key,sv:{},rc:{}};
+  try{rankList('survived').slice(0,10).forEach((r,i)=>{o.sv[r.id]=i+1});rankList('richest').slice(0,10).forEach((r,i)=>{o.rc[r.id]=i+1})}catch(e){}
+  window.__cr=o;return o;
+}
+function chatTagsHtml(u){
+  try{
+    if(!u)return '';
+    const r=(LB.rows||[]).find(x=>x.id===u&&!x.bad);if(!r)return '';
+    const rk=chatRanks(),out=[];
+    if(rk.sv[r.id])out.push('<i class="tt sv g'+Math.min(4,rk.sv[r.id])+'">'+(['🥇','🥈','🥉'][rk.sv[r.id]-1]||'🛡')+' ท็อป '+rk.sv[r.id]+' ผู้รอด</i>');
+    if(rk.rc[r.id])out.push('<i class="tt sv g'+Math.min(4,rk.rc[r.id])+'">'+(['🥇','🥈','🥉'][rk.rc[r.id]-1]||'👑')+' ท็อป '+rk.rc[r.id]+' เศรษฐี</i>');
+    const g=(r.gd||0)>=(r.ev||0)?epiTotal(r.gd||0,true):epiTotal(r.ev||0,false);
+    if(g)out.push(g);
+    return out.slice(0,3).join('');
+  }catch(e){return ''}
+}
+const CHAT_LS='doom365-chat';
+function chatMyId(){try{return (LB&&LB.id)||localStorage.getItem('doom365-uid')||''}catch(e){return ''}}
+async function chatRetInit(){
+  const c=chatSt();if(c.ret)return;c.ret=1;c.slots={};c.hist=[];c.seen={};c.first=true;
+  try{const a=JSON.parse(localStorage.getItem(CHAT_LS)||'[]');if(Array.isArray(a))c.hist=a.filter(x=>x&&typeof x.t==='string'&&+x.at>Date.now()-3*864e5).slice(-60)}catch(e){}
+  try{c.db=window.D365_MQDB();c.db.collection('chat').onSnapshot(sn=>chatSync(sn),()=>{})}catch(e){c.ret=0;c.db=null;return}
+  chatSync({docs:[]});
+}
+function chatSync(sn){
+  const c=chatSt(),now=Date.now();
+  try{
+    const mine=chatMyId();
+    const map={};c.hist.forEach(x=>{map[x.at+'|'+(x.u||x.n)+'|'+x.t]=x});
+    (sn.docs||[]).forEach(x=>{
+      const d=x.data();if(!d||typeof d!=='object')return;
+      const at=+d.at;if(!(at>now-3*864e5&&at<now+6e5))return;
+      c.slots[x.id]=at;
+      const f=chatFilter(chatClean(d.t),false);if(f.drop||!f.t)return;
+      const m={at,n:chatMask(clean(d.n,16))||'ผู้เล่น',t:f.t,u:clean(d.u,40)};
+      map[at+'|'+(m.u||m.n)+'|'+m.t]=m;
+    });
+    let arr=Object.values(map).sort((a,b)=>a.at-b.at);
+    /* ข้อความซ้ำๆ จากหลายคนในเวลาใกล้กัน = สแปม ซ่อนไว้ */
+    const cnt={};arr=arr.filter(m=>{const k=m.t.toLowerCase().replace(/\s+/g,'');cnt[k]=(cnt[k]||0)+1;return cnt[k]<=2});
+    arr=arr.filter(m=>!c.mut[m.u||m.n]);
+    arr=arr.slice(-60);c.hist=arr;
+    try{localStorage.setItem(CHAT_LS,JSON.stringify(arr.map(m=>({at:m.at,n:m.n,t:m.t,u:m.u}))))}catch(e){}
+    c.msgs=arr.map(m=>({id:m.at+'|'+(m.u||m.n),pid:m.u||m.n,me:!!mine&&m.u===mine,n:m.n,tag:(m.u||m.n).slice(-3),t:m.t,u:m.u,at:m.at}));
+    let nu=0;c.msgs.forEach(m=>{const k=m.id+m.t;if(!c.seen[k]){c.seen[k]=1;if(!c.first&&!m.me)nu++}});
+    c.first=false;
+    if(nu&&!chatOpenNow())c.unread+=nu;
+    if(!c.lbTried&&c.msgs.some(m=>m.u)&&!(LB.rows||[]).length&&LB.useGet&&typeof lbLoad==='function'){c.lbTried=1;lbLoad().then(()=>chatRefresh()).catch(()=>{})}
+    chatRefresh();
+  }catch(e){}
+}
+function chatRetSend(text){
+  const c=chatSt();
+  if(!c.db)return 'ยังไม่ได้เชื่อมต่อออนไลน์';
+  const now=Date.now();if(now-c.last<1800)return 'ส่งเร็วเกินไป รอสักครู่';
+  const t=chatClean(text);if(!t)return '';
+  c.last=now;
+  let best=-1,bt=Infinity;const free=[];
+  for(let i=0;i<80;i++){const a=c.slots['s'+String(i).padStart(2,'0')]||0;if(!a)free.push(i);else if(a<bt){bt=a;best=i}}
+  const slot=free.length?free[Math.floor(Math.random()*free.length)]:best;
+  const msg={t,n:NICK||'ผู้เล่น',u:chatMyId(),at:now};
+  c.slots['s'+String(slot).padStart(2,'0')]=now;
+  try{c.db.doc('chat/s'+String(slot).padStart(2,'0')).set(msg).catch(()=>{})}catch(e){return 'ส่งไม่สำเร็จ'}
+  try{c.hist.push({at:now,n:chatMask(clean(msg.n,16))||'ผู้เล่น',t,u:msg.u});chatSync({docs:[]})}catch(e){}
+  return '';
+}
+{
+  const _cs2=chatSend;
+  chatSend=function(text,inv){
+    const c=chatSt();
+    if(c.ret&&c.db){
+      /* ผ่านตัวกรองเดิมแล้วค่อยส่งเข้าสมุดแชทที่เก็บประวัติ */
+      const raw=chatClean(text);const f=chatFilter(raw,true);
+      if(f.drop)return f.drop;
+      const key=f.t.toLowerCase().replace(/\s+/g,'');
+      if(c.lastKey===key&&Date.now()-(c.lastAt||0)<30000)return 'ข้อความซ้ำกับที่เพิ่งส่ง';
+      c.sent=(c.sent||[]).filter(x=>Date.now()-x<30000);
+      if(c.sent.length>=6)return 'ส่งถี่เกินไป รอสักครู่';
+      const r=chatRetSend(f.t);
+      if(!r){c.lastKey=key;c.lastAt=Date.now();c.sent.push(Date.now())}
+      return r;
+    }
+    return _cs2(text,inv);
   };
 }
 /* ===== v18: หน้าปรับปรุงที่พัก / ทักษะ / ส่งของให้เพื่อน ===== */
@@ -10348,5 +10444,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 00:58';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 01:04';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
