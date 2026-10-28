@@ -355,6 +355,16 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
 .mres b{display:block;font-size:14px;margin-bottom:2px}.mres span{display:block;opacity:.92}.mres em{display:block;font-style:normal;opacity:.8;font-size:13px;margin-top:3px}
 .mres .chips{margin-top:6px}
 .btn.pulse{animation:evp 1.6s ease-in-out infinite}
+
+.epi{display:inline-block;padding:3px 10px;border-radius:999px;border:1px solid var(--ec,#d8c9a8);color:var(--ec,#d8c9a8);background:rgba(255,255,255,.05);font-size:13px;margin:2px 0}
+.epi b{font-weight:700}
+.epib{text-align:center}
+.rankhot{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin:10px 0;padding:14px 16px;border-radius:14px;border:2px solid #f5c542;background:linear-gradient(90deg,#f5c542 0%,#ff9f43 100%);color:#2a1a00;font:700 16px/1.3 inherit;cursor:pointer;box-shadow:0 0 0 0 rgba(245,197,66,.6);animation:rkpulse 2.2s infinite}
+.rankhot i{font-style:normal;font-size:24px}
+.rankhot:hover{filter:brightness(1.08)}
+.mini.hot{background:linear-gradient(90deg,#f5c542,#ff9f43);color:#2a1a00;border-color:#f5c542;font-weight:700}
+@keyframes rkpulse{0%{box-shadow:0 0 0 0 rgba(245,197,66,.55)}70%{box-shadow:0 0 0 12px rgba(245,197,66,0)}100%{box-shadow:0 0 0 0 rgba(245,197,66,0)}}
+@media (prefers-reduced-motion:reduce){.rankhot{animation:none}}
 </style></head><body>
 
 <div class="app" id="app">
@@ -390,7 +400,7 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
           <button class="mini" id="bLegend">สัญลักษณ์</button>
           <button class="mini" id="bAch">เหรียญ</button>
           <button class="mini" id="bCod">สมุดบันทึก</button>
-          <button class="mini" id="bBoard">อันดับ</button>
+          <button class="mini hot" id="bBoard">🏆 อันดับ</button>
           <button class="mini" id="bSave">บันทึกชีวิต</button>
           <button class="mini" id="bQuit">ยอมแพ้</button>
         </div>
@@ -4834,7 +4844,7 @@ function scaleFx(x){const o={};for(const k in x)o[k]=k==='mo'?scaleMoney(x[k]):x
 function fill(s,p){
   if(!s)return '';
   const f=t=>t.replace(/\{m(\d+)\}/g,(_,n)=>fmt(scaleMoney(+n)))
-    .replace(/\{(\w+)\}/g,(m,k)=>k in p?p[k]:k==='left'?String(365-Math.floor(S.day)):k==='doom'?S.doom.s:k==='job'?S.role.n:k==='name'?S.name:k==='shel'?S.sh.n:k==='cn'?(S._cn||'เพื่อนร่วมทาง'):k==='tr'?(S.trace?S.trace.n:'ใครบางคน'):k==='trr'?(S.trace?S.trace.r:'คนแปลกหน้า'):m);
+    .replace(/\{(\w+)\}/g,(m,k)=>k in p?p[k]:k==='left'?String(365-Math.floor(S.day)):k==='doom'?S.doom.s:k==='job'?S.role.n:k==='name'?S.name:k==='shel'?S.sh.n:k==='cn'?(S._cn||'เพื่อนร่วมทาง'):k==='cn2'?(S._cn2||'อีกคนหนึ่ง'):k==='tr'?(S.trace?S.trace.n:'ใครบางคน'):k==='trr'?(S.trace?S.trace.r:'คนแปลกหน้า'):m);
   return f(f(s));
 }
 
@@ -4900,7 +4910,7 @@ function pickExtras(t,n){
   return out;
 }
 function mkExtra(e){
-  const r={t:e.t,x:e.x||{},d:e.d,g:e.g,r:e.r||'',show:e.show,roll:e.roll,recruit:e.k==='x_friend',al:e.al};
+  const r={t:e.t,x:e.x||{},d:e.d,g:e.g,r:e.r||'',show:e.show,roll:e.roll,recruit:e.k==='x_friend',al:e.al,ex:1};
   if(e.k2)r.k={p:e.k2.p,e:e.k2.e||'talk',x:e.k2.x||{},f:e.k2.f};
   return r;
 }
@@ -4975,7 +4985,8 @@ function genEvent(){
   if(typeof isThreat==='function'&&!isMs&&isThreat(t))S.lastThr=S.day;
   if(t.rare)S.rares=(S.rares|0)+1;
   if(!isMs&&t!==RENT)S.cool[t.k]=S.day+(t.cd||15);
-  S._cn=t.ct?((S.crew.find(m=>m.tr===t.ct)||{}).n||''):'';
+  S._cn=t.ct?((S.crew.find(m=>m.tr===t.ct)||{}).n||''):'';S._cn2='';
+  if(!S._cn&&t.ca&&S.crew.length){const cm=shuffle(S.crew.slice());S._cn=cm[0].n;S._cn2=(cm[1]||{}).n||'';S._cm=cm[0].tr}
   const e=build(t,isMs);if(S.gang&&(t.gang||t.k==='gang_found')){const G=S.gang.n;e.head=String(e.head).split('{G}').join(G);e.txt=String(e.txt).split('{G}').join(G);for(const c of e.ch)for(const k of ['t','r','f'])if(typeof c[k]==='string')c[k]=c[k].split('{G}').join(G)}try{rivalFill(e,t)}catch(x){}S.mood=e.mood;try{e.tag=evTag(t,isMs)}catch(x){e.tag=null}
   try{if(!isMs&&t!==RENT&&!t.af)afterStart(t,e)}catch(x){}
   return e;
@@ -5138,6 +5149,9 @@ function resolve(ev,i){
   if(c.raw.gear&&o.ok){for(const k in c.raw.gear)S.gear[k]=1;o.extra.push('คุณได้ <b>'+Object.keys(c.raw.gear).map(k=>GEAR[k].n).join(', ')+'</b> เพิ่มเข้ามาในคลัง')}
   if(c.raw.flag)for(const k in c.raw.flag)S.flags[k]=(S.flags[k]||0)+c.raw.flag[k];
   if(c.raw.rise&&o.ok&&typeof riseUp==='function')riseUp(c.raw.rise,o);
+  if((c.raw.cbn||c.raw.cb||c.raw.cbl)&&o.ok){const m=S.crew.find(m=>m.n===(c.raw.cbn||S._cn));if(m){const w=c.raw.cbl?'leave':'bond';
+    if(w==='bond'){m.b=(m.b|0)+1;o.extra.push('ความผูกพันกับ <b>'+m.n+'</b> เพิ่มขึ้น')}
+    else if(w==='leave'){S.crew=S.crew.filter(x=>x!==m);o.extra.push('<b>'+m.n+'</b> ขอแยกทางไปแล้ว')}}}
   if(c.raw.cx&&o.ok){const cx=c.raw.cx,mi=S.crew.findIndex(m=>m.tr===cx.tr);
     if(mi>=0){const m=S.crew[mi];
       if(cx.a==='bond'){m.b=(m.b|0)+1;o.extra.push('ความผูกพันกับ <b>'+m.n+'</b> เพิ่มขึ้น')}
@@ -5821,6 +5835,104 @@ function adjustShop(ev){
   }catch(x){}
 }
 { const _ge=genEvent; genEvent=function(){const e=_ge.apply(this,arguments);adjustShop(e);return e}; }
+/* ===== v58: เพื่อนร่วมกลุ่มมีส่วนร่วมในเหตุการณ์ + ตัวเลือก "ให้เพื่อนช่วย" ===== */
+const CRM={cr_share:'warm',cr_cook:'fun',cr_watch:'tense',cr_wound:'sad',cr_quarrel:'tense',cr_scout:'tense',cr_bday:'fun',cr_gift:'warm',cr_secret:'regret',cr_plan:'calm',cr_rescue:'chaos',cr_dance:'fun'};
+for(const k in CRM){KEYMOOD[k]=CRM[k];KEYCAT[k]=(k==='cr_watch'||k==='cr_scout'||k==='cr_rescue')?'danger':'joy'}
+const CR=(k,sc,head,txt,ch,min)=>T({k,sc,w:1.9,cd:55,ca:1,req:S=>S.day>8&&S.crew.length>=(min||1),head,txt,ch});
+CR('cr_share',['park','village','rooftop','road'],'{cn} ชวนเล่าความฝันก่อนโลกแตก','คืนนี้ {cn} นั่งข้างกองไฟเล็กๆ แล้วหันมาบอกว่า ทุกคนควรเล่าสิ่งที่อยากทำที่สุดสักข้อ จะได้รู้ว่าอยู่รอดไปเพื่ออะไร',
+ [{t:'เล่าความฝันจริงๆ ที่ไม่เคยบอกใคร',x:{md:8,lv:5,en:-3},d:1,g:'fam',cb:1,r:'{cn} ฟังจนจบโดยไม่พูดอะไรสักคำ แล้วยื่นขนมแท่งสุดท้ายให้ คืนนั้นทั้งสองหลับสนิทกว่าที่เคย'},
+  {t:'เล่าเป็นมุกตลกให้ทั้งกลุ่มหัวเราะ',x:{md:6,lv:2},d:1,g:'fun',r:'{cn} หัวเราะจนน้ำตาไหลและเอาความฝันของคุณไปเล่าให้คนอื่นฟังต่อด้วยเสียงตัวเอง'},
+  {t:'ขอตัวไปนอนก่อน',x:{md:-2,lv:-2,en:4},d:1,r:'{cn} พยักหน้าเงียบๆ และดับกองไฟให้ ไม่มีใครพูดถึงความฝันของใครอีกในคืนนั้น'}]);
+CR('cr_cook',['village','park','farm','road'],'{cn} อาสาทำอาหารให้ทั้งกลุ่ม','{cn} ถลกแขนเสื้อและบอกว่า วันนี้ให้เป็นหน้าที่ฉันเอง ของที่มีคือกระป๋องสองใบ ผักเหี่ยว และความมั่นใจที่ไม่ชัดเจนว่ามาจากไหน',
+ [{t:'ปล่อยให้ {cn} ทำเองทั้งหมด',x:{food:2,md:4,lv:2},d:1,g:'fam',k:{p:.3,e:'sick',x:{hp:-5,md:-2},f:'อาหารรสชาติแปลกจนทุกคนท้องเสียครึ่งวัน แต่ {cn} ก็ขอโทษจนคุณโกรธไม่ลง'},r:'รสชาติเกินคาดไปมาก ทั้งกลุ่มกินจนหมดหม้อและ {cn} ยิ้มกว้างทั้งวัน'},
+  {t:'ช่วยกันทำแบบแบ่งงาน',x:{food:3,md:6,lv:3,en:-4},d:1,g:'fam',cb:1,r:'คุณหั่นและ {cn} ปรุง ผลลัพธ์เป็นต้มที่กินแล้วอุ่นถึงใจ ทั้งสองแย่งกันล้างหม้อเพราะไม่อยากให้คืนนี้จบ'},
+  {t:'ขออาสาทำเอง เพราะกลัวผลลัพธ์',x:{food:2,md:-2,lv:-2,en:-3},d:1,r:'{cn} แอบหน้าแดงแต่ถอยให้ ผลลัพธ์ก็ไม่ได้ดีกว่ามากนัก และบรรยากาศเงียบลงนิดหน่อย'}]);
+CR('cr_watch',['alley','road','village','base'],'ตกลงผลัดกันเฝ้ายามกลางคืน','เสียงฝีเท้าเบาๆ ลอยมาตลอดสองคืนที่ผ่านมา {cn} เสนอว่าให้แบ่งกะกันเฝ้ายาม แต่ใครจะเป็นคนเฝ้าคนแรกยังไม่มีใครตัดสินใจ',
+ [{t:'ให้ {cn} เฝ้ากะแรก คุณพักก่อน',x:{en:10,md:2},d:1,g:'fam',k:{p:.25,e:'steal',x:{mo:-500,md:-4},f:'{cn} หลับคาเวร ตื่นมาของบางอย่างหายไปจากกอง แต่ไม่มีใครรู้ว่าใครเอา'},r:'{cn} นั่งเฝ้าสายตาแน่วแน่ตลอดคืน ตอนเช้ามีรอยเท้าสดๆ ใกล้เต็นท์ แต่ไม่มีใครเข้ามา'},
+  {t:'เฝ้ากะแรกเองและให้ {cn} นอน',x:{en:-10,md:3,lv:3},d:1,g:'fam',cb:1,r:'{cn} ตื่นมาตอนเช้าพร้อมกาแฟอุ่นๆ หนึ่งแก้ว และพูดว่า ครั้งหน้าฉันเฝ้าให้ ไม่ต้องบอก'},
+  {t:'นั่งเฝ้าด้วยกันทั้งสองคน',x:{en:-6,md:7,lv:5},d:1,g:'fam',cb:1,r:'ทั้งสองคนเล่าเรื่องไร้สาระจนฟ้าสว่าง รอยเท้าลึกลับกลายเป็นรอยเท้าแมวตัวใหญ่ตัวหนึ่ง'}]);
+CR('cr_wound',['village','road','base','street'],'{cn} บาดเจ็บระหว่างเดินทาง','{cn} กระเผลกตั้งแต่เช้าและพยายามซ่อนไว้ ตอนนี้ผ้าพันแผลชุ่มเลือดจนเห็นได้ชัดแม้เจ้าตัวจะบอกว่า ไม่เป็นไรหรอก',
+ [{t:'ใช้ยาและพันแผลให้อย่างตั้งใจ',x:{med:-1,md:5,lv:4,en:-4},d:1,g:'help',cb:1,q:S=>S.inv.med>=1,r:'{cn} นั่งนิ่งให้คุณพันแผลจนเสร็จ แล้วพูดเสียงเบาว่า ขอบคุณ จากนั้นเดินเร็วขึ้นกว่าตอนเช้าอย่างเห็นได้ชัด'},
+  {t:'ทำแผลแบบประหยัด ไม่ใช้ยา',x:{md:2,en:-6},d:1,g:'help',k:{p:.3,e:'sick',x:{md:-4,lv:-2},f:'แผลอักเสบในวันถัดมาและ {cn} ไม่พูดอะไรเลยทั้งวัน'},r:'คุณล้างแผลด้วยน้ำสะอาดและผ้าที่ต้มแล้ว มันไม่สวยแต่ได้ผล {cn} บ่นว่ายังเจ็บ แต่ก็หัวเราะ'},
+  {t:'ให้ {cn} พักและคุณไปหาของมาแทน',x:{en:-8,md:3,food:1},d:2,g:'fam',r:'คุณกลับมาพร้อมของหลายอย่าง และพบว่า {cn} นั่งซ่อมรองเท้าให้คุณไว้เสร็จแล้ว'},
+  {t:'บอกให้ {cn} เดินตามให้ทัน',x:{md:-4,lv:-6},d:1,cbl:1,r:'{cn} เดินตามมาเงียบๆ จนถึงจุดพัก แล้วหายไปในตอนเช้า ทิ้งผ้าพันแผลเปื้อนเลือดไว้กองหนึ่ง'}]);
+CR('cr_quarrel',['village','park','road','base'],'{cn} กับ {cn2} ทะเลาะกันเรื่องแบ่งของ','เสียงตะโกนดังมาจากมุมที่พัก {cn} กับ {cn2} กำลังแย่งขนมแท่งสุดท้ายกันอยู่ และทั้งคู่หันมามองคุณพร้อมกันเหมือนรอคำพิพากษา',
+ [{t:'หักครึ่งและแบ่งให้ทุกคนเท่ากัน รวมถึงตัวเอง',x:{food:-1,md:5,lv:4},d:1,g:'fam',cb:1,r:'ทั้งคู่ไม่พอใจแต่ก็ยอม และคืนนั้นทั้งสามคนนั่งกินกันเงียบๆ จนความโกรธค่อยๆ หายไป'},
+  {t:'เข้าข้าง {cn} เพราะเขาหิวกว่า',x:{md:-1,lv:-2},d:1,k:{p:.35,e:'talk',x:{md:-5,lv:-5},f:'{cn2} เงียบไปทั้งวันและมองคุณด้วยสายตาที่ไม่เหมือนเดิม'},r:'{cn} ยิ้มแต่ {cn2} หันหลังเดินออกไปเงียบๆ คุณรู้ว่าต้องไปง้อเขาทีหลัง'},
+  {t:'ให้ทั้งสองคนจับสลากกันเอง',x:{md:3,lv:1},d:1,g:'fun',r:'ทั้งคู่ตกลงกันได้ภายในสามนาที และกลายเป็นเรื่องที่ทั้งกลุ่มเอาไปเล่ากันอีกหลายวัน'}],2);
+CR('cr_scout',['road','market','alley','village'],'{cn} อาสาออกไปสำรวจหาเสบียง','{cn} คว้ากระเป๋าแล้วพูดว่า ฉันจะไปดูแถวตลาดเก่าเอง ถ้าไม่กลับในสามชั่วโมง ไม่ต้องรอ',
+ [{t:'ให้ {cn} ไปคนเดียว',x:{food:2,water:2,mo:500,md:1},d:1,g:'adv',k:{p:.3,e:'run',x:{md:-5,lv:-3},f:'{cn} กลับมามือเปล่าและมีรอยถลอกที่ข้อศอก ตลอดทางที่กลับแกไม่พูดอะไร'},r:'{cn} กลับมาพร้อมอาหารกระป๋อง น้ำขวดใหญ่ และเรื่องเล่าตื่นเต้นที่ฟังไม่จบ'},
+  {t:'ไปด้วยกัน ช่วยกันหาของ',x:{en:-10,food:2,water:2,md:5,lv:3},d:1,g:'fam',cb:1,k:{p:.2,e:'run',x:{hp:-4,md:-3},f:'ทางกลับมีสุนัขจรจัดฝูงหนึ่ง ทั้งสองคนวิ่งหนีจนหอบ แต่ได้เสบียงมาครึ่งหนึ่ง'},r:'พวกคุณเจอซูเปอร์มาร์เก็ตที่ถูกทิ้งไว้ครึ่งเดียวและหิ้วของกลับมาจนแขนยาว'},
+  {t:'ห้ามไม่ให้ไป บอกว่าอันตรายเกินไป',x:{md:-2,lv:1,en:2},d:1,r:'{cn} ถอนหายใจแต่ก็ยอมนั่งลง ทั้งกลุ่มกินของที่เหลือแบบประหยัดเป็นพิเศษ'}]);
+CR('cr_bday',['park','village','rooftop','room'],'วันเกิดของ {cn} ตกในวันนี้','{cn} ไม่ได้บอกใคร แต่คุณบังเอิญเห็นวันเกิดในบัตรประชาชนที่หล่นออกมา ตอนนี้กลุ่มของคุณมีเงินไม่มาก และโลกกำลังจะแตก',
+ [{t:'ซื้อขนมเล็กๆ และเทียนหนึ่งอัน',x:{mo:-400,md:7,lv:6},d:1,g:'fam',cb:1,r:'{cn} มองเค้กก้อนเล็กที่สุดในโลกนานมาก แล้วเป่าเทียนโดยไม่พูดอะไร คุณเห็นน้ำตาหยดหนึ่งบนมือเขา'},
+  {t:'ร้องเพลงสุขสันต์วันเกิดให้เสียงดังที่สุด',x:{md:6,lv:4,en:-3},d:1,g:'fun',r:'เสียงเพี้ยนไปหมด ทั้งกลุ่มหัวเราะจนเสียงเงียบหายไป {cn} บอกว่า นี่คือวันเกิดที่ดีที่สุดตั้งแต่เด็ก'},
+  {t:'แกล้งทำเป็นไม่รู้',x:{md:-3,lv:-3},d:1,k:{p:.3,e:'talk',x:{md:-4,lv:-3},f:'{cn} รู้ว่าคุณจำได้ แต่ไม่พูดอะไร และนั่งเงียบทั้งวัน'},r:'{cn} ยิ้มเหมือนไม่มีอะไร แต่เมื่อมองดีๆ ตาเขาแดงนิดหน่อย'}]);
+CR('cr_gift',['road','village','market','park'],'{cn} แอบเอาของมาให้คุณ','{cn} ยื่นห่อผ้าเล็กๆ ให้โดยไม่พูดอะไร ก่อนจะหันไปมองอย่างอื่นทันที ข้างในมีบางอย่างที่คุณอาจไม่ได้คาดไว้',
+ [{t:'เปิดห่อทันทีและขอบคุณ',x:{food:1,water:1,md:6,lv:5},d:1,g:'fam',cb:1,r:'ในห่อมีขนมปังหนึ่งก้อนและกระดาษแผ่นเล็กเขียนว่า วันนี้ฉันเก็บมาให้คุณคนเดียว ไม่ต้องแบ่งใคร'},
+  {t:'ถามว่าไปเอามาจากไหน',x:{md:1},d:1,k:{p:.3,e:'talk',x:{md:-4,lv:-3},f:'{cn} ตอบว่า ก็เก็บมาแค่นั้น ไม่เชื่อก็ช่างเถอะ แล้วเดินหนีไปโดยไม่พูดอีกเลย'},r:'{cn} บอกตรงๆ ว่าไปแลกมาด้วยแหวนที่เคยเป็นของแม่ และคุณกินขนมปังก้อนนั้นช้ามากกว่าปกติ'},
+  {t:'ยื่นของของตัวเองตอบแทนให้',x:{food:-1,md:7,lv:7},d:1,g:'fam',cb:1,r:'ทั้งสองคนยืนหัวเราะตอนเห็นของที่ยื่นให้กันเหมือนกันเป๊ะ ซึ่งเป็นแท่งช็อกโกแลตเหมือนกัน'}]);
+CR('cr_secret',['rooftop','park','base','village'],'{cn} สารภาพความลับที่เก็บไว้','{cn} นั่งลงข้างคุณตอนกลางคืนที่ทุกคนหลับแล้ว และพูดเสียงเบาว่า มีบางอย่างที่ฉันยังไม่เคยบอกใครเลย ฟังได้ไหม',
+ [{t:'ฟังจนจบโดยไม่ตัดสิน',x:{md:6,lv:6,en:-3},d:1,g:'fam',cb:1,r:'ความลับนั้นไม่ใหญ่โตอย่างที่คิด แต่คุณเข้าใจว่าทำไม {cn} ถึงแบกมันไว้นานขนาดนั้น'},
+  {t:'บอกว่าอย่าเล่าเลย ฉันไม่อยากรู้',x:{md:-2,lv:-3},d:1,r:'{cn} พยักหน้าและเก็บความลับกลับไปไว้ที่เดิม แต่ในแววตาคุณเห็นบางอย่างที่ไม่เหมือนเดิม'},
+  {t:'ตอบด้วยความลับของตัวเองกลับไปบ้าง',x:{md:8,lv:7,en:-4,ix:1},d:1,g:'fam',cb:1,r:'ทั้งสองคนนั่งเงียบกันครู่ใหญ่ แล้วหัวเราะพร้อมกันเพราะความลับสองข้อนั้นฟังตลกกว่าที่คิด'}]);
+CR('cr_plan',['base','village','park','road'],'ประชุมกลุ่มเรื่องวันพรุ่งนี้','{cn} เสนอให้ทั้งกลุ่มนั่งลงและวางแผนสำหรับวันถัดไปโดยให้ทุกคนมีส่วนร่วม ไม่ใช่แค่คุณคนเดียวที่ตัดสินใจ',
+ [{t:'ให้ {cn} เป็นคนเลือกเส้นทาง',x:{md:3,lv:3},d:1,g:'fam',k:{p:.3,e:'run',x:{hp:-4,md:-3},f:'{cn} เลือกทางที่ฟังดูดีแต่เจอสะพานขาด ต้องเดินอ้อมไปไกล'},r:'{cn} เลือกทางที่คุณไม่เคยคิดถึง ผ่านตลาดนัดเก่าและเจอของใช้ที่ยังไม่มีใครเก็บ'},
+  {t:'โหวตกันแบบประชาธิปไตย',x:{md:4,lv:4,en:-2},d:1,g:'fam',r:'ผลโหวตออกมาเสมอสองต่อสอง ก่อนที่สุนัขข้างทางจะวิ่งผ่านและทั้งกลุ่มเลือกตามมันไปแบบไร้เหตุผล และก็ไม่แย่เลย'},
+  {t:'ตัดสินใจเองแล้วบอกทุกคน',x:{en:-2,md:-2,lv:-2},d:1,r:'ไม่มีใครค้าน แต่ไม่มีใครตื่นเต้นเหมือนกัน ทางที่เลือกพาไปถึงจุดหมายแบบไม่เกิดอะไรขึ้นสักอย่าง'}]);
+CR('cr_rescue',['rooftop','road','forest','village'],'{cn} ติดอยู่ในซากปรักหักพัง','เสียงเรียกชื่อคุณดังมาจากใต้ซากไม้และสังกะสีที่ถล่มลงมา {cn} ติดอยู่ข้างใต้ขาข้างหนึ่งยังขยับได้ และตะโกนว่า อย่าเข้ามา มันจะถล่มอีก',
+ [{t:'ดึงสังกะสีออกทีละแผ่นอย่างระวัง',x:{en:-14,md:6,lv:6},d:1,g:'help',cb:1,k:{p:.35,e:'fight',x:{hp:-9,wd:14,md:-4},f:'โครงไม้ส่วนหนึ่งร่วงลงมาใส่ไหล่คุณแต่ยังพอดึง {cn} ออกมาได้'},r:'เสียงสังกะสีลากบนพื้นก้องเข้าหู คุณดึง {cn} ออกมาทั้งตัวสกปรกและหายใจหอบ แล้วทั้งสองก็ล้มลงหัวเราะ'},
+  {t:'วิ่งไปหาคนมาช่วยก่อน',x:{en:-8,md:-1},d:1,k:{p:.3,e:'run',x:{md:-6,lv:-4},f:'คุณกลับมาช้าเกินไป {cn} ออกมาเองแล้วและมองคุณนานก่อนจะพูดคำเดียวว่า ไม่เป็นไร'},r:'คุณกลับมาพร้อมคนสามคนและเชือกหนึ่งเส้น {cn} ถูกดึงออกมาอย่างปลอดภัยและยังหัวเราะได้อยู่'},
+  {t:'ตะโกนบอกให้ {cn} อดทนและเฝ้ารออยู่ตรงนั้น',x:{md:-3,en:-2},d:1,cbl:1,r:'คุณรอจนเย็น แต่ {cn} ไม่ตอบอีกเลย และเมื่อโยกซากออกไป ก็ไม่เจอใครเลยนอกจากรอยเลือดที่ลากไปทางถนน'}]);
+CR('cr_dance',['park','village','road','rooftop'],'ทั้งกลุ่มเต้นรำรอบกองไฟ','มีใครสักคนเปิดวิทยุเก่าที่ยังพอมีไฟเหลือ ตอนนี้ {cn} กำลังดึงมือคุณลุกขึ้น เสียงเพลงลูกทุ่งดังพอให้ลืมว่าโลกกำลังจะแตก',
+ [{t:'ลุกขึ้นเต้นเต็มที่ไม่อายใคร',x:{md:10,lv:5,en:-5},d:1,g:'fun',cb:1,r:'คุณเต้นแบบไม่มีท่า ทุกคนหัวเราะ และ {cn} ล้มก้นกระแทกพื้นพร้อมเสียงปรบมือจากคนทั้งกลุ่ม'},
+  {t:'นั่งปรบมือและกินขนมดูทุกคนเต้น',x:{md:5,lv:2},d:1,g:'fun',r:'คุณนั่งดูจนเพลงสุดท้ายจบ แล้วเผลอยิ้มจนลืมว่าต้องกลัวอะไร'},
+  {t:'ขอบคุณและไปนอนก่อน',x:{md:-2,en:5},d:1,r:'เสียงเพลงยังดังอยู่ตลอดคืน และคุณหลับไปพร้อมความรู้สึกแปลกๆ ว่าพลาดอะไรบางอย่างที่ไม่มีวันกลับมา'}]);
+
+/* ----- ตัวเลือก "ให้เพื่อนช่วย" ที่แทรกในเหตุการณ์ทั่วไป ----- */
+const CA={
+ danger:{
+  coward:['ให้ {n} ไปสำรวจทางหนีทีไล่ให้','{n} ขี้กลัวก็จริง แต่เพราะแบบนั้นเลยรู้ว่าทางไหนปลอดภัยที่สุด คุณหลุดออกมาได้เงียบๆ','{n} ตัวสั่นจนพลาดเสียงดัง ทุกคนต้องวิ่งออกมาอย่างทุลักทุเล',{en:-4,md:1},.2,'run',{hp:-4,md:-3}],
+  hothead:['ให้ {n} ขวางหน้าไว้','{n} ตะโกนใส่จนอีกฝ่ายถอย และคุณมีเวลาหนีไปได้อย่างปลอดภัย','{n} ลงมือก่อนใครจนบาดเจ็บ และต้องหอบหิ้วกันออกมา',{en:-3,md:3},.38,'fight',{hp:-9,wd:12,md:-3}],
+  jolly:['ให้ {n} เบนความสนใจด้วยมุกตลก','{n} เล่นมุกจนอีกฝ่ายอึ้ง และทุกคนหัวเราะแทนที่จะทะเลาะ','มุกของ {n} ไม่ขำ ทุกอย่างพังและต้องวิ่งหนีกันหัวซุกหัวซุน',{en:-3,md:4},.3,'talk',{md:-4,hp:-3}],
+  greedy:['ให้ {n} ต่อรองเอาตัวรอดด้วยเงิน','{n} ต่อรองเก่งจนอีกฝ่ายยอมถอย แต่ก็เสียเงินเล็กน้อยไป',null,{mo:-400,md:2},.15,'talk',{mo:-300,md:-3}],
+  wise:['ฟังแผนของ {n} ที่คิดไว้ก่อน','{n} เสนอแผนที่ฟังแล้วเหมือนง่าย แต่ได้ผลมากกว่าที่คิด',null,{en:-3,md:3,ix:1},.12,'run',{hp:-3,md:-2}],
+  loyal:['ให้ {n} ยืนเคียงข้างและช่วยกันฝ่าไป','{n} ยืนเคียงข้างโดยไม่ถามสักคำ ความมั่นใจของคุณพุ่งขึ้นทันที',null,{en:-5,md:5,lv:3},.22,'run',{hp:-5,md:-3}]},
+ money:{
+  coward:['ให้ {n} ช่วยนับเงินและเก็บของอย่างระวัง','{n} นับทุกบาทสามรอบ และพบเงินที่คุณเกือบทำหล่นหาย',null,{mo:500,md:2},0,0,0],
+  hothead:['ให้ {n} ไปต่อรองราคาให้','{n} ต่อรองเสียงดังจนพ่อค้ายอมลดราคาเพื่อให้เงียบ',null,{mo:700,md:1},.28,'talk',{md:-4,mo:-200}],
+  jolly:['ให้ {n} เป็นคนคุยกับลูกค้า','{n} ขายของด้วยมุกตลกจนลูกค้าซื้อเพิ่ม',null,{mo:900,md:4},.2,'talk',{md:-2}],
+  greedy:['ให้ {n} หาทางหาเงินเพิ่มจากตรงนี้','{n} ผิวปากแล้วหาช่องทางที่คุณไม่เคยเห็น จนได้เงินก้อนเล็กๆ',null,{mo:1200,md:-1},.3,'steal',{md:-5,mo:-400}],
+  wise:['ให้ {n} ช่วยวางแผนใช้เงิน','{n} วางแผนใช้เงินอย่างรอบคอบจนทุกบาทมีที่ไป และยังเหลือเก็บ',null,{mo:600,md:2,ix:1},0,0,0],
+  loyal:['ให้ {n} ช่วยหาเงินด้วยกัน','{n} ทำงานข้างคุณเงียบๆ จนถึงเย็น ผลลัพธ์ไม่หวือหวา แต่มั่นคง',null,{mo:700,md:3,lv:2},0,0,0]},
+ other:{
+  coward:['ปรึกษา {n} ก่อนตัดสินใจ','{n} ลังเลนานจนคุณรู้ใจตัวเองก่อน แต่ก็ขอบคุณที่ช่วยฟัง',null,{md:3,lv:2,en:-2},0,0,0],
+  hothead:['ให้ {n} ช่วยตัดสินใจแบบเด็ดขาด','{n} พูดตรงๆ จนคุณหมดข้อสงสัย และตัดสินใจได้เร็วกว่าที่คิด',null,{md:3,en:-3},.2,'talk',{md:-3}],
+  jolly:['ชวน {n} มาทำให้เรื่องนี้สนุกขึ้น','{n} เปลี่ยนเรื่องหนักๆ ให้เป็นเรื่องตลก ทุกอย่างกลายเป็นความทรงจำที่ดี',null,{md:6,lv:3,en:-2},0,0,0],
+  greedy:['ให้ {n} มองหาโอกาสจากเรื่องนี้','{n} ชี้ให้เห็นช่องทางทำเงินที่คุณมองข้ามไปทั้งหมด',null,{mo:600,md:1},.25,'talk',{md:-3}],
+  wise:['ขอความเห็นจาก {n}','{n} ถามคำถามสามข้อที่ทำให้คุณเห็นเรื่องทั้งหมดชัดขึ้น',null,{md:4,lv:2,ix:1,en:-2},0,0,0],
+  loyal:['ให้ {n} อยู่เคียงข้างคุณในเรื่องนี้','{n} ไม่พูดอะไรเลย แต่การมีเขาอยู่ข้างๆ ก็เพียงพอให้ใจเย็นลง',null,{md:6,lv:4},0,0,0]}};
+function crewAssist(e){
+  try{
+    if(!e||!S||!S.crew||!S.crew.length||!e.ch||e.ms||e.k==='final'||e.k==='rent'||/^cr_|^cm_|^gang|^rival/.test(e.k||''))return;
+    if(RND()>.4)return;
+    if(e.ch.length>=6){let ri=-1;for(let i=e.ch.length-1;i>=0;i--)if(e.ch[i].raw&&e.ch[i].raw.ex){ri=i;break}if(ri<0)return;e.ch.splice(ri,1)}
+    const m=pick(S.crew),grp=e.cat==='danger'?'danger':e.cat==='money'?'money':'other';
+    const r=CA[grp][m.tr];if(!r)return;
+    const n=m.n,fx=scaleFx(r[3]);let risk=null;
+    const raw={t:r[0].split('{n}').join(n),x:r[3],d:1,g:'fam',cbn:n};
+    if(r[4]>0){
+      let p=r[4]-.02*S.crew.length-((m.b|0)>=2?.06:0);
+      const fx0=scaleFx(r[6]);
+      risk={p:clamp(p,.04,.9),e:r[5],x:fx0,gh:null};raw.k={p:r[4],e:r[5],x:r[6],f:(r[2]||'{n} พลาดไปบ้าง ทุกอย่างเลยไม่ราบรื่นนัก').split('{n}').join(n)};
+    }
+    const need=fx.mo<0?-fx.mo:0;
+    const c={t:raw.t,r:r[1].split('{n}').join(n),f:risk?raw.k.f:'',x:fx,d:Math.max(1,Math.round(EVDAY*tfx())),g:'fam',need,risk,raw,roll:false,ok:!(need&&S.mo<need)};
+    c.t='👥 '+c.t;
+    if(c.ok)e.ch.splice(Math.min(e.ch.length,1+rnd(e.ch.length)),0,c);
+  }catch(x){}
+}
+{ const _g=genEvent; genEvent=function(){const e=_g.apply(this,arguments);crewAssist(e);return e}; }
 /* ===== ENDINGS ===== */
 const END_TAG={
  love:{t:'คนที่ไม่ปล่อยมือ',p:['ในปีสุดท้าย คุณเลือกใช้เวลากับคนที่สำคัญมากกว่าสิ่งอื่นใด ไม่ใช่เพราะไม่มีทางเลือก แต่เพราะคุณรู้แล้วว่าอะไรคือสิ่งที่จะไม่เสียดายทีหลัง','คุณใช้เวลาไปกับการบอกรัก ขอโทษ และขอบคุณ ซึ่งเป็นคำสามคำที่คนส่วนใหญ่เก็บไว้ถึงวันสุดท้ายแต่ไม่เคยได้ใช้จริง']},
@@ -8089,8 +8201,8 @@ function lbRow(id,d){
   row.at=num(d.at,4e12);row.at0=num(d.at0,4e12);row.sig=clean(d.sig,16);
   row.gname=clean(d.gname,40);row.rr={};if(d.rr&&typeof d.rr==='object')RRK.forEach(k=>{const v=clean(d.rr[k],40);if(v)row.rr[k]=v});
   row.funny=new Set(row.causes).size;row.rolesN=new Set(row.roles).size;
-  row.bs=num(d.bs,99999);row.cs=num(d.cs,99999);row.rate=row.lives>=5?Math.round(row.survived/row.lives*100):0;
-  row.bad=row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60||row.bs>row.survived||row.cs>row.bs;
+  row.bs=num(d.bs,99999);row.cs=num(d.cs,99999);row.gd=num(d.gd,99999);row.ev=num(d.ev,99999);row.rate=row.lives>=5?Math.round(row.survived/row.lives*100):0;
+  row.bad=row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60||row.bs>row.survived||row.cs>row.bs||row.gd>row.lives*60||row.ev>row.lives*60;
   return row;
 }
 const FBon=()=>!!(window.D365_FB&&D365_FB.ok);
@@ -8151,7 +8263,7 @@ async function lbRecord(E,kind){
     if(Math.min(80,S.inv.med)>cur.meds||!rr.meds)rr.meds=Math.min(80,S.inv.med)>=cur.meds?rn:(rr.meds||cur.role||rn);
     if(Math.min(60,Object.keys(S.gear||{}).length)>cur.arms||!rr.arms)rr.arms=Math.min(60,Object.keys(S.gear||{}).length)>=cur.arms?rn:(rr.arms||cur.role||rn);
     if(nv.ds!=null&&nv.ds>(cur.daily||0))rr.daily=rn;else if(cur.rr.daily&&nv.ds)rr.daily=cur.rr.daily;
-    const cs0=kind==='final'?(cur.cs||0)+1:0;const ex={rr,cs:cs0,bs:Math.max(cur.bs||0,cs0)},g=gnameNow();if(g)ex.gname=g;
+    const cs0=kind==='final'?(cur.cs||0)+1:0;const ex={rr,cs:cs0,bs:Math.max(cur.bs||0,cs0),gd:(cur.gd||0)+Math.min(60,S.c.help|0),ev:(cur.ev||0)+Math.min(60,S.c.steal|0)},g=gnameNow();if(g)ex.gname=g;
     try{await ref.set(Object.assign({},nv,ex));Object.assign(nv,ex)}catch(e1){await ref.set(nv)}
     const i=LB.rows.findIndex(r=>r.id===LB.id);const row=lbRow(LB.id,nv);
     if(i>=0)LB.rows[i]=row;else LB.rows.push(row);
@@ -8159,9 +8271,9 @@ async function lbRecord(E,kind){
   }catch(e){return false}
 }
 const SILLY=['banana','coconut','selfie','laugh','choke','veg','mushroom','spicy','karaoke','allergy','bee','pool','yacht','fugu','safe','heartplay','liver'];
-const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭'],['bs','รอดติดกันยาวที่สุด',v=>v+' ชีวิตติด','🔥'],['rate','อัตรารอดสูงสุด (เล่น ≥5 ชีวิต)',v=>v+'%','📈'],['lives','นักสู้ตัวยง (เล่นมากสุด)',v=>v+' ชีวิต','🎮']];
+const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭'],['bs','รอดติดกันยาวที่สุด',v=>v+' ชีวิตติด','🔥'],['rate','อัตรารอดสูงสุด (เล่น ≥5 ชีวิต)',v=>v+'%','📈'],['lives','นักสู้ตัวยง (เล่นมากสุด)',v=>v+' ชีวิต','🎮'],['gd','คนดีที่สุด (ช่วยเหลือรวม)',v=>v+' ครั้ง','😇'],['ev','คนชั่วที่สุด (หยิบของรวม)',v=>v+' ครั้ง','😈']];
 /* ซ่อนอันดับที่ยังไม่มีใครทำได้ (ยกเว้น 3 อันดับหลัก) ให้โผล่เองเมื่อมีคนผ่านเกณฑ์ */
-const CORE_M=['richest','best','survived'];
+const CORE_M=['richest','best','survived','gd','ev'];
 function activeMetrics(){return METRICS.filter(m=>CORE_M.includes(m[0])||LB.rows.some(r=>!r.bad&&r[m[0]]>0))}
 function rankList(k){return LB.rows.filter(r=>!r.bad&&r[k]>0).sort((a,b)=>b[k]-a[k]||b.best-a.best)}
 function myRank(k){const l=rankList(k);const i=l.findIndex(r=>r.id===LB.id);return i<0?0:i+1}
@@ -8183,7 +8295,7 @@ function renderBoard(){
   const star=r=>svRank[r.id]?'<i class="tt sv g'+Math.min(4,svRank[r.id])+'" title="ติดท็อป 10 ผู้รอดครบ 365 วัน">'+(['🥇','🥈','🥉'][svRank[r.id]-1]||'🛡')+' ท็อป '+svRank[r.id]+' ผู้รอด 365 วัน</i>':'';
   const sv2=r=>'<small class="sv2">🛡 รอดครบ 365 วัน <b>'+r.survived+'</b> ครั้ง จากเล่น '+r.lives+' ชีวิต</small>';
   const tier=i=>i<3?' t'+(i+1):i<10?' t4':'';
-  const badge=r=>star(r)+(r.tt?'<i class="tt">🏅 '+esc(r.tt)+'</i>':'');
+  const badge=r=>star(r)+((k==='gd'||k==='ev')&&typeof epiTotal==='function'?epiTotal(r[k],k==='gd'):'')+(r.tt?'<i class="tt">🏅 '+esc(r.tt)+'</i>':'');
   const roleOf=r=>r.rr[k]||r.role;
   const gn=r=>r.gname?'<small class="gn">✔ ชื่อ Google: '+esc(r.gname)+'</small>':'';
   const pod=!q&&top.length>=1?'<div class="pod">'+[1,0,2].filter(i=>top[i]).map(i=>{const r=top[i];return '<div class="pbox p'+(i+1)+(r.id===LB.id?' me':'')+'"><div class="pm">'+['🥇','🥈','🥉'][i]+'</div><b>'+esc(r.nick)+'</b>'+badge(r)+'<small>อาชีพ: '+esc(roleOf(r))+'</small><small class="sv2">🛡 รอด <b>'+r.survived+'</b>/'+r.lives+' ชีวิต</small>'+gn(r)+'<em>'+esc(m[2](r[k]))+'</em></div>'}).join('')+'</div>':'';
@@ -8602,6 +8714,15 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-10-28h',date:'28 ต.ค. 2569',title:'เพื่อนร่วมกลุ่มมีบทบาทมากขึ้น + อันดับคนดี/คนชั่ว ท็อป 50',items:[
+  '👥 เพื่อนร่วมกลุ่มมีส่วนร่วมในเหตุการณ์: 12 เหตุการณ์ใหม่ที่เกิดกับกลุ่ม (เฝ้ายามกลางคืน, ทำอาหาร, วันเกิด, ทะเลาะกัน, ช่วยจากซากถล่ม, เต้นรอบกองไฟ ฯลฯ) ชื่อเพื่อนในกลุ่มจะโผล่ในเนื้อเรื่องและตัวเลือก',
+  '🤝 ในเหตุการณ์ทั่วไปมีโอกาสโผล่ตัวเลือก "👥 ให้ (ชื่อเพื่อน) ช่วย" ผลลัพธ์ขึ้นกับนิสัยเพื่อน (ขี้กลัว ใจร้อน ร่าเริง ขี้งก ช่างคิด ซื่อสัตย์) และความผูกพันที่สะสม',
+  '😇😈 อันดับใหม่: "คนดีที่สุด" (ช่วยเหลือรวมทุกชีวิต) และ "คนชั่วที่สุด" (หยิบของรวมทุกชีวิต) ท็อป 50 พร้อมฉายาตามยอดสะสม',
+  '⚠ ยอดคนดี/คนชั่วเริ่มนับจากชีวิตที่จบหลังอัปเดตนี้เท่านั้น']},
+ {id:'2026-10-28g',date:'28 ต.ค. 2569',title:'ฉายาคนดี / คนชั่ว + ปุ่มอันดับเด่นขึ้น',items:[
+  '🎖 ฉายาตามที่คุณทำ: ช่วยคนบ่อย ได้ฉายาตั้งแต่ "คนใจดีข้างบ้าน" ไปจนถึง "นักบุญแห่งโลกที่กำลังแตก" ส่วนสายหยิบของคนอื่น ได้ตั้งแต่ "หัวขโมยจิ๋ว" ถึง "ซาตานผู้ปล้นโลกก่อนโลกแตก" (ทั้งหมด 10 ฉายา + ฉายาพิเศษสายกลาง)',
+  'ฉายาแสดงตอนจบเกม ในการ์ดแชร์ และหน้าแรกจะสะสมฉายาที่เคยได้ไว้',
+  '🏆 ปุ่มอันดับใหญ่สีทองที่หน้าแรก และปุ่ม "อันดับ" ในเมนูก็เด่นขึ้น']},
  {id:'2026-10-28f',date:'28 ต.ค. 2569',title:'อาชีพฮาๆ จากจนแล้วรวยเร็ว 10 อาชีพ',items:[
   '💸 อาชีพใหม่ 10 แบบ เริ่มจนมาก (เงินแทบไม่มี) แต่ทำสำเร็จแล้วรวยเร็ว: คนเก็บขวด · คนขายลอตเตอรี่ · เด็กล้างจานบุฟเฟ่ต์ · ยูทูบเบอร์ไลฟ์กินข้าวเปล่า · คนปลูกผักบุ้งโอ่งมังกร · ช่างซ่อมมือถือใต้สะพานลอย · เด็กล้างรถซูเปอร์คาร์ · นักปั่นตั๋วคอนเสิร์ต · ตัวประกอบศพละคร · คนล้างห้องน้ำปั๊มหรู',
   '📈 ทางเลือกที่ใช่ในเหตุการณ์ประจำอาชีพจะทำให้ "ฐานะขยับขึ้น" (จนอยู่ → เจ้าสัวจำเป็น) รายได้และราคาของโตตามฐานะ',
@@ -8678,6 +8799,49 @@ async function ovBoard(tab){
   };
   draw();
   try{if(LB.useGet){await lbLoad();if(document.getElementById('ovboard'))draw()}}catch(e){}
+}
+/* ===== v58: ฉายาคนดี / คนชั่ว ===== */
+const EPI_G=[
+ {id:'g1',min:3,n:'คนใจดีข้างบ้าน',i:'🙂'},
+ {id:'g2',min:6,n:'ผู้ใจบุญประจำซอย',i:'😇'},
+ {id:'g3',min:10,n:'ฮีโร่ผู้ไม่มีใครรู้จัก',i:'🦸'},
+ {id:'g4',min:16,n:'เทวดาเดินดินแห่งวันสิ้นโลก',i:'👼'},
+ {id:'g5',min:24,n:'นักบุญแห่งโลกที่กำลังแตก',i:'🕊️'}];
+const EPI_E=[
+ {id:'e1',min:3,n:'หัวขโมยจิ๋ว',i:'🫳'},
+ {id:'e2',min:6,n:'จอมโจรประจำซอย',i:'🦹'},
+ {id:'e3',min:10,n:'เจ้าพ่อมือไวแห่งโลกแตก',i:'😈'},
+ {id:'e4',min:16,n:'ปีศาจในคราบมนุษย์',i:'👹'},
+ {id:'e5',min:24,n:'ซาตานผู้ปล้นโลกก่อนโลกแตก',i:'💀'}];
+function epithet(){
+  if(!S||!S.c)return {n:'คนธรรมดา',i:'🙂',k:0,id:'n0'};
+  const h=(S.c.help|0)+Math.max(0,Math.round((S.kar|0)/12)),s=(S.c.steal|0)+Math.max(0,Math.round(-(S.kar|0)/12));
+  if(h>=6&&s>=6)return {n:'คนดีที่ชั่วเป็นบางเวลา',i:'🎭',k:0,id:'m1'};
+  if(h>=s+3){let t=null;for(const x of EPI_G)if(h>=x.min)t=x;if(t)return {n:t.n,i:t.i,k:1,id:t.id}}
+  if(s>=h+3){let t=null;for(const x of EPI_E)if(s>=x.min)t=x;if(t)return {n:t.n,i:t.i,k:-1,id:t.id}}
+  return {n:'คนธรรมดาที่พยายามอยู่รอด',i:'🙂',k:0,id:'n0'};
+}
+const EPIK='doom365-epi';
+function epiSave(e){
+  if(!e||e.id==='n0')return false;
+  try{const m=JSON.parse(localStorage.getItem(EPIK)||'{}');const first=!m[e.id];m[e.id]=(m[e.id]|0)+1;localStorage.setItem(EPIK,JSON.stringify(m));return first}catch(x){return false}
+}
+function epiMine(){try{return JSON.parse(localStorage.getItem(EPIK)||'{}')}catch(x){return {}}}
+function epiChip(e){
+  e=e||epithet();const c=e.k>0?'#8be0a8':e.k<0?'#ff7b7b':'#d8c9a8';
+  return '<span class="epi" style="--ec:'+c+'">'+e.i+' <b>'+esc(e.n)+'</b></span>';
+}
+function epiBox(){
+  const m=epiMine(),all=EPI_G.concat(EPI_E);const got=all.filter(x=>m[x.id]);
+  if(!got.length)return '<p class="hint">🎖 ฉายาของคุณ: ยังไม่มี · ช่วยคนหรือหยิบของคนอื่นหลายๆ ครั้งในชีวิตเดียวเพื่อรับฉายาคนดี/คนชั่ว ('+all.length+' ฉายา)</p>';
+  return '<p class="hint">🎖 ฉายาที่เคยได้ '+got.length+'/'+all.length+': '+got.map(x=>(EPI_G.includes(x)?'<span class="epi" style="--ec:#8be0a8">':'<span class="epi" style="--ec:#ff7b7b">')+x.i+' '+esc(x.n)+'</span>').join(' ')+'</p>';
+}
+
+const EPI_T=[10,25,50,100,200];
+function epiTotal(v,good){
+  const L=good?EPI_G:EPI_E;let t=null;EPI_T.forEach((m,i)=>{if(v>=m)t=L[i]});
+  if(!t)return '';const c=good?'#8be0a8':'#ff7b7b';
+  return '<i class="tt" style="color:'+c+';border-color:'+c+'">'+t.i+' '+esc(t.n)+'</i>';
 }
 /* ===== UI v2 ===== */
 const $=id=>document.getElementById(id);
@@ -9146,16 +9310,19 @@ function showStart(){
    '<h2 class="hero" style="font-size:32px">ถ้าโลกแตกอีก 365 วัน จะทำอะไรก่อนโลกแตก</h2>'+
    '<p class="sub">มีบางอย่างกำลังพุ่งเข้าหาโลก คุณจะเกิดมาเป็นใคร มีเงินเท่าไหร่ ชะตาสุ่มให้ทั้งหมด จากนั้นต้องกิน ดื่ม ซ่อมที่พัก ดูแลแผล หาเพื่อนร่วมทาง และตัดสินใจทีละวัน ความตายมาได้หลายแบบ ทั้งหิว ป่วย ทั้งเรื่องแปลกๆ แม้แต่คนมีเงินก็ไม่รอด</p>'+
    '<div class="facts"><div class="fact"><small>เหตุการณ์ทั้งหมด</small><b>≈ '+pool.cards.toLocaleString('en-US')+'</b></div><div class="fact"><small>ชาติกำเนิดสุ่ม</small><b>'+ROLES.length+' แบบ</b></div><div class="fact"><small>สาเหตุการตาย</small><b>'+Object.keys(DEATHS).length+' แบบ</b></div><div class="fact"><small>เสียงตามอารมณ์</small><b>8 ธีม</b></div></div>'+
+   '<button class="rankhot" id="rankhot">🏆 ดูอันดับผู้รอด · ใครรวยที่สุด · ใครรอดมากที่สุด <i>›</i></button>'+
    '<div class="row"><button class="btn" id="go">ลืมตาตื่นขึ้นมา</button>'+(hasSave()?'<button class="btn ghost" id="cont">เล่นต่อจากที่บันทึก</button>':'')+'<button class="btn ghost" id="wk">ท้าทายสัปดาห์: '+curWeekly().n+(wkPassedNow()?' ✓':'')+'</button><button class="btn ghost" id="daily">ชีวิตประจำวัน '+esc(dayKey())+'</button></div>'+mpHtml+
    '<div class="nick"><label for="nick">ชื่อของคุณในเกม</label><input id="nick" maxlength="16" placeholder="ตั้งชื่อเล่น" value="'+esc(NICK)+'"><span>'+(LB.signed?(window.D365_SA?'อันดับออนไลน์ใช้งานได้ · ผลของคุณจะถูกบันทึก':'ล็อกอินแล้วด้วยบัญชี claude.ai · อันดับถูกบันทึก'):LB.state==='anon'?(window.D365_FB&&D365_FB.ok?'ยังไม่ได้ล็อกอิน Google':'ยังไม่ได้ล็อกอิน claude.ai'):'อันดับใช้ได้เมื่อเปิดจาก claude.ai')+'</span>'+(FBon()&&LB.signed?'<label class="showg"><input type="checkbox" id="showg"'+(gShow()?' checked':'')+'> แสดงชื่อ Google ของฉันในตารางอันดับ (ให้คนรู้ว่าเป็นตัวจริง)</label>':'')+'</div>'+
    '<div id="acct"></div>'+
    '<p class="hint"><button class="mini" id="newsbtn">📢 มีอะไรใหม่ในเกม</button></p>'+
    '<p class="hint">🏅 '+esc(wkSummary())+'</p>'+
+   epiBox()+
    '<div id="onl"></div>'+
    '<p class="hint">กดปุ่มเลข 1–6 เพื่อเลือก · กด “เพลง” เพื่อเปิดเสียง · “สัญลักษณ์” อธิบายไอคอนทั้งหมด · “อันดับ” ดูตารางผู้เล่น</p>';
   $('nick').onchange=e=>{setNick(e.target.value);if(LB.signed&&NICK)LB.db.doc('board/'+LB.id).update({nick:NICK}).catch(()=>{})};
   {const sg=$('showg');if(sg)sg.onchange=e=>{try{localStorage.setItem('doom365-showg',e.target.checked?'1':'0')}catch(x){}const g=gnameNow();if(LB.signed){if(g)LB.db.doc('board/'+LB.id).update({gname:g}).catch(()=>{});else LB.db.doc('board/'+LB.id).get().then(sn=>{if(sn.exists){const d=sn.data();delete d.gname;LB.db.doc('board/'+LB.id).set(d).catch(()=>{})}}).catch(()=>{})}}}
   {const nb=$('newsbtn');if(nb)nb.onclick=showNews}
+  {const rh=$('rankhot');if(rh)rh.onclick=()=>showBoard(showStart)}
   try{lobbyInit();renderOnline()}catch(e){}
   try{renderAcct()}catch(e){}
   $('go').onclick=()=>{if(tget(DW_KEY)>Date.now())return;mpClose();if(KEPT&&!KEPT.wk&&!KEPT.daily){cand=KEPT}else{rrLeft=2;cand=rollBirth()}showBirth()};
@@ -9447,7 +9614,7 @@ function showEnding(kind){
   const livesHtml=lives?'<div><p class="hint" style="margin-bottom:6px">ชีวิตก่อนหน้า (คะแนน · อาชีพ)</p><ul class="tlist">'+lives+'</ul></div>':'';
   panel.innerHTML=endHTML(m,livesHtml)+'<div id="albox"></div><div id="exbox"></div><div id="achbox"></div><div id="rankbox"></div>'+
    '<div class="row"><button class="btn" id="redo">เกิดใหม่อีกครั้ง</button><button class="btn ghost" id="copy">คัดลอกสรุป</button><button class="btn ghost" id="card">🖼 การ์ดแชร์</button>'+(recapAvail()?'<button class="btn" id="recapbtn" style="background:#7a3dff">🎬 ดูวิดีโอสรุป 365 วัน</button>':'')+'</div>';
-  albumRender('albox');extrasRender('exbox',E);if(S.wk&&kind!=='died'){const first=!wkPassedNow();wkMark(S.wk);const ex=document.getElementById('exbox');if(ex)ex.insertAdjacentHTML('afterbegin','<div class="amb">🏅 ผ่านท้าทายสัปดาห์ “'+esc(WEEKLY.find(w=>w.id===S.wk).n)+'”'+(first?'':' (สัปดาห์นี้เคยผ่านแล้ว)')+'<br>ได้รับฉายา <b>'+esc(WKTITLE[S.wk]||'')+'</b> · ผ่านท้าทายสัปดาห์รวม '+wkCount()+' ครั้ง</div>')}
+  albumRender('albox');extrasRender('exbox',E);{const ep=epithet(),fst=epiSave(ep),ex0=document.getElementById('exbox');if(ex0&&ep.id!=='n0')ex0.insertAdjacentHTML('afterbegin','<div class="amb epib">🎖 ฉายาของคุณในชีวิตนี้<br>'+epiChip(ep)+(fst?' <b>ฉายาใหม่!</b>':'')+'<br><small>ช่วยเหลือ '+S.c.help+' ครั้ง · หยิบของคนอื่น '+S.c.steal+' ครั้ง</small></div>')}if(S.wk&&kind!=='died'){const first=!wkPassedNow();wkMark(S.wk);const ex=document.getElementById('exbox');if(ex)ex.insertAdjacentHTML('afterbegin','<div class="amb">🏅 ผ่านท้าทายสัปดาห์ “'+esc(WEEKLY.find(w=>w.id===S.wk).n)+'”'+(first?'':' (สัปดาห์นี้เคยผ่านแล้ว)')+'<br>ได้รับฉายา <b>'+esc(WKTITLE[S.wk]||'')+'</b> · ผ่านท้าทายสัปดาห์รวม '+wkCount()+' ครั้ง</div>')}
   if(!(MP.on&&MP.guest)&&S.cause!=='giveup')saveTrace(S.name,S.role.n,E.title);
   $('card').onclick=()=>saveShareCard(E,kind);
   {const rb=$('recapbtn');if(rb)rb.onclick=()=>startRecap(E,kind,ctx,m)}
@@ -9780,7 +9947,7 @@ async function makeShareCard(E,kind){
    ['วันที่รอด',Math.min(365,Math.floor(S.day))+' วัน'],
    ['เฉียดตาย',S.c.near+' ครั้ง'],
    ['ช่วยเหลือ',S.c.help+' ครั้ง'],
-   ['ชื่อเสียง',kt||'-']
+   ['ฉายา',(typeof epithet==='function'?epithet().n:kt)||'-']
   ];
   if(S.gang)chips[3]=['แก๊ง/กลุ่ม','“'+S.gang.n+'”'];
   const cy=sy+200,cw=225,gap=20;
@@ -9859,5 +10026,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 28/10 23:16';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 28/10 23:35';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
