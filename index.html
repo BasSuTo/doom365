@@ -8381,7 +8381,7 @@ function renderOnline(){
      const cls=rk?(rk<=3?' t'+rk:' t4'):rr2?(rr2<=3?' t'+rr2:' t4'):'';
      const tag=(rk?'<i class="tt sv g'+Math.min(4,rk)+'">'+(['🥇','🥈','🥉'][rk-1]||'🛡')+' ท็อป '+rk+' ผู้รอด</i>':'')+(rr2?'<i class="tt sv g'+Math.min(4,rr2)+'">'+(['🥇','🥈','🥉'][rr2-1]||'👑')+' ท็อป '+rr2+' เศรษฐี</i>':'');
      const mo=typeof pr.mo==='number'&&isFinite(pr.mo)&&pr.mo>=0?Math.min(5e8,Math.round(pr.mo)):null;
-     return '<div class="op'+cls+'"><span><b>'+esc(clean(pr.nm,16)||'ผู้เล่น')+(p.sameTab?' (คุณ)':'')+'</b>'+tag+'<small>'+esc(clean(pr.st,50)||'')+'</small>'+(mo!==null?'<small class="om">💰 '+fmt(mo)+'</small>':'')+'</span>'+(canJoin?'<button class="mini" data-rc="'+rc+'">เข้าห้อง</button>':'')+'</div>';
+     return '<div class="op'+cls+'"><span><b>'+esc(clean(pr.nm,16)||'ผู้เล่น')+(p.sameTab?' (คุณ)':'')+'</b>'+tag+'<small>'+esc(clean(pr.st,50)||'')+'</small>'+(mo!==null?'<small class="om">💰 '+fmt(mo)+'</small>':/^กำลังเล่น/.test(clean(pr.st,50)||'')?'<small>💰 ไม่ทราบ (เขายังใช้เกมเวอร์ชันเก่า)</small>':'')+'</span>'+(canJoin?'<button class="mini" data-rc="'+rc+'">เข้าห้อง</button>':'')+'</div>';
    }).join(''):'<div class="op"><span><small>ยังไม่มีใคร</small></span></div>')+'</div>';
   el.style.display='grid';
   if(el._h===html)return;
@@ -10047,5 +10047,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 28/10 23:54';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 00:00';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
