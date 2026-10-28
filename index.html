@@ -300,6 +300,10 @@ body{background:radial-gradient(900px 500px at 85% -10%,var(--g1),transparent 70
 .pbox{display:grid;gap:2px;justify-items:center;text-align:center;border:1px solid var(--line);border-radius:10px;padding:10px 6px;background:var(--panel2)}
 .pbox.p1{padding-top:18px;padding-bottom:16px;border-color:#ffd24a;background:linear-gradient(180deg,#ffd24a33,var(--panel2));box-shadow:0 0 18px #ffd24a33}
 .pbox.p2{border-color:#cfd8e8;background:linear-gradient(180deg,#cfd8e822,var(--panel2))}.pbox.p3{border-color:#d9955a;background:linear-gradient(180deg,#d9955a22,var(--panel2))}
+.tt.sv.g1{background:linear-gradient(#ffe08a,#d9a21b);color:#3a2600;border-color:#ffe08a;box-shadow:0 0 10px #ffd24a99}.tt.sv.g2{background:linear-gradient(#f1f4fa,#aab4c6);color:#1d2433;border-color:#e6ebf5}.tt.sv.g3{background:linear-gradient(#f0b27a,#b8672a);color:#2e1500;border-color:#f0b27a}.tt.sv.g4{background:#b8452a;color:#fff}
+.rk2 li.t1{background:linear-gradient(90deg,#ffd24a40,transparent 70%);border-left:5px solid #ffc83d}.rk2 li.t2{background:linear-gradient(90deg,#cfd8e838,transparent 70%);border-left:5px solid #cfd8e8}.rk2 li.t3{background:linear-gradient(90deg,#d9955a38,transparent 70%);border-left:5px solid #d9955a}.rk2 li.t4{background:linear-gradient(90deg,#b8452a22,transparent 70%);border-left:5px solid #b8452a}
+.rk2 li.t1>b{color:#ffc83d;font-size:1.25em}.rk2 li.t2>b{color:#cfd8e8;font-size:1.2em}.rk2 li.t3>b{color:#e0955a;font-size:1.15em}.rk2 li.t4>b{color:#e8704f}
+.tabs{max-width:100%}#panel>*,.pod>*,.rk2 li>span{min-width:0}.pbox .sv2{font-size:10px}.sv2{display:block;color:var(--muted);font-size:11px}.sv2 b{color:var(--gold2)}
 .pbox.me{outline:2px solid var(--gold)}.pbox .pm{font-size:26px}.pbox b{font-size:14px;overflow-wrap:anywhere}.pbox small{color:var(--muted);font-size:11px}.pbox em{font-style:normal;color:var(--gold2);font-family:var(--f-n);font-size:14px}
 .tt{font-style:normal;font-size:10px;color:var(--gold2);border:1px solid var(--line);border-radius:10px;padding:0 6px;margin-left:6px;white-space:nowrap}
 .tt.sv{color:#fff;background:#b8452a;border-color:#b8452a;font-weight:700}
@@ -7901,7 +7905,8 @@ function lbRow(id,d){
   row.at=num(d.at,4e12);row.at0=num(d.at0,4e12);row.sig=clean(d.sig,16);
   row.gname=clean(d.gname,40);row.rr={};if(d.rr&&typeof d.rr==='object')RRK.forEach(k=>{const v=clean(d.rr[k],40);if(v)row.rr[k]=v});
   row.funny=new Set(row.causes).size;row.rolesN=new Set(row.roles).size;
-  row.bad=row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60;
+  row.bs=num(d.bs,99999);row.cs=num(d.cs,99999);row.rate=row.lives>=5?Math.round(row.survived/row.lives*100):0;
+  row.bad=row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60||row.bs>row.survived||row.cs>row.bs;
   return row;
 }
 const FBon=()=>!!(window.D365_FB&&D365_FB.ok);
@@ -7962,7 +7967,7 @@ async function lbRecord(E,kind){
     if(Math.min(80,S.inv.med)>cur.meds||!rr.meds)rr.meds=Math.min(80,S.inv.med)>=cur.meds?rn:(rr.meds||cur.role||rn);
     if(Math.min(60,Object.keys(S.gear||{}).length)>cur.arms||!rr.arms)rr.arms=Math.min(60,Object.keys(S.gear||{}).length)>=cur.arms?rn:(rr.arms||cur.role||rn);
     if(nv.ds!=null&&nv.ds>(cur.daily||0))rr.daily=rn;else if(cur.rr.daily&&nv.ds)rr.daily=cur.rr.daily;
-    const ex={rr},g=gnameNow();if(g)ex.gname=g;
+    const cs0=kind==='final'?(cur.cs||0)+1:0;const ex={rr,cs:cs0,bs:Math.max(cur.bs||0,cs0)},g=gnameNow();if(g)ex.gname=g;
     try{await ref.set(Object.assign({},nv,ex));Object.assign(nv,ex)}catch(e1){await ref.set(nv)}
     const i=LB.rows.findIndex(r=>r.id===LB.id);const row=lbRow(LB.id,nv);
     if(i>=0)LB.rows[i]=row;else LB.rows.push(row);
@@ -7970,7 +7975,10 @@ async function lbRecord(E,kind){
   }catch(e){return false}
 }
 const SILLY=['banana','coconut','selfie','laugh','choke','veg','mushroom','spicy','karaoke','allergy','bee','pool','yacht','fugu','safe','heartplay','liver'];
-const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭']];
+const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭'],['bs','รอดติดกันยาวที่สุด',v=>v+' ชีวิตติด','🔥'],['rate','อัตรารอดสูงสุด (เล่น ≥5 ชีวิต)',v=>v+'%','📈'],['lives','นักสู้ตัวยง (เล่นมากสุด)',v=>v+' ชีวิต','🎮']];
+/* ซ่อนอันดับที่ยังไม่มีใครทำได้ (ยกเว้น 3 อันดับหลัก) ให้โผล่เองเมื่อมีคนผ่านเกณฑ์ */
+const CORE_M=['richest','best','survived'];
+function activeMetrics(){return METRICS.filter(m=>CORE_M.includes(m[0])||LB.rows.some(r=>!r.bad&&r[m[0]]>0))}
 function rankList(k){return LB.rows.filter(r=>!r.bad&&r[k]>0).sort((a,b)=>b[k]-a[k]||b.best-a.best)}
 function myRank(k){const l=rankList(k);const i=l.findIndex(r=>r.id===LB.id);return i<0?0:i+1}
 let boardTab='richest',boardBack=null;
@@ -7980,7 +7988,7 @@ function showBoard(back){
 }
 let boardQ='';
 function renderBoard(){
-  const m=METRICS.find(x=>x[0]===boardTab)||METRICS[0],k=m[0];
+  const AM=activeMetrics();const m=AM.find(x=>x[0]===boardTab)||AM[0],k=m[0];
   const full=rankList(k);
   const top=full.slice(0,50);
   const myI=full.findIndex(r=>r.id===LB.id),meRow=LB.rows.find(r=>r.id===LB.id);
@@ -7988,21 +7996,23 @@ function renderBoard(){
   const shown=top.map((r,i)=>({r,i})).filter(x=>!q||x.r.nick.toLowerCase().includes(q)||x.r.role.toLowerCase().includes(q)||(x.r.rr[k]||'').toLowerCase().includes(q)||x.r.gname.toLowerCase().includes(q));
   const topV=top.length?top[0][k]:1;
   const svRank=(()=>{const m={};rankList('survived').slice(0,10).forEach((r,i)=>{if(r.survived>0)m[r.id]=i+1});return m})();
-  const star=r=>svRank[r.id]?'<i class="tt sv" title="ติดท็อป 10 ผู้รอดครบ 365 วัน">🛡 ท็อป '+svRank[r.id]+' ผู้รอด 365 วัน</i>':'';
+  const star=r=>svRank[r.id]?'<i class="tt sv g'+Math.min(4,svRank[r.id])+'" title="ติดท็อป 10 ผู้รอดครบ 365 วัน">'+(['🥇','🥈','🥉'][svRank[r.id]-1]||'🛡')+' ท็อป '+svRank[r.id]+' ผู้รอด 365 วัน</i>':'';
+  const sv2=r=>'<small class="sv2">🛡 รอดครบ 365 วัน <b>'+r.survived+'</b> ครั้ง จากเล่น '+r.lives+' ชีวิต</small>';
+  const tier=i=>i<3?' t'+(i+1):i<10?' t4':'';
   const badge=r=>star(r)+(r.tt?'<i class="tt">🏅 '+esc(r.tt)+'</i>':'');
   const roleOf=r=>r.rr[k]||r.role;
   const gn=r=>r.gname?'<small class="gn">✔ ชื่อ Google: '+esc(r.gname)+'</small>':'';
-  const pod=!q&&top.length>=1?'<div class="pod">'+[1,0,2].filter(i=>top[i]).map(i=>{const r=top[i];return '<div class="pbox p'+(i+1)+(r.id===LB.id?' me':'')+'"><div class="pm">'+['🥇','🥈','🥉'][i]+'</div><b>'+esc(r.nick)+'</b>'+badge(r)+'<small>อาชีพ: '+esc(roleOf(r))+'</small>'+gn(r)+'<em>'+esc(m[2](r[k]))+'</em></div>'}).join('')+'</div>':'';
-  const mine=LB.signed&&meRow?'<div class="mycard"><div class="mh"><b>'+esc(meRow.nick)+'</b>'+badge(meRow)+gn(meRow)+'<small>เล่นแล้ว '+meRow.lives+' ชีวิต · รอด '+meRow.survived+' ครั้ง</small></div><div class="mg">'+METRICS.map(x=>{const rr=myRank(x[0]);return '<button data-t="'+x[0]+'" class="mc'+(x[0]===k?' on':'')+'"><span>'+x[3]+'</span><small>'+esc(x[1])+'</small><b>'+(rr?'#'+rr:'-')+'</b></button>'}).join('')+'</div>'+
+  const pod=!q&&top.length>=1?'<div class="pod">'+[1,0,2].filter(i=>top[i]).map(i=>{const r=top[i];return '<div class="pbox p'+(i+1)+(r.id===LB.id?' me':'')+'"><div class="pm">'+['🥇','🥈','🥉'][i]+'</div><b>'+esc(r.nick)+'</b>'+badge(r)+'<small>อาชีพ: '+esc(roleOf(r))+'</small><small class="sv2">🛡 รอด <b>'+r.survived+'</b>/'+r.lives+' ชีวิต</small>'+gn(r)+'<em>'+esc(m[2](r[k]))+'</em></div>'}).join('')+'</div>':'';
+  const mine=LB.signed&&meRow?'<div class="mycard"><div class="mh"><b>'+esc(meRow.nick)+'</b>'+badge(meRow)+gn(meRow)+'<small>เล่นแล้ว '+meRow.lives+' ชีวิต · รอด '+meRow.survived+' ครั้ง</small></div><div class="mg">'+AM.map(x=>{const rr=myRank(x[0]);return '<button data-t="'+x[0]+'" class="mc'+(x[0]===k?' on':'')+'"><span>'+x[3]+'</span><small>'+esc(x[1])+'</small><b>'+(rr?'#'+rr:'-')+'</b></button>'}).join('')+'</div>'+
     (myI>0?'<p class="hint" style="margin:6px 0 0">อีก '+esc(m[2](top.length&&full[myI-1][k]-full[myI][k]))+' จะขึ้นเป็นอันดับ '+myI+' ในหมวดนี้</p>':myI===0?'<p class="hint" style="margin:6px 0 0">👑 คุณคือที่หนึ่งของหมวดนี้</p>':'<p class="hint" style="margin:6px 0 0">ยังไม่มีสถิติในหมวดนี้</p>')+'</div>':'';
   panel.innerHTML=
    '<div class="kick"><span>ตารางอันดับของเซิร์ฟเวอร์</span><span>'+LB.rows.length+' ผู้เล่น</span></div>'+
    '<h2 style="font-size:24px">'+m[3]+' '+esc(m[1])+' · ท็อป 50</h2>'+
-   '<div class="tabs">'+METRICS.map(x=>'<button class="mini'+(x[0]===k?' on':'')+'" data-t="'+x[0]+'">'+x[3]+' '+esc(x[1])+'</button>').join('')+'</div>'+
+   '<div class="tabs">'+AM.map(x=>'<button class="mini'+(x[0]===k?' on':'')+'" data-t="'+x[0]+'">'+x[3]+' '+esc(x[1])+'</button>').join('')+'</div>'+
    (LB.signed?'':'<div class="amb">'+(FBon()?'ยังไม่ได้ล็อกอิน Google ดูอันดับได้ แต่ผลของคุณจะไม่ถูกบันทึก (ล็อกอินได้ที่หน้าแรก)':LB.state==='anon'?'ยังไม่ได้ล็อกอินบัญชี claude.ai ผลของคุณจึงไม่ถูกบันทึกในอันดับ':'ตารางอันดับใช้ได้เมื่อเปิดเกมจาก claude.ai (ต้องล็อกอิน)')+'</div>')+
    mine+pod+
    '<input id="bq" class="bq" placeholder="ค้นหาชื่อผู้เล่น ชื่อ Google หรืออาชีพ" value="'+esc(boardQ)+'">'+
-   '<ol class="rank rk2">'+(shown.length?shown.filter(x=>q||x.i>2).map(x=>{const r=x.r,w=Math.max(4,Math.round(r[k]/Math.max(1,topV)*100));return '<li'+(r.id===LB.id?' class="me"':'')+'><b>'+(x.i+1)+'</b><span>'+esc(r.nick)+badge(r)+'<small>อาชีพ: '+esc(roleOf(r))+(r.title?' · '+esc(r.title):'')+'</small>'+gn(r)+'<u style="width:'+w+'%"></u></span><em>'+esc(m[2](r[k]))+'</em></li>'}).join('')||'<li style="display:block"><span>'+(q?'ไม่พบในท็อป 50':'ยังไม่มีอันดับ 4 ขึ้นไป')+'</span></li>':'<li><span>ยังไม่มีใครในหมวดนี้ มาเป็นคนแรกสิ</span></li>')+'</ol>'+
+   '<ol class="rank rk2">'+(shown.length?shown.filter(x=>q||x.i>2).map(x=>{const r=x.r,w=Math.max(4,Math.round(r[k]/Math.max(1,topV)*100));return '<li class="'+(r.id===LB.id?'me':'')+tier(x.i)+'"><b>'+(x.i+1)+'</b><span>'+esc(r.nick)+badge(r)+'<small>อาชีพ: '+esc(roleOf(r))+(r.title?' · '+esc(r.title):'')+'</small>'+sv2(r)+gn(r)+'<u style="width:'+w+'%"></u></span><em>'+esc(m[2](r[k]))+'</em></li>'}).join('')||'<li style="display:block"><span>'+(q?'ไม่พบในท็อป 50':'ยังไม่มีอันดับ 4 ขึ้นไป')+'</span></li>':'<li><span>ยังไม่มีใครในหมวดนี้ มาเป็นคนแรกสิ</span></li>')+'</ol>'+
    '<div class="row"><button class="btn ghost" id="bk">กลับ</button></div>';
   panel.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{boardTab=b.dataset.t;renderBoard()});
   const bq=$('bq');if(bq)bq.oninput=e=>{boardQ=e.target.value;const p=e.target.selectionStart;renderBoard();const n=$('bq');if(n){n.focus();try{n.setSelectionRange(p,p)}catch(x){}}};
@@ -8020,7 +8030,7 @@ async function lbEnding(E,kind){
   const b2=$('rankbox');if(!b2)return;
   if(!ok){b2.innerHTML='<div class="amb">บันทึกอันดับไม่สำเร็จ (ผลชีวิตนี้ยังอยู่ในหน้านี้ ลองใหม่ภายหลังได้)</div>';return}
   b2.innerHTML='<div class="tomb"><small>อันดับของคุณในเซิร์ฟเวอร์ · '+esc(NICK||'ผู้เล่น')+'</small>'+
-   METRICS.map(m=>{const r=myRank(m[0]);return '<span>'+esc(m[1])+': <b style="font-size:16px">'+(r?'อันดับ '+r:'-')+'</b></span>'}).join('')+
+   activeMetrics().map(m=>{const r=myRank(m[0]);return '<span>'+esc(m[1])+': <b style="font-size:16px">'+(r?'อันดับ '+r:'-')+'</b></span>'}).join('')+
    '<em>รอดครบ 365 วัน '+((LB.rows.find(r=>r.id===LB.id)||{}).survived||0)+' ครั้ง · เล่นแล้ว '+((LB.rows.find(r=>r.id===LB.id)||{}).lives||0)+' ชีวิต</em></div>';
 }
 
@@ -8408,6 +8418,13 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-10-28e',date:'28 ต.ค. 2569',title:'อันดับเด่นขึ้น + เปิดดูระหว่างเล่นได้',items:[
+  'ทุกแถวในตารางอันดับบอกแล้วว่า "รอดครบ 365 วันกี่ครั้ง จากเล่นกี่ชีวิต"',
+  'ท็อป 1–3 มีสีทอง เงิน ทองแดง ส่วนท็อป 4–10 เป็นสีแดงเด่น ทั้งแถวและป้ายข้างชื่อ',
+  '🏆 กดปุ่ม "อันดับ" ในเมนูระหว่างเล่นได้เลย จะมีหน้าต่างอันดับลอยขึ้นมา ปิดแล้วเล่นต่อได้ทันที ไม่เสียเกมที่เล่นอยู่']},
+ {id:'2026-10-28d',date:'28 ต.ค. 2569',title:'อันดับใหม่ + ซ่อนอันดับที่ยังไม่มีใครทำได้',items:[
+  '🔥 อันดับใหม่: "รอดติดกันยาวที่สุด" (รอดครบ 365 วันติดต่อกันกี่ชีวิต) · 📈 "อัตรารอดสูงสุด" (ต้องเล่น 5 ชีวิตขึ้นไป) · 🎮 "นักสู้ตัวยง" (เล่นมากที่สุด)',
+  'อันดับที่ยังไม่มีใครทำได้เลยจะถูกซ่อนไว้ก่อน และจะโผล่ขึ้นมาเองเมื่อมีคนแรกทำสำเร็จ (เหลือ รวยที่สุด / คะแนนชีวิต / รอดครบ 365 วัน เป็นอันดับหลักเสมอ)']},
  {id:'2026-10-28c',date:'28 ต.ค. 2569',title:'ของใหม่เพียบ + วิดีโอสรุปตอนจบ',items:[
   '🎬 ตอนจบจะฉาย "วิดีโอสรุป 365 วัน" ย้อนดูทุกฉากและทุกการตัดสินใจที่ผ่านมา กดข้ามได้ และกดดูซ้ำได้จากปุ่มในหน้าสรุป',
   '🎒 ตลาดมืดเพิ่มอุปกรณ์ใหม่ 28 ชิ้น (ถังดับเพลิง หน้ากากกันก๊าซ เสื้อขนเป็ด เครื่องตรวจจับโลหะ โล่ปราบจลาจล ตู้เซฟ ฯลฯ) และเสบียง/ของใช้อีก 14 อย่าง',
@@ -8447,6 +8464,33 @@ function newsAuto(){
   showNews();
 }
 setTimeout(newsAuto,900);
+
+
+/* ===== เปิดดูอันดับระหว่างเล่น (หน้าต่างลอย ไม่กระทบเกมที่เล่นอยู่) ===== */
+let ovTab='survived';
+async function ovBoard(tab){
+  if(tab)ovTab=tab;
+  let ov=document.getElementById('ovboard');
+  if(!ov){ov=document.createElement('div');ov.className='ov';ov.id='ovboard';document.body.appendChild(ov);ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()})}
+  const draw=()=>{
+    const AM=activeMetrics();const m=AM.find(x=>x[0]===ovTab)||AM[0],k=m[0];
+    const full=rankList(k),top=full.slice(0,10);
+    const me=LB.rows.find(r=>r.id===LB.id),myI=full.findIndex(r=>r.id===LB.id);
+    const svr={};rankList('survived').slice(0,10).forEach((r,i)=>{if(r.survived>0)svr[r.id]=i+1});
+    const tag=r=>svr[r.id]?'<i class="tt sv g'+Math.min(4,svr[r.id])+'">'+(['🥇','🥈','🥉'][svr[r.id]-1]||'🛡')+' ท็อป '+svr[r.id]+'</i>':'';
+    const tier=i=>i<3?' t'+(i+1):' t4';
+    ov.innerHTML='<div class="ovb" role="dialog" aria-label="อันดับ"><div class="ovh"><b>🏆 ตารางอันดับ</b><button class="mini" id="ovbx">ปิด</button></div>'+
+     (LB.rows.length?'':'<p class="hint">'+(LB.state==='load'||LB.state==='loading'?'กำลังโหลดอันดับ…':'ยังไม่มีข้อมูลอันดับ (ต้องต่ออินเทอร์เน็ตและมีผู้เล่นที่ล็อกอิน Google)')+'</p>')+
+     (me&&LB.signed?'<div class="amb" style="margin:6px 0">คุณ: <b>'+esc(me.nick)+'</b> · รอดครบ 365 วัน <b>'+me.survived+'</b> ครั้ง จาก '+me.lives+' ชีวิต'+(myI>=0?' · อันดับ <b>'+(myI+1)+'</b> ในหมวดนี้':' · ยังไม่มีสถิติในหมวดนี้')+'</div>':'')+
+     '<div class="tabs">'+AM.map(x=>'<button class="mini'+(x[0]===k?' on':'')+'" data-ot="'+x[0]+'">'+x[3]+' '+esc(x[1])+'</button>').join('')+'</div>'+
+     '<ol class="rank rk2">'+(top.length?top.map((r,i)=>'<li class="'+(r.id===LB.id?'me':'')+tier(i)+'"><b>'+(i+1)+'</b><span>'+esc(r.nick)+tag(r)+'<small>อาชีพ: '+esc(r.rr[k]||r.role)+'</small><small class="sv2">🛡 รอดครบ 365 วัน <b>'+r.survived+'</b> ครั้ง จากเล่น '+r.lives+' ชีวิต</small></span><em>'+esc(m[2](r[k]))+'</em></li>').join(''):'<li style="grid-template-columns:1fr">ยังไม่มีใครในหมวดนี้</li>')+'</ol>'+
+     '<div class="row" style="margin-top:8px"><button class="btn" id="ovbok">กลับไปเล่นต่อ</button></div></div>';
+    ov.querySelector('#ovbx').onclick=ov.querySelector('#ovbok').onclick=()=>ov.remove();
+    ov.querySelectorAll('[data-ot]').forEach(b=>b.onclick=()=>{ovTab=b.dataset.ot;draw()});
+  };
+  draw();
+  try{if(LB.useGet){await lbLoad();if(document.getElementById('ovboard'))draw()}}catch(e){}
+}
 /* ===== UI v2 ===== */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -9325,7 +9369,7 @@ function lenIsLong(){return true}
 $('bHelp').onclick=showTut;
 $('bAch').onclick=showAch;
 $('bCod').onclick=showCodex;
-$('bBoard').onclick=()=>{if(stage==='start'||stage==='board'){showBoard(showStart)}else{toast('จบชีวิตนี้หรือกลับหน้าแรกก่อนจึงดูอันดับได้')}};
+$('bBoard').onclick=()=>{if(stage==='start'||stage==='board'){showBoard(showStart)}else{ovBoard()}};
 setInterval(lobbyPresence,6000);
 lbInit();
 $('chatbox').style.display='none';
@@ -9627,5 +9671,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 28/10 22:23';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 28/10 22:53';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
