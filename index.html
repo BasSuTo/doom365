@@ -303,6 +303,7 @@ body{background:radial-gradient(900px 500px at 85% -10%,var(--g1),transparent 70
 .tt.sv.g1{background:linear-gradient(#ffe08a,#d9a21b);color:#3a2600;border-color:#ffe08a;box-shadow:0 0 10px #ffd24a99}.tt.sv.g2{background:linear-gradient(#f1f4fa,#aab4c6);color:#1d2433;border-color:#e6ebf5}.tt.sv.g3{background:linear-gradient(#f0b27a,#b8672a);color:#2e1500;border-color:#f0b27a}.tt.sv.g4{background:#b8452a;color:#fff}
 .rk2 li.t1{background:linear-gradient(90deg,#ffd24a40,transparent 70%);border-left:5px solid #ffc83d}.rk2 li.t2{background:linear-gradient(90deg,#cfd8e838,transparent 70%);border-left:5px solid #cfd8e8}.rk2 li.t3{background:linear-gradient(90deg,#d9955a38,transparent 70%);border-left:5px solid #d9955a}.rk2 li.t4{background:linear-gradient(90deg,#b8452a22,transparent 70%);border-left:5px solid #b8452a}
 .rk2 li.t1>b{color:#ffc83d;font-size:1.25em}.rk2 li.t2>b{color:#cfd8e8;font-size:1.2em}.rk2 li.t3>b{color:#e0955a;font-size:1.15em}.rk2 li.t4>b{color:#e8704f}
+@media(min-width:760px){.tabs{flex-wrap:wrap;overflow-x:visible}.tabs .mini{flex:0 0 auto}}
 .tabs{max-width:100%}#panel>*,.pod>*,.rk2 li>span{min-width:0}.pbox .sv2{font-size:10px}.sv2{display:block;color:var(--muted);font-size:11px}.sv2 b{color:var(--gold2)}
 .pbox.me{outline:2px solid var(--gold)}.pbox .pm{font-size:26px}.pbox b{font-size:14px;overflow-wrap:anywhere}.pbox small{color:var(--muted);font-size:11px}.pbox em{font-style:normal;color:var(--gold2);font-family:var(--f-n);font-size:14px}
 .tt{font-style:normal;font-size:10px;color:var(--gold2);border:1px solid var(--line);border-radius:10px;padding:0 6px;margin-left:6px;white-space:nowrap}
@@ -9170,6 +9171,8 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-10-29l',date:'29 ต.ค. 2569',title:'ตารางอันดับบนคอมดูง่ายขึ้น',items:[
+  '🏆 บนหน้าจอคอม แท็บหมวดอันดับทั้งหมดขึ้นเป็นหลายแถวให้เห็นครบในครั้งเดียว ไม่ต้องเลื่อนซ้าย-ขวาอีกต่อไป (มือถือยังเลื่อนเหมือนเดิม)']},
  {id:'2026-10-29k',date:'29 ต.ค. 2569',title:'ฉายาท็อป 20 ท้าทายสัปดาห์/ชีวิตประจำวัน + โหมดโหดขึ้น',items:[
   '🏅 ฉายา “ท็อป 20 ผู้ผ่านท้าทายสัปดาห์” และ “ท็อป 20 ชีวิตประจำวัน” โบนัสเงิน +5% (ติดท็อปถึงจะสวมได้) · มีอันดับใหม่ “เล่นชีวิตประจำวันสะสม” นับตั้งแต่เวอร์ชันนี้',
   '🔥 ท้าทายสัปดาห์และชีวิตประจำวันยากขึ้นราว 2 เท่า: โอกาสตายจากเหตุร้ายเพิ่มเป็นสองเท่า หิวกระหายเร็วขึ้น เหตุอันตรายถี่ขึ้น',
@@ -10869,5 +10872,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 17:40';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 17:52';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
