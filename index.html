@@ -6094,6 +6094,8 @@ const TITLES=[
  {id:'e4',src:'epi',n:'ปีศาจในคราบมนุษย์',i:'👹',b:{mo:.03,dr:.02}},
  {id:'rk_sv',src:'rank',m:'survived',n:'ท็อป 10 ผู้รอดครบ 365 วัน',i:'🏆',b:{mo:.04}},
  {id:'rk_fn',src:'rank',m:'funny',n:'ท็อป 10 ตายฮาที่สุด',i:'🤡',b:{mo:.04}},
+ {id:'rk_wk',src:'rank',m:'wk',top:20,n:'ท็อป 20 ผู้ผ่านท้าทายสัปดาห์',i:'🏅',b:{mo:.05}},
+ {id:'rk_dl',src:'rank',m:'dc',top:20,n:'ท็อป 20 ชีวิตประจำวัน',i:'📅',b:{mo:.05}},
  {id:'e5',src:'epi',n:'ซาตานผู้ปล้นโลกก่อนโลกแตก',i:'💀',b:{mo:.03}}];
 const TT_BY=Object.fromEntries(TITLES.map(t=>[t.id,t]));
 const TB_TXT={mo:'💰 เงินที่ได้',rk:'🛡 ความเสี่ยงลดลง',dr:'🍞 หิว/กระหายช้าลง',hp:'❤ ฟื้นพลังชีวิต',md:'😊 ความสุขที่ได้',en:'⚡ พลังงานฟื้นเร็วขึ้น'};
@@ -6101,7 +6103,21 @@ function tb(k){const t=S&&S.ttl&&TT_BY[S.ttl];return t&&t.b&&t.b[k]||0}
 function ttBonusText(t){return Object.keys(t.b).map(k=>TB_TXT[k]+' '+(k==='rk'||k==='dr'?'':'+')+Math.round(t.b[k]*100)+'%').join(' · ')}
 {
   const _ng=newGame;
-  newGame=function(c){const s=_ng.apply(this,arguments);s.ttl=(typeof ttEquipped==='function'?ttEquipped():'')||'';return s};
+  newGame=function(c){const s=_ng.apply(this,arguments);hardApply(!!(c&&(c.daily||c.wk)));s.hard=(c&&(c.daily||c.wk))?1:0;s.ttl=(typeof ttEquipped==='function'?ttEquipped():'')||'';return s};
+}
+
+/* ===== ท้าทายสัปดาห์ / ชีวิตประจำวัน ยากขึ้น ~2 เท่า (โอกาสตายจากเหตุร้าย x2 + ปัจจัยอื่นเพิ่ม) ===== */
+function hardApply(on){
+  try{
+    setDiff(DIFF.id);
+    if(!on)return;
+    DIFF.fateBase*=2;DIFF.fateFail*=2;DIFF.fateAny*=2;
+    DIFF.danger*=1.4;DIFF.drain*=1.3;DIFF.riskAdd=(DIFF.riskAdd||0)+.06;DIFF.failDmg*=1.2;DIFF.woundP=Math.min(.92,DIFF.woundP+.12);
+  }catch(e){}
+}
+{
+  const _rs=restore;
+  restore=function(o){const s=_rs.apply(this,arguments);if(s)hardApply(!!s.hard);return s};
 }
 /* ===== v72: อาชีพรวยมหาศาล 24 อาชีพ (สู้สีทายาท/เจ้าของร้านทอง) + เหตุการณ์เฉพาะอาชีพ ===== */
 (function(){
@@ -8627,8 +8643,8 @@ function lbRow(id,d){
   row.at=num(d.at,4e12);row.at0=num(d.at0,4e12);row.sig=clean(d.sig,16);
   row.gname=clean(d.gname,40);row.rr={};if(d.rr&&typeof d.rr==='object')RRK.forEach(k=>{const v=clean(d.rr[k],40);if(v)row.rr[k]=v});
   row.funny=new Set(row.causes).size;row.rolesN=new Set(row.roles).size;
-  row.ot=num(d.ot,1e7);row.bs=num(d.bs,99999);row.cs=num(d.cs,99999);row.gd=num(d.gd,99999);row.ev=num(d.ev,99999);row.rate=row.lives>=5?Math.round(row.survived/row.lives*100):0;
-  row.bad=(row.at0>0&&row.ot>(Date.now()-row.at0)/60000+180)||row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60||row.bs>row.survived||row.cs>row.bs||row.gd>row.lives*60||row.ev>row.lives*60;
+  row.ot=num(d.ot,1e7);row.dd=dd;row.dc=num(d.dc,99999);row.bs=num(d.bs,99999);row.cs=num(d.cs,99999);row.gd=num(d.gd,99999);row.ev=num(d.ev,99999);row.rate=row.lives>=5?Math.round(row.survived/row.lives*100):0;
+  row.bad=row.dc>row.lives||(row.at0>0&&row.ot>(Date.now()-row.at0)/60000+180)||row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60||row.bs>row.survived||row.cs>row.bs||row.gd>row.lives*60||row.ev>row.lives*60;
   row.richestRaw=row.richest;if(row.at<NERF_AT&&/^ทายาท/.test(row.rr.richest||''))row.richest=Math.round(row.richest*.7);
   return row;
 }
@@ -8690,7 +8706,7 @@ async function lbRecord(E,kind){
     if(Math.min(80,S.inv.med)>cur.meds||!rr.meds)rr.meds=Math.min(80,S.inv.med)>=cur.meds?rn:(rr.meds||cur.role||rn);
     if(Math.min(60,Object.keys(S.gear||{}).length)>cur.arms||!rr.arms)rr.arms=Math.min(60,Object.keys(S.gear||{}).length)>=cur.arms?rn:(rr.arms||cur.role||rn);
     if(nv.ds!=null&&nv.ds>(cur.daily||0))rr.daily=rn;else if(cur.rr.daily&&nv.ds)rr.daily=cur.rr.daily;
-    const cs0=kind==='final'?(cur.cs||0)+1:0;const ex={rr,cs:cs0,bs:Math.max(cur.bs||0,cs0),gd:(cur.gd||0)+Math.min(60,S.c.help|0),ev:(cur.ev||0)+Math.min(60,S.c.steal|0)},g=gnameNow();const otp=typeof otPending==='function'?otPending():0;if(otp>0||cur.ot)ex.ot=(cur.ot||0)+(sn.exists?otp:Math.min(otp,180));if(g)ex.gname=g;
+    const cs0=kind==='final'?(cur.cs||0)+1:0;const ex={rr,cs:cs0,bs:Math.max(cur.bs||0,cs0),gd:(cur.gd||0)+Math.min(60,S.c.help|0),ev:(cur.ev||0)+Math.min(60,S.c.steal|0)},g=gnameNow();const otp=typeof otPending==='function'?otPending():0;if(S.daily&&S.daily===today&&cur.dd!==today)ex.dc=(cur.dc||0)+1;else if(cur.dc)ex.dc=cur.dc;if(otp>0||cur.ot)ex.ot=(cur.ot||0)+(sn.exists?otp:Math.min(otp,180));if(g)ex.gname=g;
     try{await ref.set(Object.assign({},nv,ex));Object.assign(nv,ex);if(otp>0)lsSet(OTP,String(Math.max(0,(parseFloat(lsGet(OTP,'0'))||0)-otp)))}catch(e1){await ref.set(nv)}
     const i=LB.rows.findIndex(r=>r.id===LB.id);const row=lbRow(LB.id,nv);
     if(i>=0)LB.rows[i]=row;else LB.rows.push(row);
@@ -8698,7 +8714,7 @@ async function lbRecord(E,kind){
   }catch(e){return false}
 }
 const SILLY=['banana','coconut','selfie','laugh','choke','veg','mushroom','spicy','karaoke','allergy','bee','pool','yacht','fugu','safe','heartplay','liver'];
-const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭'],['bs','รอดติดกันยาวที่สุด',v=>v+' ชีวิตติด','🔥'],['rate','อัตรารอดสูงสุด (เล่น ≥5 ชีวิต)',v=>v+'%','📈'],['lives','นักสู้ตัวยง (เล่นมากสุด)',v=>v+' ชีวิต','🎮'],['gd','คนดีที่สุด (ช่วยเหลือรวม)',v=>v+' ครั้ง','😇'],['ev','คนชั่วที่สุด (หยิบของรวม)',v=>v+' ครั้ง','😈'],['ot','ออนไลน์นานที่สุด',v=>fmtOt(v),'⏱']];
+const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭'],['bs','รอดติดกันยาวที่สุด',v=>v+' ชีวิตติด','🔥'],['rate','อัตรารอดสูงสุด (เล่น ≥5 ชีวิต)',v=>v+'%','📈'],['lives','นักสู้ตัวยง (เล่นมากสุด)',v=>v+' ชีวิต','🎮'],['gd','คนดีที่สุด (ช่วยเหลือรวม)',v=>v+' ครั้ง','😇'],['ev','คนชั่วที่สุด (หยิบของรวม)',v=>v+' ครั้ง','😈'],['ot','ออนไลน์นานที่สุด',v=>fmtOt(v),'⏱'],['dc','เล่นชีวิตประจำวันสะสม',v=>v+' วัน','📅']];
 /* ซ่อนอันดับที่ยังไม่มีใครทำได้ (ยกเว้น 3 อันดับหลัก) ให้โผล่เองเมื่อมีคนผ่านเกณฑ์ */
 const CORE_M=['richest','best','survived','gd','ev','ot'];
 function activeMetrics(){return METRICS.filter(m=>CORE_M.includes(m[0])||LB.rows.some(r=>!r.bad&&r[m[0]]>0))}
@@ -9154,6 +9170,10 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-10-29k',date:'29 ต.ค. 2569',title:'ฉายาท็อป 20 ท้าทายสัปดาห์/ชีวิตประจำวัน + โหมดโหดขึ้น',items:[
+  '🏅 ฉายา “ท็อป 20 ผู้ผ่านท้าทายสัปดาห์” และ “ท็อป 20 ชีวิตประจำวัน” โบนัสเงิน +5% (ติดท็อปถึงจะสวมได้) · มีอันดับใหม่ “เล่นชีวิตประจำวันสะสม” นับตั้งแต่เวอร์ชันนี้',
+  '🔥 ท้าทายสัปดาห์และชีวิตประจำวันยากขึ้นราว 2 เท่า: โอกาสตายจากเหตุร้ายเพิ่มเป็นสองเท่า หิวกระหายเร็วขึ้น เหตุอันตรายถี่ขึ้น',
+  '▶ ปุ่มหน้าแรกเขียนว่า “เริ่มเกม” ให้ผู้เล่นใหม่เห็นชัด']},
  {id:'2026-10-29j',date:'29 ต.ค. 2569',title:'ฉายาท็อป 10 รอดครบ 365 วัน / ตายฮา + ปรับโบนัสเงิน',items:[
   '🏆 ฉายาใหม่ “ท็อป 10 ผู้รอดครบ 365 วัน” และ “ท็อป 10 ตายฮาที่สุด” ให้โบนัสเงิน +4% (ติดท็อป 10 ในอันดับนั้นถึงจะสวมได้ หลุดท็อปฉายาจะถูกถอด)',
   '⚖ โบนัสเงินของฉายาเก่า (เวลาออนไลน์ / คนชั่ว) ลดลงเล็กน้อย เพื่อให้ฉายาท็อป 10 คุ้มที่สุด']},
@@ -9344,10 +9364,11 @@ async function otSync(){
 }
 setInterval(otTick,30000);
 setInterval(()=>{if(!document.hidden)otSync()},300000);
+const RK_TOP={survived:10,funny:10,wk:20,dc:20};
 function rkStatus(){
   try{
     if(typeof LB!=='undefined'&&LB.id&&LB.rows&&LB.rows.length){
-      const o={survived:rankList('survived').slice(0,10).some(r=>r.id===LB.id),funny:rankList('funny').slice(0,10).some(r=>r.id===LB.id)};
+      const o={};for(const k in RK_TOP)o[k]=rankList(k).slice(0,RK_TOP[k]).some(r=>r.id===LB.id);
       lsSet('doom365-rk',JSON.stringify(o));return o;
     }
   }catch(e){}
@@ -9355,7 +9376,7 @@ function rkStatus(){
 }
 function ttUnlocked(t){return t.src==='ot'?otMine()>=t.need:t.src==='rank'?!!rkStatus()[t.m]:!!(typeof epiMine==='function'&&epiMine()[t.id])}
 function ttEquipped(){const id=lsGet(TTK,'');const t=TT_BY[id];return t&&ttUnlocked(t)?id:''}
-function ttReq(t){return t.src==='rank'?'ติดท็อป 10 ในอันดับ '+(t.m==='survived'?'“รอดครบ 365 วัน”':'“ตายฮาที่สุด”')+' (หลุดท็อป 10 ฉายาจะถูกถอด)':t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
+function ttReq(t){return t.src==='rank'?'ติดท็อป '+(t.top||10)+' ในอันดับ '+({survived:'“รอดครบ 365 วัน”',funny:'“ตายฮาที่สุด”',wk:'“ผ่านท้าทายสัปดาห์”',dc:'“ชีวิตประจำวัน (เล่นสะสม)”'}[t.m])+' (หลุดท็อปฉายาจะถูกถอด)':t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
 function otBadge(v){
   let t=null;TITLES.forEach(x=>{if(x.src==='ot'&&v>=x.need)t=x});
   return t?'<i class="tt" style="color:#8ec5ff;border-color:#8ec5ff">'+t.i+' '+esc(t.n)+'</i>':'';
@@ -9863,7 +9884,7 @@ function showStart(){
    '<p class="sub">มีบางอย่างกำลังพุ่งเข้าหาโลก คุณจะเกิดมาเป็นใคร มีเงินเท่าไหร่ ชะตาสุ่มให้ทั้งหมด จากนั้นต้องกิน ดื่ม ซ่อมที่พัก ดูแลแผล หาเพื่อนร่วมทาง และตัดสินใจทีละวัน ความตายมาได้หลายแบบ ทั้งหิว ป่วย ทั้งเรื่องแปลกๆ แม้แต่คนมีเงินก็ไม่รอด</p>'+
    '<div class="facts"><div class="fact"><small>เหตุการณ์ทั้งหมด</small><b>≈ '+pool.cards.toLocaleString('en-US')+'</b></div><div class="fact"><small>ชาติกำเนิดสุ่ม</small><b>'+ROLES.length+' แบบ</b></div><div class="fact"><small>สาเหตุการตาย</small><b>'+Object.keys(DEATHS).length+' แบบ</b></div><div class="fact"><small>เสียงตามอารมณ์</small><b>8 ธีม</b></div></div>'+
    '<button class="rankhot" id="rankhot">🏆 ดูอันดับผู้รอด · ใครรวยที่สุด · ใครรอดมากที่สุด <i>›</i></button>'+
-   '<div class="row"><button class="btn" id="go">ลืมตาตื่นขึ้นมา</button>'+(hasSave()?'<button class="btn ghost" id="cont">เล่นต่อจากที่บันทึก</button>':'')+'<button class="btn ghost" id="wk">ท้าทายสัปดาห์: '+curWeekly().n+(wkPassedNow()?' ✓':'')+'</button><button class="btn ghost" id="daily">ชีวิตประจำวัน '+esc(dayKey())+'</button></div>'+mpHtml+
+   '<div class="row"><button class="btn" id="go">▶ เริ่มเกม · ลืมตาตื่นขึ้นมา</button>'+(hasSave()?'<button class="btn ghost" id="cont">เล่นต่อจากที่บันทึก</button>':'')+'<button class="btn ghost" id="wk">ท้าทายสัปดาห์: '+curWeekly().n+(wkPassedNow()?' ✓':'')+'</button><button class="btn ghost" id="daily">ชีวิตประจำวัน '+esc(dayKey())+'</button></div>'+mpHtml+
    '<div class="nick"><label for="nick">ชื่อของคุณในเกม</label><input id="nick" maxlength="16" placeholder="ตั้งชื่อเล่น" value="'+esc(NICK)+'"><span>'+(LB.signed?(window.D365_SA?'อันดับออนไลน์ใช้งานได้ · ผลของคุณจะถูกบันทึก':'ล็อกอินแล้วด้วยบัญชี claude.ai · อันดับถูกบันทึก'):LB.state==='anon'?(window.D365_FB&&D365_FB.ok?'ยังไม่ได้ล็อกอิน Google':'ยังไม่ได้ล็อกอิน claude.ai'):'อันดับใช้ได้เมื่อเปิดจาก claude.ai')+'</span>'+(FBon()&&LB.signed?'<label class="showg"><input type="checkbox" id="showg"'+(gShow()?' checked':'')+'> แสดงชื่อ Google ของฉันในตารางอันดับ (ให้คนรู้ว่าเป็นตัวจริง)</label>':'')+'</div>'+
    '<div id="acct"></div>'+
    '<p class="hint"><button class="mini" id="newsbtn">📢 มีอะไรใหม่ในเกม</button></p>'+
@@ -9880,7 +9901,7 @@ function showStart(){
   try{chatMount($('chat'))}catch(e){}
   try{renderAcct()}catch(e){}
   $('go').onclick=()=>{if(tget(DW_KEY)>Date.now())return;mpClose();if(KEPT&&!KEPT.wk&&!KEPT.daily){cand=KEPT}else{rrLeft=2;cand=rollBirth()}showBirth()};
-  waitBtn('go',DW_KEY,'ลืมตาตื่นขึ้นมา');
+  waitBtn('go',DW_KEY,'▶ เริ่มเกม · ลืมตาตื่นขึ้นมา');
   $('wk').onclick=()=>{if(tget(DW_KEY)>Date.now()){toast('ยังต้องรอหลังชีวิตที่แล้ว');return}mpClose();if(KEPT&&KEPT.wk){cand=KEPT;showBirth()}else startWeekly()};
   $('daily').onclick=()=>{if(tget(DW_KEY)>Date.now()){toast('ยังต้องรอหลังชีวิตที่แล้ว');return}mpClose();startDaily()};
   if($('cont'))$('cont').onclick=()=>{mpClose();if(loadGame()){stage='play';showEvent()}};
@@ -10848,5 +10869,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 15:38';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 17:40';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
