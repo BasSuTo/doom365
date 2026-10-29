@@ -639,7 +639,7 @@ window.claude={use:async n=>{
 'use strict';
 const CFG={apiKey:"AIzaSyAZ1mveEDaA59spw_XRjX_gmV898g_otkA",authDomain:"doom365.firebaseapp.com",projectId:"doom365",storageBucket:"doom365.firebasestorage.app",messagingSenderId:"296220747122",appId:"1:296220747122:web:5a8015a8a7706962dbe9eb"};
 const BASE='https://www.gstatic.com/firebasejs/10.14.1/';
-const SYNC=['doom365-lives','doom365-ach','doom365-meta','doom365-codex','doom365-nick','doom365-wk','doom365-tut','doom365-theme','doom365-len','doom365-mg'];
+const SYNC=['doom365-lives','doom365-ach','doom365-meta','doom365-codex','doom365-nick','doom365-wk','doom365-tut','doom365-theme','doom365-len','doom365-mg','doom365-epi','doom365-title','doom365-ot'];
 const SYNCSET=new Set(SYNC);
 const SAVEK='doom365v2-save',SVAT='doom365-svat';
 const PUSH_MS=25000;
@@ -705,6 +705,7 @@ function mergeKey(k,l,c){
   if(l==null||l==='')return c;
   if(l===c)return l;
   let a,b;try{a=JSON.parse(l);b=JSON.parse(c)}catch(e){return l}
+  if(typeof a==='number'&&typeof b==='number'&&(k==='doom365-ot'))return String(Math.max(a,b));
   if(Array.isArray(a)&&Array.isArray(b)){
     const seen=new Set(),out=[];
     for(const x of a.concat(b)){const s=JSON.stringify(x);if(!seen.has(s)){seen.add(s);out.push(x)}}
@@ -6074,24 +6075,26 @@ ROLES.forEach(r=>{if(/^ทายาท/.test(r.n)){r.mo=[Math.round(r.mo[0]*.7),
 /* ===== v71: ฉายาที่สวมใส่ได้ — โบนัสเล็กน้อยตลอดการเล่น ===== */
 /* b: mo=เงินที่ได้ rk=ลดความเสี่ยง dr=หิว/กระหายช้าลง hp=ฟื้นพลังชีวิต md=ความสุขที่ได้ en=พลังงานฟื้นเร็ว */
 const TITLES=[
- {id:'ot1',src:'ot',need:30,n:'หน้าใหม่ไฟแรง',i:'🌱',b:{mo:.02}},
+ {id:'ot1',src:'ot',need:30,n:'หน้าใหม่ไฟแรง',i:'🌱',b:{mo:.01}},
  {id:'ot2',src:'ot',need:120,n:'เด็กติดเกมฝึกหัด',i:'🎮',b:{dr:.02}},
  {id:'ot3',src:'ot',need:300,n:'ขาประจำวันสิ้นโลก',i:'☕',b:{en:.03}},
  {id:'ot4',src:'ot',need:720,n:'นักอดนอนตัวยง',i:'🌙',b:{rk:.02}},
- {id:'ot5',src:'ot',need:1440,n:'นักสู้เต็มวัน',i:'⏳',b:{mo:.03}},
+ {id:'ot5',src:'ot',need:1440,n:'นักสู้เต็มวัน',i:'⏳',b:{mo:.02}},
  {id:'ot6',src:'ot',need:3000,n:'ตำนานหน้าจอ',i:'🖥',b:{md:.03}},
  {id:'ot7',src:'ot',need:6000,n:'ผู้พิทักษ์เซิร์ฟเวอร์',i:'🛡',b:{rk:.03}},
- {id:'ot8',src:'ot',need:12000,n:'เจ้าของโลกใบนี้',i:'👑',b:{mo:.03,dr:.02}},
+ {id:'ot8',src:'ot',need:12000,n:'เจ้าของโลกใบนี้',i:'👑',b:{mo:.02,dr:.02}},
  {id:'g1',src:'epi',n:'คนใจดีข้างบ้าน',i:'🙂',b:{hp:.02}},
  {id:'g2',src:'epi',n:'ผู้ใจบุญประจำซอย',i:'😇',b:{md:.03}},
  {id:'g3',src:'epi',n:'ฮีโร่ผู้ไม่มีใครรู้จัก',i:'🦸',b:{rk:.02}},
  {id:'g4',src:'epi',n:'เทวดาเดินดินแห่งวันสิ้นโลก',i:'👼',b:{hp:.03,rk:.02}},
  {id:'g5',src:'epi',n:'นักบุญแห่งโลกที่กำลังแตก',i:'🕊️',b:{rk:.03,md:.02}},
- {id:'e1',src:'epi',n:'หัวขโมยจิ๋ว',i:'🫳',b:{mo:.02}},
- {id:'e2',src:'epi',n:'จอมโจรประจำซอย',i:'🦹',b:{mo:.03}},
- {id:'e3',src:'epi',n:'เจ้าพ่อมือไวแห่งโลกแตก',i:'😈',b:{mo:.04}},
- {id:'e4',src:'epi',n:'ปีศาจในคราบมนุษย์',i:'👹',b:{mo:.04,dr:.02}},
- {id:'e5',src:'epi',n:'ซาตานผู้ปล้นโลกก่อนโลกแตก',i:'💀',b:{mo:.05}}];
+ {id:'e1',src:'epi',n:'หัวขโมยจิ๋ว',i:'🫳',b:{mo:.01}},
+ {id:'e2',src:'epi',n:'จอมโจรประจำซอย',i:'🦹',b:{mo:.02}},
+ {id:'e3',src:'epi',n:'เจ้าพ่อมือไวแห่งโลกแตก',i:'😈',b:{mo:.03}},
+ {id:'e4',src:'epi',n:'ปีศาจในคราบมนุษย์',i:'👹',b:{mo:.03,dr:.02}},
+ {id:'rk_sv',src:'rank',m:'survived',n:'ท็อป 10 ผู้รอดครบ 365 วัน',i:'🏆',b:{mo:.04}},
+ {id:'rk_fn',src:'rank',m:'funny',n:'ท็อป 10 ตายฮาที่สุด',i:'🤡',b:{mo:.04}},
+ {id:'e5',src:'epi',n:'ซาตานผู้ปล้นโลกก่อนโลกแตก',i:'💀',b:{mo:.03}}];
 const TT_BY=Object.fromEntries(TITLES.map(t=>[t.id,t]));
 const TB_TXT={mo:'💰 เงินที่ได้',rk:'🛡 ความเสี่ยงลดลง',dr:'🍞 หิว/กระหายช้าลง',hp:'❤ ฟื้นพลังชีวิต',md:'😊 ความสุขที่ได้',en:'⚡ พลังงานฟื้นเร็วขึ้น'};
 function tb(k){const t=S&&S.ttl&&TT_BY[S.ttl];return t&&t.b&&t.b[k]||0}
@@ -9151,6 +9154,11 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-10-29j',date:'29 ต.ค. 2569',title:'ฉายาท็อป 10 รอดครบ 365 วัน / ตายฮา + ปรับโบนัสเงิน',items:[
+  '🏆 ฉายาใหม่ “ท็อป 10 ผู้รอดครบ 365 วัน” และ “ท็อป 10 ตายฮาที่สุด” ให้โบนัสเงิน +4% (ติดท็อป 10 ในอันดับนั้นถึงจะสวมได้ หลุดท็อปฉายาจะถูกถอด)',
+  '⚖ โบนัสเงินของฉายาเก่า (เวลาออนไลน์ / คนชั่ว) ลดลงเล็กน้อย เพื่อให้ฉายาท็อป 10 คุ้มที่สุด']},
+ {id:'2026-10-29i',date:'29 ต.ค. 2569',title:'แก้ฉายาหายเมื่อเปลี่ยนเครื่อง/เว็บ',items:[
+  '🎖 ฉายาคนดี/คนชั่วที่เคยได้ ฉายาที่สวมอยู่ และเวลาออนไลน์ ถูกบันทึกขึ้นคลาวด์พร้อมเซฟ (ต้องล็อกอิน Google) ย้ายเครื่องหรือเปลี่ยนเว็บแล้วไม่หาย และเมื่อรวมข้อมูลจะเก็บอันที่มากกว่าไว้']},
  {id:'2026-10-29h',date:'29 ต.ค. 2569',title:'อาชีพรวยมหาศาล 24 อาชีพ + เหตุการณ์เฉพาะอาชีพ',items:[
   '💎 เพิ่ม 24 อาชีพที่รวยมาก สู้กับทายาทห้างและเจ้าของร้านทองได้ เช่น หัวหน้าแก๊งยากูซ่า นายกรัฐมนตรี พนักงานบริษัทจรวดของมหาเศรษฐี นักบินเจ็ตส่วนตัว กัปตันเรือยอร์ช',
   '🤣 รวมสายฮารวยเร็ว เช่น ราชาไก่ทอด เจ้าของเหรียญกล้วย บริษัทขายอากาศใส่ขวด เจ้าของที่ดินดวงจันทร์',
@@ -9336,9 +9344,18 @@ async function otSync(){
 }
 setInterval(otTick,30000);
 setInterval(()=>{if(!document.hidden)otSync()},300000);
-function ttUnlocked(t){return t.src==='ot'?otMine()>=t.need:!!(typeof epiMine==='function'&&epiMine()[t.id])}
+function rkStatus(){
+  try{
+    if(typeof LB!=='undefined'&&LB.id&&LB.rows&&LB.rows.length){
+      const o={survived:rankList('survived').slice(0,10).some(r=>r.id===LB.id),funny:rankList('funny').slice(0,10).some(r=>r.id===LB.id)};
+      lsSet('doom365-rk',JSON.stringify(o));return o;
+    }
+  }catch(e){}
+  try{return JSON.parse(lsGet('doom365-rk','{}'))||{}}catch(e){return {}}
+}
+function ttUnlocked(t){return t.src==='ot'?otMine()>=t.need:t.src==='rank'?!!rkStatus()[t.m]:!!(typeof epiMine==='function'&&epiMine()[t.id])}
 function ttEquipped(){const id=lsGet(TTK,'');const t=TT_BY[id];return t&&ttUnlocked(t)?id:''}
-function ttReq(t){return t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
+function ttReq(t){return t.src==='rank'?'ติดท็อป 10 ในอันดับ '+(t.m==='survived'?'“รอดครบ 365 วัน”':'“ตายฮาที่สุด”')+' (หลุดท็อป 10 ฉายาจะถูกถอด)':t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
 function otBadge(v){
   let t=null;TITLES.forEach(x=>{if(x.src==='ot'&&v>=x.need)t=x});
   return t?'<i class="tt" style="color:#8ec5ff;border-color:#8ec5ff">'+t.i+' '+esc(t.n)+'</i>':'';
@@ -9363,7 +9380,7 @@ function ovTitles(){
       '<p class="hint">ออนไลน์สะสม <b>'+fmtOt(om)+'</b>'+(next?' · ฉายาถัดไปที่ '+fmtOt(next.need):' · ปลดครบทุกฉายาออนไลน์แล้ว')+'<br>สวมได้ทีละ 1 ฉายา มีผลทันที โบนัสเล็กน้อยตลอดการเล่น</p>'+
       '<div style="max-height:56vh;overflow:auto;display:flex;flex-direction:column;gap:6px">'+
       '<b>⏱ ฉายาจากเวลาออนไลน์</b>'+TITLES.filter(t=>t.src==='ot').map(row).join('')+
-      '<b>😇 ฉายาคนดี</b>'+TITLES.filter(t=>t.id[0]==='g').map(row).join('')+
+      '<b>🏆 ฉายาจากอันดับ</b>'+TITLES.filter(t=>t.src==='rank').map(row).join('')+'<b>😇 ฉายาคนดี</b>'+TITLES.filter(t=>t.id[0]==='g').map(row).join('')+
       '<b>😈 ฉายาคนชั่ว</b>'+TITLES.filter(t=>t.id[0]==='e').map(row).join('')+
       '</div><div class="row" style="margin-top:8px"><button class="btn" id="ottok">เสร็จแล้ว</button></div></div>';
     ov.querySelector('#ottx').onclick=ov.querySelector('#ottok').onclick=()=>{ov.remove();if(stage==='start'&&typeof showStart==='function')showStart()};
@@ -10831,5 +10848,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 12:01';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 15:38';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
