@@ -417,6 +417,7 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
           <button class="mini" id="bCod">สมุดบันทึก</button>
           <button class="mini hot" id="bBoard">🏆 อันดับ</button>
           <button class="mini" id="bChat">💬 แชท</button>
+          <button class="mini hot" id="bTitle">🎖 ฉายา</button>
           <button class="mini" id="bSave">บันทึกชีวิต</button>
           <button class="mini" id="bQuit">ยอมแพ้</button>
         </div>
@@ -5019,6 +5020,7 @@ function addStat(k,v,o){
   if(k==='ix')return;
   if(k==='mo'&&v>0&&typeof MONEYX==='function')v=Math.round(v*MONEYX()*((S.role&&/^ทายาท/.test(S.role.n))?.7:1));
   if(k==='mo'&&tfx()>1)v=Math.round(v*(1+(tfx()-1)*.9));
+  if(v>0&&typeof tb==='function'){const q=tb(k);if(q)v=k==='mo'?Math.round(v*(1+q)):v*(1+q)}
   const b=S[k];
   S[k]=k==='mo'?S[k]+v:clamp(S[k]+v,0,100);
   const dv=S[k]-b;
@@ -5026,7 +5028,7 @@ function addStat(k,v,o){
 }
 function upkeep(d,o){
   // ลดลงตามเวลา
-  {const ds=1+(tfx()-1)*.35;S.fd-=3.6*d/ds*DIFF.drain;S.wt-=4.3*d/ds*DIFF.drain}S.en=Math.min(100,S.en+3*d);
+  {const ds=1+(tfx()-1)*.35;const dq=1-(typeof tb==='function'?tb('dr'):0);S.fd-=3.6*d/ds*DIFF.drain*dq;S.wt-=4.3*d/ds*DIFF.drain*dq}S.en=Math.min(100,S.en+3*d*(1+(typeof tb==='function'?tb('en'):0)));
   o.eat=o.eat||0;o.drink=o.drink||0;o.stuck=o.stuck||0;
   // กินอัตโนมัติ
   let g=0;
@@ -6024,7 +6026,7 @@ const CAT_OLD={gambler:'risk',bmarket:'rich',hoarder:'rich',insure:'bal',gangman
 CAREERS.forEach(c=>{if(!c.cat)c.cat=CAT_OLD[c.id]||'bal'});
 const CAREER_BY=Object.fromEntries(CAREERS.map(c=>[c.id,c]));
 function jobOf(){return S&&S.job?(CAREER_BY[S.job]||null):null}
-function jobRisk(e,cat){const j=jobOf();if(!j)return 0;return (j.rk||0)-(cat==='danger'?(j.sf||0):(j.sf||0)*.4)}
+function jobRisk(e,cat){const tq=-(typeof tb==='function'?tb('rk'):0)*(cat==='danger'?1:.5);const j=jobOf();if(!j)return tq;return tq+(j.rk||0)-(cat==='danger'?(j.sf||0):(j.sf||0)*.4)}
 function jobTick(o){
   const j=jobOf();if(!j||!o||!o.extra)return;
   if(j.md)addStat('md',Math.round(j.md*10)/10,o);
@@ -6069,6 +6071,35 @@ KEYMOOD.job_board='calm';KEYCAT.job_board='money';
 
 /* ----- ทายาทรวยเกินไป: เนิฟ 30% (เงินตั้งต้น; รายได้อยู่ใน addStat) ----- */
 ROLES.forEach(r=>{if(/^ทายาท/.test(r.n)){r.mo=[Math.round(r.mo[0]*.7),Math.round(r.mo[1]*.7)]}});
+/* ===== v71: ฉายาที่สวมใส่ได้ — โบนัสเล็กน้อยตลอดการเล่น ===== */
+/* b: mo=เงินที่ได้ rk=ลดความเสี่ยง dr=หิว/กระหายช้าลง hp=ฟื้นพลังชีวิต md=ความสุขที่ได้ en=พลังงานฟื้นเร็ว */
+const TITLES=[
+ {id:'ot1',src:'ot',need:30,n:'หน้าใหม่ไฟแรง',i:'🌱',b:{mo:.02}},
+ {id:'ot2',src:'ot',need:120,n:'เด็กติดเกมฝึกหัด',i:'🎮',b:{dr:.02}},
+ {id:'ot3',src:'ot',need:300,n:'ขาประจำวันสิ้นโลก',i:'☕',b:{en:.03}},
+ {id:'ot4',src:'ot',need:720,n:'นักอดนอนตัวยง',i:'🌙',b:{rk:.02}},
+ {id:'ot5',src:'ot',need:1440,n:'นักสู้เต็มวัน',i:'⏳',b:{mo:.03}},
+ {id:'ot6',src:'ot',need:3000,n:'ตำนานหน้าจอ',i:'🖥',b:{md:.03}},
+ {id:'ot7',src:'ot',need:6000,n:'ผู้พิทักษ์เซิร์ฟเวอร์',i:'🛡',b:{rk:.03}},
+ {id:'ot8',src:'ot',need:12000,n:'เจ้าของโลกใบนี้',i:'👑',b:{mo:.03,dr:.02}},
+ {id:'g1',src:'epi',n:'คนใจดีข้างบ้าน',i:'🙂',b:{hp:.02}},
+ {id:'g2',src:'epi',n:'ผู้ใจบุญประจำซอย',i:'😇',b:{md:.03}},
+ {id:'g3',src:'epi',n:'ฮีโร่ผู้ไม่มีใครรู้จัก',i:'🦸',b:{rk:.02}},
+ {id:'g4',src:'epi',n:'เทวดาเดินดินแห่งวันสิ้นโลก',i:'👼',b:{hp:.03,rk:.02}},
+ {id:'g5',src:'epi',n:'นักบุญแห่งโลกที่กำลังแตก',i:'🕊️',b:{rk:.03,md:.02}},
+ {id:'e1',src:'epi',n:'หัวขโมยจิ๋ว',i:'🫳',b:{mo:.02}},
+ {id:'e2',src:'epi',n:'จอมโจรประจำซอย',i:'🦹',b:{mo:.03}},
+ {id:'e3',src:'epi',n:'เจ้าพ่อมือไวแห่งโลกแตก',i:'😈',b:{mo:.04}},
+ {id:'e4',src:'epi',n:'ปีศาจในคราบมนุษย์',i:'👹',b:{mo:.04,dr:.02}},
+ {id:'e5',src:'epi',n:'ซาตานผู้ปล้นโลกก่อนโลกแตก',i:'💀',b:{mo:.05}}];
+const TT_BY=Object.fromEntries(TITLES.map(t=>[t.id,t]));
+const TB_TXT={mo:'💰 เงินที่ได้',rk:'🛡 ความเสี่ยงลดลง',dr:'🍞 หิว/กระหายช้าลง',hp:'❤ ฟื้นพลังชีวิต',md:'😊 ความสุขที่ได้',en:'⚡ พลังงานฟื้นเร็วขึ้น'};
+function tb(k){const t=S&&S.ttl&&TT_BY[S.ttl];return t&&t.b&&t.b[k]||0}
+function ttBonusText(t){return Object.keys(t.b).map(k=>TB_TXT[k]+' '+(k==='rk'||k==='dr'?'':'+')+Math.round(t.b[k]*100)+'%').join(' · ')}
+{
+  const _ng=newGame;
+  newGame=function(c){const s=_ng.apply(this,arguments);s.ttl=(typeof ttEquipped==='function'?ttEquipped():'')||'';return s};
+}
 /* ===== ENDINGS ===== */
 const END_TAG={
  love:{t:'คนที่ไม่ปล่อยมือ',p:['ในปีสุดท้าย คุณเลือกใช้เวลากับคนที่สำคัญมากกว่าสิ่งอื่นใด ไม่ใช่เพราะไม่มีทางเลือก แต่เพราะคุณรู้แล้วว่าอะไรคือสิ่งที่จะไม่เสียดายทีหลัง','คุณใช้เวลาไปกับการบอกรัก ขอโทษ และขอบคุณ ซึ่งเป็นคำสามคำที่คนส่วนใหญ่เก็บไว้ถึงวันสุดท้ายแต่ไม่เคยได้ใช้จริง']},
@@ -8338,8 +8369,8 @@ function lbRow(id,d){
   row.at=num(d.at,4e12);row.at0=num(d.at0,4e12);row.sig=clean(d.sig,16);
   row.gname=clean(d.gname,40);row.rr={};if(d.rr&&typeof d.rr==='object')RRK.forEach(k=>{const v=clean(d.rr[k],40);if(v)row.rr[k]=v});
   row.funny=new Set(row.causes).size;row.rolesN=new Set(row.roles).size;
-  row.bs=num(d.bs,99999);row.cs=num(d.cs,99999);row.gd=num(d.gd,99999);row.ev=num(d.ev,99999);row.rate=row.lives>=5?Math.round(row.survived/row.lives*100):0;
-  row.bad=row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60||row.bs>row.survived||row.cs>row.bs||row.gd>row.lives*60||row.ev>row.lives*60;
+  row.ot=num(d.ot,1e7);row.bs=num(d.bs,99999);row.cs=num(d.cs,99999);row.gd=num(d.gd,99999);row.ev=num(d.ev,99999);row.rate=row.lives>=5?Math.round(row.survived/row.lives*100):0;
+  row.bad=(row.at0>0&&row.ot>(Date.now()-row.at0)/60000+180)||row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60||row.bs>row.survived||row.cs>row.bs||row.gd>row.lives*60||row.ev>row.lives*60;
   row.richestRaw=row.richest;if(row.at<NERF_AT&&/^ทายาท/.test(row.rr.richest||''))row.richest=Math.round(row.richest*.7);
   return row;
 }
@@ -8401,17 +8432,17 @@ async function lbRecord(E,kind){
     if(Math.min(80,S.inv.med)>cur.meds||!rr.meds)rr.meds=Math.min(80,S.inv.med)>=cur.meds?rn:(rr.meds||cur.role||rn);
     if(Math.min(60,Object.keys(S.gear||{}).length)>cur.arms||!rr.arms)rr.arms=Math.min(60,Object.keys(S.gear||{}).length)>=cur.arms?rn:(rr.arms||cur.role||rn);
     if(nv.ds!=null&&nv.ds>(cur.daily||0))rr.daily=rn;else if(cur.rr.daily&&nv.ds)rr.daily=cur.rr.daily;
-    const cs0=kind==='final'?(cur.cs||0)+1:0;const ex={rr,cs:cs0,bs:Math.max(cur.bs||0,cs0),gd:(cur.gd||0)+Math.min(60,S.c.help|0),ev:(cur.ev||0)+Math.min(60,S.c.steal|0)},g=gnameNow();if(g)ex.gname=g;
-    try{await ref.set(Object.assign({},nv,ex));Object.assign(nv,ex)}catch(e1){await ref.set(nv)}
+    const cs0=kind==='final'?(cur.cs||0)+1:0;const ex={rr,cs:cs0,bs:Math.max(cur.bs||0,cs0),gd:(cur.gd||0)+Math.min(60,S.c.help|0),ev:(cur.ev||0)+Math.min(60,S.c.steal|0)},g=gnameNow();const otp=typeof otPending==='function'?otPending():0;if(otp>0||cur.ot)ex.ot=(cur.ot||0)+(sn.exists?otp:Math.min(otp,180));if(g)ex.gname=g;
+    try{await ref.set(Object.assign({},nv,ex));Object.assign(nv,ex);if(otp>0)lsSet(OTP,String(Math.max(0,(parseFloat(lsGet(OTP,'0'))||0)-otp)))}catch(e1){await ref.set(nv)}
     const i=LB.rows.findIndex(r=>r.id===LB.id);const row=lbRow(LB.id,nv);
     if(i>=0)LB.rows[i]=row;else LB.rows.push(row);
     return true;
   }catch(e){return false}
 }
 const SILLY=['banana','coconut','selfie','laugh','choke','veg','mushroom','spicy','karaoke','allergy','bee','pool','yacht','fugu','safe','heartplay','liver'];
-const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭'],['bs','รอดติดกันยาวที่สุด',v=>v+' ชีวิตติด','🔥'],['rate','อัตรารอดสูงสุด (เล่น ≥5 ชีวิต)',v=>v+'%','📈'],['lives','นักสู้ตัวยง (เล่นมากสุด)',v=>v+' ชีวิต','🎮'],['gd','คนดีที่สุด (ช่วยเหลือรวม)',v=>v+' ครั้ง','😇'],['ev','คนชั่วที่สุด (หยิบของรวม)',v=>v+' ครั้ง','😈']];
+const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭'],['bs','รอดติดกันยาวที่สุด',v=>v+' ชีวิตติด','🔥'],['rate','อัตรารอดสูงสุด (เล่น ≥5 ชีวิต)',v=>v+'%','📈'],['lives','นักสู้ตัวยง (เล่นมากสุด)',v=>v+' ชีวิต','🎮'],['gd','คนดีที่สุด (ช่วยเหลือรวม)',v=>v+' ครั้ง','😇'],['ev','คนชั่วที่สุด (หยิบของรวม)',v=>v+' ครั้ง','😈'],['ot','ออนไลน์นานที่สุด',v=>fmtOt(v),'⏱']];
 /* ซ่อนอันดับที่ยังไม่มีใครทำได้ (ยกเว้น 3 อันดับหลัก) ให้โผล่เองเมื่อมีคนผ่านเกณฑ์ */
-const CORE_M=['richest','best','survived','gd','ev'];
+const CORE_M=['richest','best','survived','gd','ev','ot'];
 function activeMetrics(){return METRICS.filter(m=>CORE_M.includes(m[0])||LB.rows.some(r=>!r.bad&&r[m[0]]>0))}
 function rankList(k){return LB.rows.filter(r=>!r.bad&&r[k]>0).sort((a,b)=>b[k]-a[k]||b.best-a.best)}
 function myRank(k){const l=rankList(k);const i=l.findIndex(r=>r.id===LB.id);return i<0?0:i+1}
@@ -8433,7 +8464,7 @@ function renderBoard(){
   const star=r=>svRank[r.id]?'<i class="tt sv g'+Math.min(4,svRank[r.id])+'" title="ติดท็อป 10 ผู้รอดครบ 365 วัน">'+(['🥇','🥈','🥉'][svRank[r.id]-1]||'🛡')+' ท็อป '+svRank[r.id]+' ผู้รอด 365 วัน</i>':'';
   const sv2=r=>'<small class="sv2">🛡 รอดครบ 365 วัน <b>'+r.survived+'</b> ครั้ง จากเล่น '+r.lives+' ชีวิต</small>';
   const tier=i=>i<3?' t'+(i+1):i<10?' t4':'';
-  const badge=r=>star(r)+((k==='gd'||k==='ev')&&typeof epiTotal==='function'?epiTotal(r[k],k==='gd'):'')+(r.tt?'<i class="tt">🏅 '+esc(r.tt)+'</i>':'');
+  const badge=r=>star(r)+(k==='ot'&&typeof otBadge==='function'?otBadge(r.ot):'')+((k==='gd'||k==='ev')&&typeof epiTotal==='function'?epiTotal(r[k],k==='gd'):'')+(r.tt?'<i class="tt">🏅 '+esc(r.tt)+'</i>':'');
   const roleOf=r=>r.rr[k]||r.role;
   const gn=r=>r.gname?'<small class="gn">✔ ชื่อ Google: '+esc(r.gname)+'</small>':'';
   const pod=!q&&top.length>=1?'<div class="pod">'+[1,0,2].filter(i=>top[i]).map(i=>{const r=top[i];return '<div class="pbox p'+(i+1)+(r.id===LB.id?' me':'')+'"><div class="pm">'+['🥇','🥈','🥉'][i]+'</div><b>'+esc(r.nick)+'</b>'+badge(r)+'<small>อาชีพ: '+esc(roleOf(r))+'</small><small class="sv2">🛡 รอด <b>'+r.survived+'</b>/'+r.lives+' ชีวิต</small>'+gn(r)+'<em>'+esc(m[2](r[k]))+'</em></div>'}).join('')+'</div>':'';
@@ -8865,6 +8896,10 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-10-29g',date:'29 ต.ค. 2569',title:'อันดับออนไลน์นานที่สุด + ฉายาสวมใส่ได้',items:[
+  '⏱ มีอันดับใหม่ “ออนไลน์นานที่สุด” ท็อป 50 นับเฉพาะตอนเปิดหน้าเกมและมีการแตะ/กดจริง (ต้องล็อกอิน และต้องเคยจบชีวิตอย่างน้อย 1 ครั้งถึงจะเข้าตาราง)',
+  '🎖 ฉายาใหม่ตามเวลาออนไลน์ 8 ระดับ และใช้ฉายาคนดี/คนชั่วที่เคยได้มาสวมใส่ได้',
+  '✨ สวมได้ทีละ 1 ฉายา ให้โบนัสเล็กน้อย เช่น เงินที่ได้ +2% ความเสี่ยงลด 2% หิวช้าลง 2% เปลี่ยนได้ที่ปุ่ม “🎖 ฉายา”']},
  {id:'2026-10-29f',date:'29 ต.ค. 2569',title:'งานแฝงกลายเป็นอาชีพตั้งต้น +51 อาชีพ',items:[
   '🎭 ยกเลิกระบบงานแฝง แล้วเปลี่ยนงานทั้ง 51 แบบเป็น “อาชีพ” ที่สุ่มได้ตอนเกิด เช่น นักขุดเหรียญเถื่อน ช่างกลอนประตู สายลับรับจ้าง',
   '⚖ แต่ละอาชีพมีผลต่างกัน: บางอาชีพรวยเร็วแต่เสี่ยง บางอาชีพสุขใจ บางอาชีพปลอดภัยกว่า']},
@@ -9016,6 +9051,73 @@ function epiTotal(v,good){
   if(!t)return '';const c=good?'#8be0a8':'#ff7b7b';
   return '<i class="tt" style="color:'+c+';border-color:'+c+'">'+t.i+' '+esc(t.n)+'</i>';
 }
+/* ===== v71: เวลาออนไลน์สะสม + หน้าฉายา (สวมใส่/ถอด) ===== */
+const OTK='doom365-ot',OTP='doom365-otp',TTK='doom365-title';
+function lsGet(k,d){try{const v=localStorage.getItem(k);return v==null?d:v}catch(e){return d}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+function fmtOt(m){m=Math.floor(+m||0);if(m<60)return m+' นาที';const h=Math.floor(m/60);if(h<24)return h+' ชม. '+(m%60)+' น.';return Math.floor(h/24)+' วัน '+(h%24)+' ชม.'}
+let _lastAct=Date.now();
+['pointerdown','keydown','touchstart','wheel'].forEach(ev=>addEventListener(ev,()=>{_lastAct=Date.now()},{passive:true}));
+function otLocal(){return parseFloat(lsGet(OTK,'0'))||0}
+function otTick(){
+  if(document.hidden||Date.now()-_lastAct>5*60000)return;
+  lsSet(OTK,String(otLocal()+.5));lsSet(OTP,String((parseFloat(lsGet(OTP,'0'))||0)+.5));
+}
+function otMine(){const r=(typeof LB!=='undefined'&&LB.rows||[]).find(r=>r.id===LB.id);return Math.max(otLocal(),r&&r.ot||0)}
+function otPending(){return Math.floor(parseFloat(lsGet(OTP,'0'))||0)}
+async function otSync(){
+  try{
+    if(!LB.signed||!LB.db)return;const p=otPending();if(p<1)return;
+    const ref=LB.db.doc('board/'+LB.id),sn=await ref.get();if(!sn.exists)return;
+    const cur=num(sn.data().ot,1e7),nv=cur+p;
+    await ref.update({ot:nv});
+    lsSet(OTP,String(Math.max(0,(parseFloat(lsGet(OTP,'0'))||0)-p)));
+    const row=LB.rows.find(r=>r.id===LB.id);if(row)row.ot=nv;
+  }catch(e){}
+}
+setInterval(otTick,30000);
+setInterval(()=>{if(!document.hidden)otSync()},300000);
+function ttUnlocked(t){return t.src==='ot'?otMine()>=t.need:!!(typeof epiMine==='function'&&epiMine()[t.id])}
+function ttEquipped(){const id=lsGet(TTK,'');const t=TT_BY[id];return t&&ttUnlocked(t)?id:''}
+function ttReq(t){return t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
+function otBadge(v){
+  let t=null;TITLES.forEach(x=>{if(x.src==='ot'&&v>=x.need)t=x});
+  return t?'<i class="tt" style="color:#8ec5ff;border-color:#8ec5ff">'+t.i+' '+esc(t.n)+'</i>':'';
+}
+function ttChip(){
+  const t=TT_BY[ttEquipped()];
+  return '<p class="hint">🎖 ฉายาที่สวมอยู่: '+(t?'<span class="epi" style="--ec:#8ec5ff">'+t.i+' <b>'+esc(t.n)+'</b></span> '+esc(ttBonusText(t)):'ยังไม่ได้สวม')+' · <button class="mini hot" data-tt="1">เปลี่ยนฉายา</button></p>';
+}
+function ovTitles(){
+  let ov=document.getElementById('ovtt');if(ov)ov.remove();
+  ov=document.createElement('div');ov.className='ov';ov.id='ovtt';document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()});
+  function draw(){
+    const eq=ttEquipped(),om=otMine();
+    const next=TITLES.find(t=>t.src==='ot'&&om<t.need);
+    const row=t=>{
+      const ok=ttUnlocked(t),on=t.id===eq;
+      return '<div style="text-align:left;padding:8px 10px;border:1px solid rgba(128,100,60,.45);border-radius:10px;background:rgba(255,255,255,.35);line-height:1.45;opacity:'+(ok?1:.6)+'"><b>'+t.i+' '+esc(t.n)+'</b>'+(on?' ✅ สวมอยู่':'')+'<br><small>'+esc(ttBonusText(t))+'</small><br><small>'+(ok?'ปลดล็อกแล้ว':'🔒 '+esc(ttReq(t)))+'</small>'+
+        (ok?'<div style="margin-top:4px"><button class="mini'+(on?'':' hot')+'" data-e="'+(on?'':t.id)+'">'+(on?'ถอดออก':'สวมใส่')+'</button></div>':'')+'</div>';
+    };
+    ov.innerHTML='<div class="ovb" role="dialog" aria-label="ฉายา"><div class="ovh"><b>🎖 ฉายาและโบนัส</b><button class="mini" id="ottx">ปิด</button></div>'+
+      '<p class="hint">ออนไลน์สะสม <b>'+fmtOt(om)+'</b>'+(next?' · ฉายาถัดไปที่ '+fmtOt(next.need):' · ปลดครบทุกฉายาออนไลน์แล้ว')+'<br>สวมได้ทีละ 1 ฉายา มีผลทันที โบนัสเล็กน้อยตลอดการเล่น</p>'+
+      '<div style="max-height:56vh;overflow:auto;display:flex;flex-direction:column;gap:6px">'+
+      '<b>⏱ ฉายาจากเวลาออนไลน์</b>'+TITLES.filter(t=>t.src==='ot').map(row).join('')+
+      '<b>😇 ฉายาคนดี</b>'+TITLES.filter(t=>t.id[0]==='g').map(row).join('')+
+      '<b>😈 ฉายาคนชั่ว</b>'+TITLES.filter(t=>t.id[0]==='e').map(row).join('')+
+      '</div><div class="row" style="margin-top:8px"><button class="btn" id="ottok">เสร็จแล้ว</button></div></div>';
+    ov.querySelector('#ottx').onclick=ov.querySelector('#ottok').onclick=()=>{ov.remove();if(stage==='start'&&typeof showStart==='function')showStart()};
+    ov.querySelectorAll('[data-e]').forEach(b=>b.onclick=()=>{
+      lsSet(TTK,b.dataset.e);
+      if(typeof S!=='undefined'&&S&&S.role&&stage!=='start')S.ttl=ttEquipped();
+      draw();
+    });
+  }
+  draw();
+}
+document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-tt]'))ovTitles()});
+{const b=document.getElementById('bTitle');if(b)b.onclick=ovTitles}
 /* ===== UI v2 ===== */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -9490,7 +9592,7 @@ function showStart(){
    '<div id="acct"></div>'+
    '<p class="hint"><button class="mini" id="newsbtn">📢 มีอะไรใหม่ในเกม</button></p>'+
    '<p class="hint">🏅 '+esc(wkSummary())+'</p>'+
-   epiBox()+
+   epiBox()+(typeof ttChip==='function'?ttChip():'')+
    '<div id="onl"></div>'+
    '<div id="chat"></div>'+
    '<p class="hint">กดปุ่มเลข 1–6 เพื่อเลือก · กด “เพลง” เพื่อเปิดเสียง · “สัญลักษณ์” อธิบายไอคอนทั้งหมด · “อันดับ” ดูตารางผู้เล่น</p>';
@@ -10470,5 +10572,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 02:01';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 11:30';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
