@@ -5010,12 +5010,14 @@ function build(t,isMs){
     quote:t.q?fill(t.q,picks):fill(OP[ph][oi],picks),head:fill(t.head,picks),txt:fill(t.txt,picks),ch:chs};
 }
 
-function genEvent(){
+let LASTGEN={t:null,ms:false};
+function genEvent(force,hard){
   let t=null,isMs=false;
   S.actN=0;S.restU=0;S.tixEv=0;rollShop();
   for(const m of MS){if(!S.done[m.k]&&S.day>=m.at){t=m;isMs=true;break}}
   if(!t&&S.jobBoard&&typeof JB!=='undefined'){t=JB;S.jobBoard=0}
   if(!t&&S.role.rent&&!S.flags.homeless&&S.day>=S.nextRent){t=RENT;S.nextRent+=30}
+  if(!t&&force&&hard)t=force;
   if(!t){try{t=gangTick()}catch(x){t=null}}
   if(!t){try{t=rivalTick()}catch(x){t=null}}
   if(!t){try{t=arcTick()}catch(x){t=null}}
@@ -5023,7 +5025,9 @@ function genEvent(){
   if(!t){try{t=afterTick()}catch(x){t=null}}
   if(!t&&S.day>=S.nextDis&&S.day<345){const c=DIS.filter(d=>d.k!==S.lastDis&&(!d.req||d.req(S)));if(c.length){t=pick(c);S.lastDis=t.k;S.nextDis=S.day+rr(DIFF.disMin+5,DIFF.disMax+12)}}
   if(!t&&S.day>20&&S.day<345&&S.day-(S.lastThr||0)>=DIFF.pity){const c=DIS.filter(d=>d.k!==S.lastDis&&(!d.req||d.req(S)));if(c.length){t=pick(c);S.lastDis=t.k;S.nextDis=S.day+rr(DIFF.disMin+5,DIFF.disMax+12)}}
-  if(!t)t=weightedPick();
+  if(!t)t=force||weightedPick();
+  LASTGEN={t,ms:isMs};
+  if(force&&t===force&&t.dis){S.lastDis=t.k;S.nextDis=S.day+rr(DIFF.disMin+5,DIFF.disMax+12)}
   if(t.k==='job_board'&&typeof rollJobOffer==='function')rollJobOffer();
   if(typeof isThreat==='function'&&!isMs&&isThreat(t))S.lastThr=S.day;
   if(t.rare)S.rares=(S.rares|0)+1;
@@ -10298,6 +10302,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-04a',date:'4 พ.ย. 2569',title:'ปาร์ตี้ 2–4 คน ตัวละครคนละตัว',items:['👥 ปุ่มใหม่ในหน้าแรก: สร้างปาร์ตี้หรือเข้าด้วยรหัสห้อง เล่นได้ 2–4 คน','ทุกคนสุ่มอาชีพและเงินของตัวเอง เจอเหตุการณ์และภัยพิบัติเดียวกันพร้อมกัน เลือกคนละทางได้ ดูว่าเพื่อนเลือกอะไรหลังตัดสินใจ','เลือกช่วยเหลือ = เพื่อนได้กำลังใจ · ช่วยกันหลายคน = โบนัสทีม · ก่อเรื่อง = ตำรวจมองมาทางกลุ่ม · ใครจากไป เพื่อนเสียใจ แต่เกมยังเล่นต่อ','ไม่ทับเซฟเดี่ยวของคุณ หัวหน้าห้องออกกลางทางก็เล่นต่อได้']},
  {id:'2026-11-03j',date:'3 พ.ย. 2569',title:'อาชีพรวยระดับท็อปอีก 20 อาชีพ',items:['💎 รวยใกล้มหาเศรษฐีแต่ยังไม่เท่า: นักบินส่วนตัวเจ้าสัว เจ้าของสนามกอล์ฟ ซีอีโอแอปส่งอาหาร ดาวเตะพันล้าน ผู้จัดละคร ป๊อปสตาร์ เจ้าของโรงแรม วิศวกรจรวดโรงรถ เจ้าสัวตลาดสด และอีกหลายอาชีพ','แต่ละอาชีพมีเหตุการณ์เฉพาะตัว พร้อมทางเลือกทั้งสายใจดี สายรวย และสายคิด']},
  {id:'2026-11-03i',date:'3 พ.ย. 2569',title:'อาชีพใหม่ 14 อาชีพ',items:['🕶 เท่/ฮา/กวน รายได้ใกล้คนรวย: สตันต์แมน ดีเจหัวเป็ด เชฟมิชลินขี้โมโห นักพากย์อีสปอร์ต เจ้าของแฟรนไชส์ไก่ทอด ที่ปรึกษาลับมหาเศรษฐี นักมายากล นักเทรดมีมคอยน์','📈 จนแล้วรวยเร็วแบบมีทางลัด: คนถูกหวยแล้วลืมไปขึ้นเงิน เด็กส่งพิซซ่าที่รู้ที่อยู่ลับเจ้าพ่อ ช่างกุญแจเปิดตู้เซฟ ไกด์เพื่อนเศรษฐี ตลกเปิดหมวกไวรัล คนรับจ้างต่อคิว','ทุกอาชีพมีเหตุการณ์เฉพาะตัว 2 เรื่อง และอาชีพกลุ่มจนแล้วรวยฐานะขยับขึ้นตามที่ทำสำเร็จ']},
  {id:'2026-11-03h',date:'3 พ.ย. 2569',title:'สมุดบันทึกเก็บภาพฉาก',items:['เจอมหันตภัยหรือเหตุการณ์หายากครั้งแรก สมุดบันทึกจะเก็บภาพฉากนั้นไว้ให้ดูย้อนหลัง (เหตุการณ์ที่เคยเจอมาก่อนอัปเดตจะได้ภาพเมื่อเจอครั้งถัดไป)']},
@@ -10761,6 +10766,311 @@ function peerMenu(id,nm){
   ov.querySelector('#pmtr').onclick=function(){ov.remove();var oc=document.getElementById('ovchat');if(oc)oc.remove();trInviteFrom(id,nm)};
   ov.querySelector('#pmmu').onclick=function(){var c=chatSt();c.mut[id]=1;c.msgs=c.msgs.filter(function(m){return m.pid!==id});chatRefresh();ov.remove()};
 }
+/* ===== โหมดปาร์ตี้ 2–4 คน: ตัวละครคนละตัว เจอเหตุการณ์เดียวกันพร้อมกัน เลือกคนละทาง ผลมีผลถึงกัน ===== */
+const PARTY={on:false,host:false,room:null,code:'',nick:'',unsub:[],m:{},played:0,ar:0,cr:-1,cur:null,pend:null,waiting:false,waitT:0,iv:null,tk:0,
+  started:false,go:false,res:{},helps:{},syn:{},myHelp:-1,lastG:'',curShared:null,showRes:false,sig:'',dead:false,lastRd:null,done:{},t0:0};
+const PARTY_MAX=4;
+const PARTY_BAD=/^(rv_|arc_|af_|cm_|g_|c_|l_|ms|gang|job_|rent|final|fest)/;
+function partyShareable(t,isMs){
+  if(!t||isMs||t===RENT)return false;
+  if(t.arc||t.af||t.gang||t.ct||t.ca||t.dead)return false;
+  if(PARTY_BAD.test(t.k))return false;
+  return TPL.includes(t);
+}
+const pClean=(s,n)=>String(s==null?'':s).replace(/[<>&"']/g,'').slice(0,n);
+function partySelf(){try{return selfPeer()}catch(e){return null}}
+function partyHostId(){try{const h=peerList().find(p=>p.presence&&p.presence.host===1);return h?h.peer:null}catch(e){return null}}
+function partyNames(){return peerList().length}
+/* ----- ใครคุมจังหวะรอบ: หัวหน้าถ้ายังอยู่ ไม่งั้นคนที่ id น้อยสุด ----- */
+function partyCoord(){
+  const me=partySelf(),hp=partyHostId(),c=[me];
+  for(const id in PARTY.m){const x=PARTY.m[id];if(!x.gone&&Date.now()-x.seen<20000)c.push(id)}
+  if(hp&&c.includes(hp))return hp;
+  return c.filter(Boolean).sort()[0]||me;
+}
+const isCoord=()=>PARTY.on&&partyCoord()===partySelf();
+function partyEmit(d){if(!PARTY.room)return;try{PARTY.room.emit('vote',d).catch(()=>{})}catch(e){}}
+function partyBeacon(){
+  if(!PARTY.on||!PARTY.room)return;
+  const live=S&&S.role&&PARTY.started;
+  partyEmit({ty:'bc',rl:live?pClean(S.role.n,26):'',dy:live?Math.floor(S.day):0,hp:live?Math.round(S.hp):0,mo:live?Math.round(S.mo):0,ar:PARTY.ar,pl:PARTY.played,cr:PARTY.cr,al:PARTY.dead?0:1});
+}
+function partyMember(id){return PARTY.m[id]||(PARTY.m[id]={seen:Date.now(),ar:0,pl:0,cr:-1,al:1,gone:false,rl:'',dy:0,hp:0,mo:0})}
+/* ----- เปิด/เข้าห้อง ----- */
+async function partyOpen(code,nick,asHost){
+  if(!MP.api){toast('เปิดโหมดออนไลน์ไม่ได้ในหน้านี้');return false}
+  if(MP.on)mpClose();
+  let room;try{room=await MP.api.join('d365p-'+code)}catch(e){toast('เข้าห้องไม่สำเร็จ ลองใหม่อีกครั้ง');return false}
+  Object.assign(PARTY,{on:true,host:asHost,room,code,nick,m:{},played:0,ar:0,cr:-1,cur:null,pend:null,waiting:false,started:false,go:false,res:{},helps:{},syn:{},myHelp:-1,
+    curShared:null,showRes:false,sig:'',dead:false,lastRd:null,done:{},unsub:[],tk:0,t0:Date.now()});
+  MP.room=room;
+  room.presence({nm:nick,host:asHost?1:0,pp:1,gs:0});
+  PARTY.unsub.push(room.onPeers(c=>{
+    renderPlayers();
+    for(const p of c.left){if(!p.sameTab&&PARTY.m[p.peer]){PARTY.m[p.peer].gone=true;partyNote('👋 '+(PARTY.m[p.peer].nm||nameOf(p.peer))+' ออกจากปาร์ตี้',1)}}
+    const g=$('pgo');if(g)g.disabled=guests().length<1;
+    if(PARTY.started)partyTryStart();
+  }));
+  PARTY.unsub.push(room.on('vote',partyMsg));
+  PARTY.unsub.push(room.on('chat',m=>{const d=m.data||{};const t=clean(d.m,160);if(!t)return;chatLine(m.sameTab?'คุณ':nameOf(m.peer),t);if(!m.sameTab)sfx('chat')}));
+  PARTY.iv=setInterval(partyTick,1000);
+  $('chatbox').style.display='grid';renderPlayers();
+  chatLine('','เข้าปาร์ตี้ '+code.toUpperCase()+' แล้ว พิมพ์คุยกันได้เลย',true);
+  return true;
+}
+function partyLeave(){
+  if(!PARTY.room&&!PARTY.on)return;
+  try{if(PARTY.started)partyEmit({ty:'bye'})}catch(e){}
+  PARTY.unsub.forEach(u=>{try{u()}catch(e){}});PARTY.unsub=[];clearInterval(PARTY.iv);
+  const r=PARTY.room;try{r&&r.leave()}catch(e){}
+  if(MP.room===r)MP.room=null;
+  Object.assign(PARTY,{on:false,host:false,room:null,started:false,waiting:false,dead:false,m:{},go:false,showRes:false,pend:null,cur:null});
+  const cb=$('chatbox');if(cb)cb.style.display='none';
+  KEPT=null;
+}
+function partyNote(t,quiet){
+  if(!quiet)toast(t);
+  try{chatLine('',t,true)}catch(e){}
+}
+/* ----- หน้าจอตั้งค่า / ห้องรอ ----- */
+function showPartySetup(){
+  stage='lobby';PARTY.inLobby=true;
+  panel.innerHTML=
+   '<div class="kick"><span>ปาร์ตี้ 2–4 คน</span><span>ตัวละครคนละตัว</span></div>'+
+   '<h2 style="font-size:24px">เล่นด้วยกัน แต่ละคนมีชีวิตของตัวเอง</h2>'+
+   '<p class="sub">ทุกคนสุ่มอาชีพและเงินของตัวเอง แล้วเจอเหตุการณ์และภัยพิบัติเดียวกันพร้อมกัน เลือกคนละทางได้ ดูว่าเพื่อนทำอะไร ใครช่วยใคร ใครก่อเรื่อง และผลจะส่งถึงกันเอง เช่นคนที่เลือกช่วยทำให้เพื่อนกำลังใจดีขึ้น คนที่ก่อเรื่องทำให้ตำรวจมองมาทางกลุ่ม ตัวใครตายคนอื่นเล่นต่อ</p>'+
+   '<div class="fld"><label for="nk">ชื่อที่เพื่อนเห็น</label><input id="nk" maxlength="16" value="'+esc(lsGet('doom365-nick')||'')+'" placeholder="เช่น ฟ้า"></div>'+
+   '<div class="row"><button class="btn" id="pmk">สร้างปาร์ตี้</button></div>'+
+   '<div class="fld"><label for="rc">หรือใส่รหัสห้องของเพื่อน (4 ตัว)</label><input id="rc" maxlength="4" autocapitalize="characters" placeholder="เช่น K7QD"></div>'+
+   '<div class="row"><button class="btn ghost" id="pjn">เข้าร่วมด้วยรหัส</button><button class="btn ghost" id="back">กลับ</button></div>'+
+   '<p class="hint">ต้องต่ออินเทอร์เน็ตทุกคน · เล่นพร้อมกันได้สูงสุด 4 คน · ไม่บันทึกเซฟเดิมของคุณทับ</p>';
+  $('back').onclick=showStart;
+  $('pmk').onclick=async()=>{
+    const nick=clean($('nk').value,16)||'หัวหน้า';lsSet('doom365-nick',nick);$('pmk').disabled=true;
+    if(await partyOpen(rndCode(),nick,true))showPartyLobby();else $('pmk').disabled=false;
+  };
+  $('pjn').onclick=async()=>{
+    const code=clean($('rc').value,4).toLowerCase().replace(/[^a-z0-9]/g,'');
+    if(code.length<4){toast('รหัสต้องมี 4 ตัว');return}
+    const nick=clean($('nk').value,16)||'เพื่อน';lsSet('doom365-nick',nick);$('pjn').disabled=true;
+    if(!(await partyOpen(code,nick,false))){$('pjn').disabled=false;return}
+    showPartyLobby();
+    setTimeout(()=>{
+      if(!PARTY.on||PARTY.started)return;
+      const h=peerList().find(p=>p.presence&&p.presence.host===1);
+      if(!h){toast('ไม่พบหัวหน้าปาร์ตี้ในห้องนี้');partyLeave();showPartySetup();return}
+      if(h.presence.gs){toast('ปาร์ตี้นี้เริ่มเล่นแล้ว');partyLeave();showPartySetup();return}
+      if(peerList().length>PARTY_MAX){toast('ห้องเต็มแล้ว (สูงสุด 4 คน)');partyLeave();showPartySetup()}
+    },1800);
+  };
+}
+function showPartyLobby(){
+  stage='lobby';PARTY.inLobby=true;
+  setView({scene:'club',tod:'night',seed:'lobby',npc:0,look:pick(ROLES).look,doomId:pick(DOOMS).id,day:60,mood:'fun'});setMood('fun');
+  panel.innerHTML=
+   '<div class="kick"><span>ปาร์ตี้</span><span>'+(PARTY.host?'คุณเป็นหัวหน้าห้อง':'รอหัวหน้ากดเริ่ม')+'</span></div>'+
+   '<p class="sub" style="margin:0">รหัสห้อง ส่งให้เพื่อนได้เลย</p><div class="code">'+esc(PARTY.code.toUpperCase())+'</div>'+
+   '<div><p class="hint" style="margin-bottom:6px">คนในห้อง (สูงสุด 4)</p><div class="plist" id="plist"></div></div>'+
+   '<div class="row">'+(PARTY.host?'<button class="btn" id="pgo" disabled>เริ่มสุ่มชะตา</button>':'')+'<button class="btn ghost" id="leave">ออกจากห้อง</button></div>'+
+   '<p class="hint">'+(PARTY.host?'ต้องมีเพื่ออย่างน้อย 1 คน ใครเข้าทีหลังเริ่มเล่นแล้วเข้าไม่ได้':'เมื่อหัวหน้ากดเริ่ม ทุกคนจะได้อาชีพของตัวเองพร้อมกัน')+'</p>';
+  renderPlayers();
+  const g=$('pgo');if(g){g.disabled=guests().length<1;g.onclick=()=>{if(guests().length<1)return;partyEmit({ty:'go'});partyStartGame()}}
+  $('leave').onclick=()=>{partyLeave();showStart()};
+}
+function partyStartGame(){
+  if(PARTY.started||!PARTY.on)return;
+  PARTY.started=true;PARTY.inLobby=false;PARTY.t0=Date.now();
+  if(PARTY.host)try{PARTY.room.presence({nm:PARTY.nick,host:1,pp:1,gs:1})}catch(e){}
+  peerList().forEach(p=>{if(!p.sameTab)partyMember(p.peer)});
+  PARTY.played=0;PARTY.ar=0;PARTY.cr=-1;
+  KEPT=null;rrLeft=0;cand=rollBirth();showBirth();
+  partyBeacon();
+}
+function partyBegin(){
+  KEPT=null;albumReset();newGame(cand);
+  if(S.giftNote)setTimeout(()=>toast('🎁 '+S.giftNote),600);
+  stage='play';PARTY.played=0;PARTY.ar=0;showEvent();tutOnce();
+}
+/* ----- จังหวะรอบ ----- */
+function partyFresh(){return Object.keys(PARTY.m).filter(id=>{const x=PARTY.m[id];return !x.gone&&x.al!==0&&Date.now()-x.seen<20000})}
+function partyAnyAlive(){return !PARTY.dead||partyFresh().length>0}
+function partyArrive(){
+  if(!PARTY.on||!PARTY.started||PARTY.dead)return false;
+  if(PARTY.go){PARTY.go=false;return false}
+  PARTY.ar=PARTY.played+1;PARTY.waiting=true;PARTY.waitT=Date.now();PARTY.sig='';stage='pwait';
+  partyBeacon();
+  const d=PARTY.pend;
+  if(d&&d.r>PARTY.played&&!isCoord()){PARTY.cur=d;PARTY.pend=null;PARTY.waiting=false;PARTY.go=true;showEvent();return true}
+  renderWait();
+  if(isCoord())partyTryStart();
+  return true;
+}
+function partyTryStart(){
+  if(!PARTY.on||!PARTY.started||!isCoord())return;
+  const nr=PARTY.played+1;
+  if(!PARTY.dead&&!PARTY.waiting)return;
+  const alive=PARTY.dead?partyFresh():partyFresh();
+  if(PARTY.dead&&!alive.length)return;
+  const ready=alive.every(id=>PARTY.m[id].ar>=nr);
+  const waited=Date.now()-PARTY.waitT;
+  if(!ready&&waited<60000)return;
+  PARTY.waitT=Date.now();
+  if(!PARTY.dead){PARTY.waiting=false;PARTY.go=true;showEvent()}
+  else{
+    let k=null;try{const t=weightedPick();if(partyShareable(t,false))k=t.k}catch(e){}
+    PARTY.played=nr;PARTY.lastRd={r:nr,k};partyEmit({ty:'rd',r:nr,k});
+  }
+}
+function partyGen(){
+  if(!PARTY.on||!PARTY.started)return genEvent();
+  if(isCoord()||!PARTY.cur){
+    let ts=null;try{ts=weightedPick();if(!partyShareable(ts,false))ts=null}catch(x){ts=null}
+    const hard=Math.random()<.65;
+    const e=genEvent(ts,hard);const t=LASTGEN.t;
+    const k=partyShareable(t,LASTGEN.ms)?t.k:null;
+    const r=PARTY.played+1;PARTY.played=r;PARTY.curShared=k;PARTY.cur=null;
+    PARTY.lastRd={r,k,h:hard?1:0};PARTY.waitT=Date.now();partyEmit({ty:'rd',r,k,h:hard?1:0});
+    (PARTY.hist=PARTY.hist||[]).push({r,s:k});PARTY.sig='';return e;
+  }
+  const d=PARTY.cur;PARTY.cur=null;
+  let t=null;if(d.k){t=TPL.find(x=>x.k===d.k)||null;if(t&&(!partyShareable(t,false)||(t.req&&!t.req(S))))t=null}
+  const e=t?genEvent(t,d.h):genEvent();
+  PARTY.curShared=(t&&LASTGEN.t===t)?t.k:null;
+  PARTY.played=d.r;(PARTY.hist=PARTY.hist||[]).push({r:d.r,s:PARTY.curShared});
+  return e;
+}
+function partyTick(){
+  if(!PARTY.on)return;
+  PARTY.tk++;
+  if(PARTY.tk%3===0)partyBeacon();
+  if(!PARTY.started)return;
+  if(isCoord()){
+    if(PARTY.tk%5===0&&PARTY.lastRd)partyEmit(Object.assign({ty:'rd'},PARTY.lastRd));
+    partyTryStart();
+  }
+  if(PARTY.waiting)renderWait(true);
+  partyStripUpdate();
+}
+function partyMsg(m){
+  if(!PARTY.on||m.sameTab)return;
+  const d=m.data||{},id=m.peer;if(!d||typeof d.ty!=='string')return;
+  switch(d.ty){
+   case 'go':{
+     const h=partyHostId();if(id!==h||PARTY.started)return;
+     if(stage==='lobby')partyStartGame();
+     break}
+   case 'bc':{
+     const x=partyMember(id);x.seen=Date.now();x.gone=false;
+     x.nm=nameOf(id);x.rl=pClean(d.rl,26);x.dy=+d.dy||0;x.hp=+d.hp||0;x.mo=+d.mo||0;x.ar=+d.ar||0;x.pl=+d.pl||0;x.cr=d.cr==null?-1:+d.cr;x.al=d.al===0?0:1;
+     if(PARTY.started&&isCoord())partyTryStart();
+     break}
+   case 'bye':{const x=partyMember(id);x.gone=true;x.al=0;break}
+   case 'rd':{
+     if(!PARTY.started)return;
+     const r=+d.r;if(!(r>0)||r<=PARTY.played)return;
+     if(isCoord()&&!PARTY.dead&&id===partySelf())return;
+     const x=partyMember(id);x.seen=Date.now();
+     const k=d.k==null?null:pClean(d.k,60);
+     if(PARTY.dead){PARTY.played=r;return}
+     if(PARTY.waiting&&!(PARTY.go)){PARTY.cur={r,k,h:d.h?1:0};PARTY.waiting=false;PARTY.go=true;showEvent()}
+     else PARTY.pend={r,k,h:d.h?1:0};
+     break}
+   case 'res':{
+     const r=+d.r;if(!(r>0))return;
+     const rec={nm:nameOf(id),ch:pClean(d.ch,70),ok:d.ok?1:0,g:pClean(d.g,10),k:pClean(d.k,60),sh:d.sh?1:0,r};
+     (PARTY.res[r]=PARTY.res[r]||{})[id]=rec;
+     partyEffect(id,rec);partyResUpdate();partyStripUpdate();
+     break}
+   case 'fin':{
+     const x=partyMember(id);x.al=0;x.fin=d.w?'win':'dead';x.seen=Date.now();
+     const nm=x.nm||nameOf(id);
+     if(d.w){partyNote('🏁 '+nm+' รอดมาถึงวันสุดท้ายแล้ว')}
+     else{
+       partyNote('🕯 '+nm+' จากไปแล้ว');
+       if(S&&!PARTY.dead&&stage!=='ending'){S.md=Math.max(0,S.md-4);try{renderHUD()}catch(e){}}
+     }
+     if(PARTY.started&&isCoord())partyTryStart();
+     break}
+  }
+}
+/* ----- ผลข้ามคน ----- */
+function partyEffect(id,d){
+  if(!S||PARTY.dead||stage==='ending'||!d.sh||d.k!==PARTY.curShared||d.r!==PARTY.played)return;
+  const key=id+':'+d.r;if(PARTY.done[key])return;PARTY.done[key]=1;
+  const nm=d.nm;let hud=false;
+  if(d.g==='help'&&d.ok){
+    S.md=Math.min(100,S.md+2);hud=true;partyNote('💛 '+nm+' เลือกช่วยเหลือ กำลังใจของคุณดีขึ้น');
+    (PARTY.helps[d.r]=PARTY.helps[d.r]||{})[id]=1;partySyn(d.r);
+  }else if(d.g==='crime'&&d.ok&&(S.ht|0)<55){
+    S.ht=(S.ht|0)+2;hud=true;partyNote('🚨 '+nm+' ก่อเรื่อง ตำรวจเริ่มมองมาทางกลุ่มของคุณ');
+  }
+  if(hud)try{renderHUD()}catch(e){}
+}
+function partySyn(r){
+  if(PARTY.myHelp!==r||PARTY.syn[r]||!PARTY.helps[r]||!Object.keys(PARTY.helps[r]).length)return;
+  PARTY.syn[r]=1;S.md=Math.min(100,S.md+3);try{renderHUD()}catch(e){}
+  partyNote('🤝 ช่วยกันเป็นทีม! ทุกคนที่เลือกช่วยในรอบนี้ได้กำลังใจเพิ่ม');
+}
+/* ----- ส่งผลของเรา ----- */
+function partyAfterOutcome(o){
+  if(!PARTY.on||!PARTY.started||o.act||!ev)return;
+  const r=PARTY.played,sh=PARTY.curShared&&PARTY.curShared===ev.k?1:0;
+  const rec={ty:'res',r,k:ev.k,sh,ch:pClean(o.choice,70),ok:o.ok?1:0,g:PARTY.lastG||''};
+  partyEmit(rec);
+  (PARTY.res[r]=PARTY.res[r]||{})[partySelf()||'me']={nm:'คุณ',ch:rec.ch,ok:rec.ok,g:rec.g,k:rec.k,sh,r};
+  if(sh&&rec.g==='help'&&rec.ok){PARTY.myHelp=r;partySyn(r)}
+  PARTY.showRes=true;
+  const rows=document.createElement('div');rows.id='pres';panel.appendChild(rows);
+  partyResUpdate();
+}
+function partyFin(kind){
+  if(!PARTY.on||!PARTY.started||PARTY.dead)return;
+  PARTY.dead=true;PARTY.waiting=false;PARTY.showRes=false;
+  partyEmit({ty:'fin',w:kind==='died'?0:1});partyBeacon();
+}
+/* ----- แสดงผล ----- */
+function partyRoster(){
+  const rows=[];const selfId=partySelf();
+  const me=S&&S.role?{nm:'คุณ',rl:S.role.n,dy:Math.floor(S.day),hp:Math.round(S.hp),al:PARTY.dead?0:1,ar:PARTY.ar,cr:PARTY.cr}:null;
+  const stage_=(x,mine)=>x.al===0?(x.fin==='win'||(mine&&S&&S.day>=364)?'🏁':'💀'):x.gone?'📴':PARTY.waiting&&PARTY.ar&&x.ar>=PARTY.ar?'✅':'⏳';
+  if(me)rows.push({nm:'คุณ',rl:me.rl,dy:me.dy,hp:me.hp,st:stage_(me,true),cr:me.cr});
+  for(const id in PARTY.m){const x=PARTY.m[id];rows.push({nm:nameOf(id),rl:x.rl,dy:x.dy,hp:x.hp,st:stage_(x,false),cr:x.cr,ar:x.ar})}
+  return rows;
+}
+function partyStripHTML(){
+  const R=partyRoster();
+  const chosen=r=>PARTY.played>0&&r.cr===PARTY.played;
+  return '<div class="plist" style="margin:0 0 8px">'+R.map(r=>'<span>'+(r.st==='💀'||r.st==='🏁'?r.st:chosen(r)?'✅':'🤔')+' '+esc(r.nm)+(r.rl?' · '+esc(r.rl.slice(0,12)):'')+(r.dy?' · วัน '+r.dy:'')+'</span>').join('')+'</div>';
+}
+function partyDecorate(){
+  if(!PARTY.on||!PARTY.started)return;
+  const d=document.createElement('div');d.id='pstrip';d.innerHTML=partyStripHTML();
+  panel.insertBefore(d,panel.firstChild);
+}
+function partyStripUpdate(){const el=$('pstrip');if(el&&stage==='play')el.innerHTML=partyStripHTML()}
+function partyResHTML(r){
+  const L=PARTY.res[r]||{};const ks=Object.keys(L);
+  if(!ks.length)return '';
+  return '<div class="amb"><b>รอบนี้เพื่อนเลือกอะไร</b>'+ks.map(id=>{const x=L[id];return '<div style="margin-top:4px">'+(x.ok?'✔':'✖')+' <b>'+esc(x.nm)+'</b>: '+esc(x.ch)+(x.g==='help'?' 💛':x.g==='crime'?' 🚨':'')+'</div>'}).join('')+'</div>';
+}
+function partyResUpdate(){const el=$('pres');if(el&&PARTY.showRes)el.innerHTML=partyResHTML(PARTY.played)}
+function renderWait(soft){
+  if(stage!=='pwait'||!PARTY.waiting)return;
+  const waited=Date.now()-PARTY.waitT,coord=isCoord(),showSkip=coord&&waited>8000;
+  const R=partyRoster();
+  const sig=R.map(r=>r.st+r.nm).join('|')+(showSkip?'s':'')+Object.keys(PARTY.res[PARTY.played]||{}).length+(coord?'c':'');
+  if(soft&&sig===PARTY.sig)return;PARTY.sig=sig;
+  panel.innerHTML=
+   '<div class="kick"><span>ปาร์ตี้ '+esc(PARTY.code.toUpperCase())+'</span><span>รอบที่ '+(PARTY.played+1)+'</span></div>'+
+   '<h2 style="font-size:22px">'+(PARTY.played?'รอเพื่อนพร้อมก่อนไปรอบถัดไป…':'รอทุกคนพร้อม…')+'</h2>'+
+   '<div class="plist" style="margin:0 0 6px">'+R.map(r=>'<span>'+r.st+' '+esc(r.nm)+(r.rl?' · '+esc(r.rl.slice(0,14)):'')+(r.dy?' · วัน '+r.dy:'')+'</span>').join('')+'</div>'+
+   (PARTY.played?partyResHTML(PARTY.played):'')+
+   '<p class="hint">✅ พร้อมแล้ว · ⏳ ยังอ่านผลหรือเตรียมตัวอยู่ · 💀 จากไป · 🏁 รอดครบปี</p>'+
+   '<div class="row">'+(showSkip?'<button class="btn" id="pskip">เริ่มรอบถัดไปเลย ไม่รอที่เหลือ</button>':'')+'<button class="btn ghost" id="pcare">ดูแลตัวเอง / ตลาดมืด</button><button class="btn ghost" id="pleave">ออกจากปาร์ตี้</button></div>';
+  if($('pskip'))$('pskip').onclick=()=>{PARTY.waitT=0;partyTryStart()};
+  if($('pcare'))$('pcare').onclick=()=>{S.sinceCare=0;PARTY.waiting=false;showMorning()};
+  $('pleave').onclick=()=>{partyLeave();showStart()};
+}
 /* ===== UI v2 ===== */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -10928,6 +11238,7 @@ function floaters(d){
 /* ===== บันทึก ===== */
 function saveGame(quiet){
   if(MP.on&&!MP.host){return}
+  if(PARTY.on)return;
   if(!S||stage==='ending'||stage==='start'||stage==='birth'){if(!quiet)toast('ยังไม่มีชีวิตที่ต้องบันทึก');return}
   lsSet(SAVEKEY,serialize());if(!quiet)toast('บันทึกชีวิตแล้ว ที่วันที่ '+Math.floor(S.day));
 }
@@ -11234,12 +11545,13 @@ function waitBtn(id,key,base,msg){
   const iv=setInterval(tick,1000);tick();
 }
 function showStart(){
+  if(PARTY.on)partyLeave();
   stage='start';S=null;busy=false;
   setView({scene:pick(['farm','bridge','wall','rift','station','park']),tod:pick(['dusk','night']),seed:'title'+rnd(99),npc:2,look:pick(ROLES).look,doomId:pick(DOOMS).id,day:150,mood:null});
   renderHUD(null);
   const pool=poolSize();
   const mpHtml=MP.ready?
-    '<div class="row"><button class="btn ghost" id="mph">เปิดห้องเล่นกับเพื่อน</button><button class="btn ghost" id="mpj">เข้าร่วมห้องของเพื่อน</button></div>':
+    '<div class="row"><button class="btn ghost" id="mph">เปิดห้องเล่นกับเพื่อน</button><button class="btn ghost" id="mpj">เข้าร่วมห้องของเพื่อน</button></div><div class="row"><button class="btn" id="ppy">👥 ปาร์ตี้ 2–4 คน · ตัวละครคนละตัว</button></div>':
     '<p class="hint">'+(MP.tried?(window.D365_SA?'โหมดออนไลน์ใช้ได้เมื่อต่ออินเทอร์เน็ต เปิดห้องแล้วส่งรหัสให้เพื่อนได้เลย':'โหมดออนไลน์เล่นกับเพื่อนใช้ได้เมื่อเปิดหน้านี้จาก claude.ai (ต้องล็อกอิน)'):'กำลังตรวจสอบโหมดออนไลน์…')+'</p>';
   panel.innerHTML=
    '<div class="kick"><span>เกมเลือกชะตา</span><span>จบในหนึ่งปี</span></div>'+
@@ -11270,6 +11582,7 @@ function showStart(){
   if($('cont'))$('cont').onclick=()=>{mpClose();if(loadGame()){stage='play';showEvent()}};
   if($('mph'))$('mph').onclick=showHostSetup;
   if($('mpj'))$('mpj').onclick=showJoinSetup;
+  if($('ppy'))$('ppy').onclick=showPartySetup;
 }
 const rndCode=()=>{const a='abcdefghjkmnpqrstuvwxyz23456789';let s='';for(let i=0;i<4;i++)s+=a[rnd(a.length)];return s};
 function showHostSetup(){
@@ -11347,7 +11660,8 @@ function showBirth(){
    '<div class="amb">ความฝันสุดท้ายที่สุ่มมา: <b>'+DREAMS[cand.dr%DREAMS.length].n+'</b>'+(cand.wk?'<br>ท้าทายสัปดาห์นี้: <b>'+WEEKLY.find(w=>w.id===cand.wk).n+'</b> · '+WEEKLY.find(w=>w.id===cand.wk).d:'')+'</div><div class="amb">สิ่งที่กำลังพุ่งเข้าหาโลก: '+doom.n+(cand.lover?'<br>คุณมีคนรักอยู่ข้างๆ เขาจะเป็นเพื่อนร่วมทางคนแรกของคุณ':'<br>คุณยังไม่มีคนรัก')+'</div>'+
    '<div class="row"><button class="btn" id="start">เริ่มนับถอยหลัง 365 วัน</button><button class="btn ghost" id="back">← ย้อนกลับ เลือกโหมดใหม่</button>'+(cand.daily?'':'<button class="btn ghost" id="again">'+(rrLeft>0&&tget(RR_KEY)<=Date.now()?'จับสลากใหม่ฟรี (เหลือ '+rrLeft+' ครั้ง)':'จับสลากเกิดใหม่')+'</button>')+'</div>'+(cand.daily?'<p class="hint">ชีวิตประจำวัน: ทุกคนเริ่มจากชาติกำเนิดเดียวกันและเจอเหตุการณ์ชุดเดียวกัน จนกว่าการเลือกของแต่ละคนจะเริ่มต่างกัน</p>':'');
   $('back').onclick=()=>{KEPT=cand;mpClose();showStart()};
-  $('start').onclick=()=>{KEPT=null;albumReset();newGame(cand);if(!cand.daily)applyLegacy();if(S.giftNote)setTimeout(()=>toast('🎁 '+S.giftNote),600);saveGame(true);stage='play';showEvent();tutOnce()};
+  $('start').onclick=()=>{if(PARTY.on){partyBegin();return}KEPT=null;albumReset();newGame(cand);if(!cand.daily)applyLegacy();if(S.giftNote)setTimeout(()=>toast('🎁 '+S.giftNote),600);saveGame(true);stage='play';showEvent();tutOnce()};
+  if(PARTY.on){const a0=$('again');if(a0)a0.remove();$('start').textContent='พร้อมแล้ว · เข้าปาร์ตี้'}
   if($('again'))$('again').onclick=()=>{if(tget(RR_KEY)>Date.now())return;if(rrLeft>0)rrLeft--;if(rrLeft<=0)tset(RR_KEY,Date.now()+RR_MS);const w0=cand.wk;cand=rollBirth();if(w0)cand.wk=w0;showBirth()};
   if($('again')&&tget(RR_KEY)>Date.now())waitBtn('again',RR_KEY,'จับสลากเกิดใหม่');
   if(MP.on&&MP.host)mpSend({k:'idle',msg:'ชะตาสุ่มให้: '+r.n+' อายุ '+cand.age+' ปี เงิน '+fmt(cand.mo)+' · '+r.perk,hud:null,mood:'warm',
@@ -11356,12 +11670,14 @@ function showBirth(){
 
 function showEvent(){
   if(shouldLetter()){showLetter();return}
-  stage='play';busy=false;MP.votes={};MP.tally=null;
-  ev=genEvent();codexAdd(ev.k);const ctx=viewFor(ev);renderHUD();
+  if(partyArrive())return;
+  stage='play';busy=false;MP.votes={};MP.tally=null;PARTY.showRes=false;
+  ev=partyGen();codexAdd(ev.k);const ctx=viewFor(ev);renderHUD();
   {const e0=ev;if(!(MP.on&&MP.guest)&&(ALBUM.length===0||Math.floor(S.day)>=358&&ALBUM.length<14&&RND()<.5||(e0.cat==='danger'||e0.cat==='joy')&&RND()<.2))setTimeout(()=>{if(stage==='play')albumShot(e0.head)},500)}
   const m=evModel(ev);
   if(MP.on&&MP.host)rotateLead();
   renderEvent(m,MP.on&&MP.host?'host':'solo');
+  if(PARTY.on)partyDecorate();
   if(MP.on&&MP.host){mpSend(m);mpTally()}
 }
 
@@ -11391,6 +11707,7 @@ function choose(i){
   doChoose(i);
 }
 function doChoose(i){
+  if(PARTY.on){PARTY.lastG=ev.ch[i].g||'';PARTY.cr=PARTY.played;partyBeacon()}
   const dice=ev.ch[i].roll;
   const o=resolve(ev,i);
   sfx(dice?'dice':o.ok?'ok':'bad');
@@ -11424,6 +11741,7 @@ function outHTML(m,mine){
 function urgent(){return S.fd<45||S.wt<45||S.wd>0||S.inf>0||S.en<30}
 
 function showOutcome(o){
+  if(!S)return;
   lastOut=o;
   view.day=S.day;renderHUD();floaters(o.deltas);
   const m=outModel(o);
@@ -11438,6 +11756,7 @@ function showOutcome(o){
   if($('care'))$('care').onclick=()=>{S.sinceCare=0;showMorning()};
   if($('skip'))$('skip').onclick=()=>{saveGame(true);showEvent()};
   $('next').focus({preventScroll:true});
+  if(PARTY.on)partyAfterOutcome(o);
   if(MP.on&&MP.host){MP.votes={};MP.tally=null;m.nextLabel=o.end?'ตอนจบ':'';mpSend(m)}
 }
 
@@ -11537,9 +11856,9 @@ function endHTML(m,lives){
    '<p class="hint" style="margin-bottom:-6px">เส้นเวลาของชีวิต</p><ul class="tlist act3">'+act3+'</ul>'+(lives||'');
 }
 function showEnding(kind){
-  stage='ending';const E=buildEnding(kind);
+  stage='ending';partyFin(kind);const E=buildEnding(kind);
   if(S.cause==='giveup'&&kind==='died'){E.score=Math.min(E.score,5);E.grade='ยอมแพ้'}
-  lsSet(SAVEKEY,'');
+  if(!PARTY.on)lsSet(SAVEKEY,'');
   if(!(MP.on&&MP.guest)){saveLegacy();try{if(!S.wk&&S.cause!=='giveup'){const rv=rivalFromLife();if(rv)saveRival(rv);else if(S.rival&&(S.flags.rv|0)>=3)saveRival(null)}}catch(e){}}
   if(S.cause==='giveup'&&kind==='died'&&!(MP.on&&MP.guest))tset(DW_KEY,Date.now()+DW_MS);
   let hist=[];try{hist=JSON.parse(lsGet(HISTKEY)||'[]')}catch(e){}
@@ -12233,5 +12552,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 02:18';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 02:56';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
