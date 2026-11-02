@@ -9591,9 +9591,9 @@ async function lbRecord(E,kind){
   }catch(e){return false}
 }
 const SILLY=(typeof FD_IDS!=='undefined'?FD_IDS:[]).concat(['banana','coconut','selfie','laugh','choke','veg','mushroom','spicy','karaoke','allergy','bee','pool','yacht','fugu','safe','heartplay','liver']);
-const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาหลายแบบที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭'],['bs','รอดติดกันยาวที่สุด',v=>v+' ชีวิตติด','🔥'],['rate','อัตรารอดสูงสุด (เล่น ≥5 ชีวิต)',v=>v+'%','📈'],['lives','นักสู้ตัวยง (เล่นมากสุด)',v=>v+' ชีวิต','🎮'],['gd','คนดีที่สุด (ช่วยเหลือรวม)',v=>v+' ครั้ง','😇'],['ev','คนชั่วที่สุด (หยิบของรวม)',v=>v+' ครั้ง','😈'],['ot','ออนไลน์นานที่สุด',v=>fmtOt(v),'⏱'],['te','เงินสะสมรวมตั้งแต่เล่น',v=>fmt(v),'💰'],['dc','เล่นชีวิตประจำวันสะสม',v=>v+' วัน','📅']];
+const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['funny','ตายฮาหลายแบบที่สุด',v=>v+' แบบ','🤡'],['te','เงินสะสมรวมตั้งแต่เล่น',v=>fmt(v),'💰'],['dc','เล่นชีวิตประจำวันสะสม',v=>v+' วัน','📅']];
 /* ซ่อนอันดับที่ยังไม่มีใครทำได้ (ยกเว้น 3 อันดับหลัก) ให้โผล่เองเมื่อมีคนผ่านเกณฑ์ */
-const CORE_M=['richest','best','survived','gd','ev','ot','te'];
+const CORE_M=['richest','survived','te'];
 function activeMetrics(){return METRICS.filter(m=>CORE_M.includes(m[0])||LB.rows.some(r=>!r.bad&&r[m[0]]>0))}
 function rankList(k){return LB.rows.filter(r=>!r.bad&&r[k]>0).sort((a,b)=>b[k]-a[k]||b.best-a.best)}
 function myRank(k){const l=rankList(k);const i=l.findIndex(r=>r.id===LB.id);return i<0?0:i+1}
@@ -9856,15 +9856,26 @@ const CODK='doom365-codex';
 const codexList=()=>TPL.filter(t=>t.rare||t.dis||/^(g_|c_|l_)/.test(t.k));
 function codexAdd(k){
   if(!k||!codexList().some(t=>t.k===k))return;
-  const c=lsj(CODK,{});if(!c[k]){c[k]=Date.now();lsw(CODK,c);toast('บันทึกลงสมุด: สิ่งที่เพิ่งเจอครั้งแรก')}
+  const c=lsj(CODK,{});if(!c[k]){c[k]=Date.now();lsw(CODK,c);toast('บันทึกลงสมุด: สิ่งที่เพิ่งเจอครั้งแรก');setTimeout(()=>codexShot(k),1100)}else if(!lsj(CODI,{})[k])setTimeout(()=>codexShot(k),1100)
+}
+const CODI='doom365-codeximg';
+function codexShot(k){
+  try{
+    if(typeof stage==='undefined'||stage!=='play'||typeof ev==='undefined'||!ev||ev.k!==k)return;
+    const cv=document.getElementById('cv');if(!cv)return;
+    const t=document.createElement('canvas');t.width=200;t.height=Math.round(200*cv.height/cv.width)||113;
+    t.getContext('2d').drawImage(cv,0,0,t.width,t.height);
+    const m=lsj(CODI,{});m[k]=t.toDataURL('image/jpeg',.6);
+    try{localStorage.setItem(CODI,JSON.stringify(m))}catch(e){}
+  }catch(e){}
 }
 function showCodex(){
   if($('ovc'))return;
-  const c=lsj(CODK,{}),L=codexList(),n=L.filter(t=>c[t.k]).length;
+  const c=lsj(CODK,{}),CI=lsj(CODI,{}),L=codexList(),n=L.filter(t=>c[t.k]).length;
   const grp=t=>t.dis?'มหันตภัย':t.rare?'เหตุการณ์หายาก':/^g_/.test(t.k)?'ของระดับตำนาน':'เรื่องราวต่อเนื่อง';
   const o=document.createElement('div');o.className='ov';o.id='ovc';
   o.innerHTML='<div class="ovb" role="dialog" aria-label="สมุดบันทึก"><div class="ovh"><b>สมุดบันทึกสิ่งที่เคยเจอ '+n+' / '+L.length+'</b><button class="mini" id="ovcx">ปิด</button></div>'+
-   L.map(t=>'<div class="ach'+(c[t.k]?'':' lock')+'"><i>'+(c[t.k]?'📖':'❔')+'</i><span><b>'+(c[t.k]?esc(t.head):'???')+'</b><small>'+grp(t)+'</small></span></div>').join('')+'</div>';
+   L.map(t=>'<div class="ach'+(c[t.k]?'':' lock')+'"'+(c[t.k]&&CI[t.k]?' style="grid-template-columns:92px 1fr"':'')+'><i'+(c[t.k]&&CI[t.k]?' style="width:92px"><img alt="" style="width:92px;border-radius:6px;image-rendering:pixelated;display:block" src="'+CI[t.k]+'">':'>'+(c[t.k]?'📖':'❔'))+'</i><span><b>'+(c[t.k]?esc(t.head):'???')+'</b><small>'+grp(t)+'</small></span></div>').join('')+'</div>';
   document.body.appendChild(o);
   const close=()=>{o.remove();document.removeEventListener('keydown',esck)};
   const esck=e=>{if(e.key==='Escape')close()};
@@ -10047,6 +10058,8 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-03h',date:'3 พ.ย. 2569',title:'สมุดบันทึกเก็บภาพฉาก',items:['เจอมหันตภัยหรือเหตุการณ์หายากครั้งแรก สมุดบันทึกจะเก็บภาพฉากนั้นไว้ให้ดูย้อนหลัง (เหตุการณ์ที่เคยเจอมาก่อนอัปเดตจะได้ภาพเมื่อเจอครั้งถัดไป)']},
+ {id:'2026-11-03g',date:'3 พ.ย. 2569',title:'จัดระเบียบกระดานอันดับ',items:['เหลือเฉพาะอันดับที่มีฉายาให้โบนัส: รวยที่สุด · รอดครบ 365 วัน · ผ่านท้าทายสัปดาห์ · ตายฮาหลายแบบ · เงินสะสมรวม · ชีวิตประจำวันสะสม']},
  {id:'2026-11-03f',date:'3 พ.ย. 2569',title:'เพื่อนร่วมกลุ่ม · ปล้นห้างได้ของจริง · ฝั่งคนเลวสุดขั้ว',items:[
   '👥 เหตุการณ์เพื่อนร่วมกลุ่มใหม่ 10 เรื่อง ตัวเลือกเยอะ 4–6 ข้อ เช่น แอบกินเสบียง ไข้ขึ้นกลางดึก ชวนไปปล้นห้าง สารภาพความลับ ขอถอนตัว',
   '🛒 ตุนของและปล้นห้างได้ของจริงเข้าคลัง อาหาร น้ำ ยา วัสดุ และบางครั้งอาวุธ มีเหตุการณ์ใหม่ห้างตอนไฟดับ ร้านขายยา โกดังร้าง ศึกแย่งข้าวสาร',
@@ -11978,5 +11991,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 01:17';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 01:59';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
