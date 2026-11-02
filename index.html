@@ -12077,7 +12077,7 @@ function chatRecv(ev){
     }
     const t=chatClean(d.t);if(!t)return;
     const rc='';
-    const m={id:++c.seq,pid,me,n:(clean(d.n,16)||'ผู้เล่น'),tag:pid.slice(-3),t,rc:rc.length===4?rc:'',at:Date.now(),inv:false};
+    const m={id:++c.seq,pid,me,n:(clean(d.n,16)||'ผู้เล่น'),ad:d.ad===1,tag:pid.slice(-3),t,rc:rc.length===4?rc:'',at:Date.now(),inv:false};
     c.msgs.push(m);if(c.msgs.length>80)c.msgs.shift();
     if(!me&&!chatOpenNow())c.unread++;
     chatRefresh();
@@ -12092,7 +12092,7 @@ function chatSend(text,inv){
   const now=Date.now();if(now-c.last<1800)return 'ส่งเร็วเกินไป รอสักครู่';
   const t=chatClean(text);if(!t&&!inv)return '';
   c.last=now;
-  const d={t:t||'ชวนเล่นด้วยกัน',n:NICK||'ผู้เล่น',inv:inv?1:0};
+  const d={t:t||'ชวนเล่นด้วยกัน',n:NICK||'ผู้เล่น',inv:inv?1:0};if(typeof isAdmin==='function'&&isAdmin())d.ad=1;
   if(inv&&MP.on&&MP.host&&MP.code)d.rc=MP.code;
   try{MP.api.emit('chat',d).catch(()=>{})}catch(e){return 'ส่งไม่สำเร็จ'}
   return '';
@@ -12101,7 +12101,8 @@ function chatLineHtml(m){
   const mu=!m.me&&m.pid;
   const nm='<b class="cn'+(m.me?' me':'')+'"'+(mu?' data-mu="'+esc(m.pid)+'" title="แตะที่ชื่อเพื่อชวนแลกการ์ดหรือซ่อนข้อความ"':'')+'>'+esc(m.n)+(m.me?' (คุณ)':' <i>#'+esc(m.tag)+'</i>')+'</b>';
   const join=m.rc&&!MP.on&&!m.me?' <button class="mini" data-jrc="'+esc(m.rc)+'">เข้าห้อง '+esc(m.rc.toUpperCase())+'</button>':m.rc?' <span class="rcb">ห้อง '+esc(m.rc.toUpperCase())+'</span>':'';
-  return '<div class="cm">'+nm+chatTagsHtml(m.u)+' '+esc(m.t)+'</div>';
+  const adb=(m.ad||(m.me&&typeof isAdmin==='function'&&isAdmin()))?' <i class="tt" style="color:#ffcf5a;border-color:#ffcf5a">🛡️ ผู้ดูแลระบบ</i>':'';
+  return '<div class="cm">'+nm+adb+chatTagsHtml(m.u)+' '+esc(m.t)+'</div>';
 }
 function chatRefresh(){
   const c=chatSt();
@@ -12612,5 +12613,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 04:08';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 04:20';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
