@@ -699,7 +699,7 @@ const ready=(async()=>{
     await new Promise(res=>{
       let first=true;
       m.b.onAuthStateChanged(auth,u=>{
-        FB.user=u?{uid:u.uid,name:u.displayName||'',photo:u.photoURL||''}:null;
+        FB.user=u?{uid:u.uid,name:u.displayName||'',photo:u.photoURL||'',email:u.email||''}:null;
         FB.ok=true;FB.state='ready';
         const f=first;first=false;
         if(FB.user)pull().catch(e=>{FB.syncErr=String(e&&e.message||e)});
@@ -6104,6 +6104,7 @@ ROLES.forEach(r=>{if(/^ทายาท/.test(r.n)){r.mo=[Math.round(r.mo[0]*.7),
 /* ===== v71: ฉายาที่สวมใส่ได้ — โบนัสเล็กน้อยตลอดการเล่น ===== */
 /* b: mo=เงินที่ได้ rk=ลดความเสี่ยง dr=หิว/กระหายช้าลง hp=ฟื้นพลังชีวิต md=ความสุขที่ได้ en=พลังงานฟื้นเร็ว */
 const TITLES=[
+ {id:'adm',src:'adm',n:'ผู้ดูแลระบบ',i:'🛡️',b:{}},
  {id:'ot1',src:'ot',need:30,n:'หน้าใหม่ไฟแรง',i:'🌱',b:{mo:.01}},
  {id:'ot2',src:'ot',need:120,n:'เด็กติดเกมฝึกหัด',i:'🎮',b:{dr:.02}},
  {id:'ot3',src:'ot',need:300,n:'ขาประจำวันสิ้นโลก',i:'☕',b:{en:.03}},
@@ -6632,14 +6633,20 @@ CARD_X.forEach(function(c){CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:c[4]
 var BONUS_CAP=.20;
 var _cardMem=null;
 var _cardRaw=null;
+function isAdmin(){try{var u=window.D365_FB&&D365_FB.user;return !!u&&String(u.email||'').toLowerCase()==='zxcoma1a2a3@gmail.com'}catch(e){return false}}
+var _cardAdm=false;
 function cardLoad(){
   var raw=null;try{raw=localStorage.getItem(CARD_KEY)}catch(e){}
-  if(_cardMem&&raw===_cardRaw)return _cardMem;
+  var adm=isAdmin();
+  if(_cardMem&&raw===_cardRaw&&_cardAdm===adm)return _cardMem;
+  _cardAdm=adm;
   var d={o:{},eq:{},t:0};
   try{var j=JSON.parse(raw||'null');if(j&&typeof j==='object'){
     var o={};if(j.o&&typeof j.o==='object')Object.keys(j.o).forEach(function(k){if(CARD_BY[k]){var n=Math.min(99,Math.max(0,Math.floor(+j.o[k]||0)));if(n)o[k]=n}});
+    if(adm)CARD_LIST.forEach(function(c){if(!o[c[0]])o[c[0]]=1});
     var eq={};if(typeof j.eq==='string'){if(CARD_BY[j.eq]&&o[j.eq])eq[CARD_BY[j.eq].slot]=j.eq}else if(j.eq&&typeof j.eq==='object')Object.keys(j.eq).forEach(function(sl){var id=j.eq[sl];if(CARD_BY[id]&&CARD_BY[id].slot===sl&&o[id])eq[sl]=id});
     d={o:o,eq:eq,t:+j.t||0};}}catch(e){}
+  if(adm)CARD_LIST.forEach(function(c){if(!d.o[c[0]])d.o[c[0]]=1});
   _cardMem=d;_cardRaw=raw;return d;
 }
 function cardSave(){var d=cardLoad();d.t=Date.now();try{var r=JSON.stringify(d);localStorage.setItem(CARD_KEY,r);_cardRaw=r}catch(e){}}
@@ -6672,7 +6679,7 @@ function cardDropHook(o,tier){/* ตอนจบมหันตภัย: ได
 function cardLook(L){
   var e=cardLoad().eq;if(!L||!Object.keys(e).length)return L;
   var o=Object.assign({},L),fx={},f=CARD_BY[e.fit],tp=CARD_BY[e.top];
-  if(f){o.shirt=f.sh;o.pants=f.pn;if(f.ht)o.hat=f.ht}
+  if(f){o.shirt=f.sh;o.pants=f.pn;if(f.ht)o.hat=f.ht;fx.fit={t:f.t}}
   if(tp){o.shirt=tp.c;if(tp.st)fx.cape=tp.c}
   ['hat','shoes','weapon','spell','wings'].forEach(function(sl){var c=CARD_BY[e[sl]];if(c)fx[sl]={c:c.c,st:c.st,t:c.t}});
   if(e.hat&&fx.hat)o.hat=null;
@@ -6685,45 +6692,91 @@ function cardLook(L){
   if(typeof person!=='function')return;
   var _p=person;
   var tm=function(){return performance.now()/1000};
+  function sh(c,a){if(typeof c!=='string'||c.charAt(0)!=='#'||c.length<7)return c;var n=parseInt(c.slice(1,7),16),r=n>>16,gg=(n>>8)&255,b=n&255;
+    function f(v){v=Math.round(a>=0?v+(255-v)*a:v*(1+a));return Math.max(0,Math.min(255,v))}
+    return 'rgb('+f(r)+','+f(gg)+','+f(b)+')'}
+  function spk(x,y,c,on){if(!on)return;R(x,y-1,1,3,c);R(x-1,y,3,1,c)}
   person=function(x,y,L,fr,flip){
     var F=L&&L.fx;
     if(!F||!Object.keys(F).length)return _p(x,y,L,fr,flip);
-    x=Math.round(x);y=Math.round(y);var t=tm(),d=flip?1:-1,s=fr?1:0;
-    if(F.cape){R(x-4,y-13,8,12+s,F.cape);R(x-5,y-8,10,8,F.cape);g.globalAlpha=.35;R(x-5,y-3,10,3,'#000');g.globalAlpha=1}
-    if(F.wings){var w=F.wings,fl=Math.sin(t*7),wh=Math.round(11+fl*3);
+    x=Math.round(x);y=Math.round(y);var t=tm(),d=flip?1:-1,s=fr?1:0,tk=Math.floor(t*8);
+    if(F.cape){var cc=F.cape,cd=sh(cc,-.35),cl=sh(cc,.25),sw=Math.round(Math.sin(t*3)*1);
+      R(x-4,y-13,8,12+s,cc);R(x-5,y-8,10,8,cc);R(x-6+sw,y-3,12,3,cc);
+      R(x-4,y-13,1,12,cl);R(x+3,y-13,1,12,cd);R(x-1,y-9,1,8,cd);R(x-6+sw,y-1,12,1,cd);
+      R(x-5,y-14,10,1,'#e8c24a');R(x-1,y-14,2,2,'#e84a4a');
+      for(var cz=0;cz<3;cz++)R(x-5+cz*4+sw,y-2,2,1,'#e8c24a')}
+    if(F.wings){var w=F.wings,fl=Math.sin(t*7),wc=w.c,wd=sh(wc,-.4),wl=sh(wc,.45),isP=w.t==='SP',st=w.st;
       for(var sd=-1;sd<=1;sd+=2){
-        for(var k=0;k<5;k++){var len=wh-k*2+(w.st==='bat'?1:0),yy=y-15+k*(w.st==='bfly'?3:2);
-          R(x+(sd>0?4:-4-(6+k*2)),yy-len*(w.st==='bat'?0.4:0.6)+k,6+k*2,Math.max(2,len*0.5),w.c)}
-        if(w.t==='SP'){g.globalAlpha=.4;R(x+(sd>0?8:-18),y-24+Math.round(fl*2),10,3,'#fff');g.globalAlpha=1}}}
+        var bx=sd>0?x+4:x-4,top=Math.round(-6-fl*3);
+        if(st==='bat'){
+          /* ปีกค้างคาว: กระดูก 3 ซี่ + แผ่นหนังยุบเป็นหยัก */
+          for(var k=0;k<4;k++){var ex=sd*(5+k*3),ey=Math.round(y-17+top*(1-k*.2)+k*3);
+            for(var u=0;u<=6;u++){var px=bx+Math.round(ex*u/6),py=Math.round(y-12+(ey-(y-12))*u/6);R(px,py,1,1,wd)}
+            for(var v=0;v<6;v++){var px2=bx+Math.round(ex*v/6),py2=Math.round(y-12+(ey-(y-12))*v/6);R(px2,py2+1,1,Math.max(1,Math.round(y-8-py2-k)),k%2?wc:wl)}}
+          R(bx+sd*2,y-14,1,3,wd)
+        }else if(st==='bfly'){
+          /* ปีกผีเสื้อ: สองพู ลายจุดและเส้นขอบ */
+          var hw=Math.round(8+fl*2);
+          for(var r1=0;r1<hw;r1++){var hh1=Math.round(Math.sqrt(hw*hw-r1*r1)*.9);R(sd>0?bx+r1:bx-r1-1,y-14-hh1+3,1,hh1,r1<2?wl:wc)}
+          for(var r2=0;r2<6;r2++){var hh2=Math.round(Math.sqrt(36-r2*r2)*.8);R(sd>0?bx+r2:bx-r2-1,y-10,1,hh2,r2<2?wd:wc)}
+          R(bx+sd*5-(sd<0?1:0),y-17,2,2,wl);R(bx+sd*3-(sd<0?1:0),y-9,2,2,'#fff');R(bx+sd*6-(sd<0?1:0),y-13,1,1,'#fff');
+          for(var r3=0;r3<hw;r3+=2)R(sd>0?bx+r3:bx-r3-1,y-14-Math.round(Math.sqrt(hw*hw-r3*r3)*.9)+3,1,1,wd)
+        }else{
+          /* ปีกขนนก: ขนยาวซ้อนชั้น มีแกนขน */
+          for(var k2=0;k2<6;k2++){var ln=Math.round(11+fl*2-k2*1.2),ox=sd*(2+k2*1.5),oy=y-17+k2*2+Math.round(fl*-1.5*(1-k2*.12));
+            var fx0=sd>0?bx+Math.round(ox):bx+Math.round(ox)-ln;
+            R(fx0,oy,ln,2,k2%2?wc:wl);R(fx0,oy+2,ln,1,wd);
+            R(sd>0?fx0:fx0+ln-1,oy,1,2,wd)}
+          R(bx+(sd>0?0:-1),y-15,2,5,wl)
+        }
+        if(isP){spk(bx+sd*(9+(tk%3)),y-20+(tk%4)*2,'#fff',tk%2===0);spk(bx+sd*(6),y-9-(tk%3),'#ffe27a',tk%3===0);
+          g.globalAlpha=.25;R(bx+(sd>0?2:-12),y-20,10,12,'#fff');g.globalAlpha=1}}}
     _p(x,y,L,fr,flip);
-    if(F.shoes){var sc=F.shoes.c;R(x-4,y-2,4,2,sc);R(x+1,y-2,4,2,sc);
-      if(F.shoes.st==='trail'||F.shoes.st==='spark'){g.globalAlpha=.55;for(var q=1;q<=4;q++)R(x-d*(q*4+3),y-1-((q+Math.floor(t*10))%3),3,1,sc);g.globalAlpha=1}
-      if(F.shoes.st==='spark'&&Math.floor(t*8)%2===0){R(x-6,y-4,1,3,'#fff');R(x+6,y-3,1,2,'#fff')}}
-    if(F.hat){var h=F.hat,c=h.c,st=h.st;
-      if(st==='cap'){R(x-4,y-24,8,3,c);R(x+(d>0?3:-7),y-22,4,1,c)}
-      else if(st==='helm'){R(x-5,y-25,10,5,c);R(x-6,y-21,12,1,c);R(x-1,y-26,2,1,'#fff')}
-      else if(st==='chef'){R(x-4,y-29,8,6,c);R(x-5,y-27,10,3,c);R(x-4,y-23,8,2,c)}
-      else if(st==='cowboy'){R(x-4,y-26,8,4,c);R(x-8,y-22,16,2,c);R(x-4,y-23,8,1,'#2a1a0a')}
-      else if(st==='wizard'){R(x-3,y-32,4,3,c);R(x-4,y-29,6,4,c);R(x-5,y-25,8,3,c);R(x-7,y-22,14,2,c);R(x+(d>0?2:-3),y-30,2,2,'#ffe27a')}
-      else if(st==='crown'){R(x-4,y-25,8,3,c);R(x-4,y-28,2,3,c);R(x-1,y-29,2,4,c);R(x+2,y-28,2,3,c);R(x-1,y-24,2,1,'#e8484a')}
-      else if(st==='halo'){g.globalAlpha=.4+.2*Math.sin(t*3);R(x-5,y-29,10,4,'#fff3b0');g.globalAlpha=1;R(x-4,y-28,8,1,c);R(x-4,y-26,8,1,c);R(x-5,y-27,1,1,c);R(x+4,y-27,1,1,c)}}
-    if(F.weapon){var wp=F.weapon,hx=x+d*5,hy=y-8+s,c2=wp.c;
-      if(wp.st==='bat'){R(hx,hy-12,2,13,c2);R(hx-1,hy-14,4,3,'#c9d0dc')}
-      else if(wp.st==='pistol'||wp.st==='pistolf'){R(hx-(d<0?5:0),hy-1,6,2,c2);R(hx+(d>0?0:3),hy+1,2,3,'#3a2f2a');
-        if(wp.st==='pistolf'&&Math.floor(t*6)%3===0){R(hx+d*6-(d<0?1:0),hy-2,3,3,'#ffb02a');R(hx+d*7,hy-1,2,1,'#fff3b0')}}
-      else if(wp.st==='rifle'){R(hx-(d<0?11:0),hy-1,12,2,c2);R(hx+(d>0?1:6),hy+1,3,3,'#3a2f2a')}
-      else if(wp.st==='bow'){R(hx,hy-10,2,18,c2);R(hx+d*2,hy-8,1,14,'#e8e0c8')}
-      else if(wp.st==='sword'||wp.st==='swordf'){R(hx,hy-17,2,16,wp.st==='swordf'?'#ffd0a0':c2);R(hx-2,hy-2,6,2,'#8a6a3a');R(hx,hy,2,3,'#6a4a2a');
-        if(wp.st==='swordf'){g.globalAlpha=.7;for(var k2=0;k2<4;k2++)R(hx-1+(k2%2),hy-20-k2*2+Math.round(Math.sin(t*14+k2)*1.5),3,3,k2<2?'#ff6a2a':'#ffd24a');g.globalAlpha=1}}}
-    if(F.spell){var sp=F.spell,n=sp.t==='SP'?5:sp.t==='S'?4:3,rc=sp.c;
-      g.globalAlpha=.85;
-      for(var o=0;o<n;o++){var a=t*2.2+o*(6.283/n);R(x+Math.round(Math.cos(a)*10)-1,y-12+Math.round(Math.sin(a)*5)-1,3,3,rc)}
-      g.globalAlpha=1;
-      if(sp.st==='fire'){for(var k3=0;k3<3;k3++)R(x-5+k3*4,y-26-((Math.floor(t*10)+k3)%4),3,3,k3===1?'#ffd24a':'#ff6a2a')}
-      else if(sp.st==='ice'){for(var k4=0;k4<4;k4++)R(x-9+k4*6,y-24+((Math.floor(t*6)+k4*2)%12),1,1,'#fff')}
-      else if(sp.st==='bolt'&&Math.floor(t*6)%4===0){R(x-9,y-28,2,5,rc);R(x-7,y-24,2,4,rc);R(x-9,y-20,2,3,rc)}
-      else if(sp.st==='shadow'){g.globalAlpha=.3;R(x-8,y-6,16,5,rc);g.globalAlpha=1}
-      else if(sp.st==='holy'){g.globalAlpha=.25+.15*Math.sin(t*3);R(x-8,y-24,16,24,rc);g.globalAlpha=1}}
+    if(F.fit){var ft=F.fit,tr=ft.t,sc=L.shirt,pc=L.pants;
+      /* ลายชุด: คอปก ขอบแขน เข็มขัด กระดุม รอยพับ ตามระดับ */
+      R(x-2,y-14,4,1,sh(sc,.55));R(x-1,y-13,2,1,L.skin);
+      R(x-4,y-14,1,7,sh(sc,.25));R(x+3,y-14,1,7,sh(sc,-.3));
+      R(x-4,y-8,8,1,sh(pc,-.55));R(x-1,y-8,2,1,'#e8c24a');
+      R(x-3,y-6,1,5,sh(pc,.2));R(x+2,y-6,1,5,sh(pc,-.3));
+      if(tr==='A'||tr==='S'||tr==='SP'){R(x-5,y-13+s,1,2,sh(sc,-.45));R(x+4,y-13+(1-s),1,2,sh(sc,-.45));
+        R(x,y-12,1,1,'#fff');R(x,y-10,1,1,'#fff')}
+      if(tr==='S'||tr==='SP'){R(x-5,y-14,2,1,'#e8c24a');R(x+3,y-14,2,1,'#e8c24a');R(x-4,y-14,8,1,'#e8c24a');
+        R(x-4,y-1,3,1,'#e8c24a');R(x+1,y-1,3,1,'#e8c24a')}
+      if(tr==='SP'){var gl=(tk+Math.floor(x))%6;spk(x-5+gl,y-13+((gl*3)%7),'#fff',true);
+        g.globalAlpha=.18+.1*Math.sin(t*4);R(x-5,y-22,10,22,'#ffe27a');g.globalAlpha=1}}
+    if(F.shoes){var shc=F.shoes.c,shd=sh(shc,-.4),shl=sh(shc,.4),sstt=F.shoes.st;
+      R(x-4,y-3,4,3,shc);R(x+1,y-3,4,3,shc);R(x-4,y-1,4,1,shd);R(x+1,y-1,4,1,shd);R(x-4,y-3,2,1,shl);R(x+1,y-3,2,1,shl);R(x-3,y-4,2,1,'#fff');R(x+2,y-4,2,1,'#fff');
+      R(x-3,y-2,1,1,'#fff');R(x+2,y-2,1,1,'#fff');
+      if(sstt==='trail'||sstt==='spark'){for(var q=1;q<=5;q++){g.globalAlpha=.7-q*.11;R(x-d*(q*3+3),y-1-((q+Math.floor(t*10))%3),3-(q>3?1:0),1+(q%2),q%2?shc:shl)}g.globalAlpha=1}
+      if(sstt==='spark'){spk(x-6,y-5,'#fff',tk%2===0);spk(x+6,y-4,'#ffe27a',tk%3===0);spk(x-d*8,y-3,'#fff',tk%4===1)}}
+    if(F.hat){var h=F.hat,c=h.c,st2=h.st,hd=sh(c,-.4),hl=sh(c,.45);
+      if(st2==='cap'){R(x-4,y-24,8,3,c);R(x-3,y-25,6,1,c);R(x-4,y-24,8,1,hl);R(x+(d>0?3:-8),y-22,5,1,hd);R(x-4,y-22,8,1,hd);R(x,y-26,1,1,hl)}
+      else if(st2==='helm'){R(x-5,y-25,10,5,c);R(x-4,y-26,8,1,c);R(x-6,y-21,12,1,hd);R(x-5,y-25,10,1,hl);R(x-1,y-26,2,1,'#fff');R(x-1,y-25,2,4,'#e84a4a');R(x-4,y-23,2,1,hl);R(x+3,y-23,1,1,hl)}
+      else if(st2==='chef'){R(x-4,y-29,8,6,c);R(x-5,y-28,10,3,c);R(x-3,y-31,6,2,c);R(x-6,y-27,1,2,c);R(x+5,y-27,1,2,c);R(x-4,y-23,8,2,hd);R(x-4,y-29,2,4,hl);R(x+2,y-26,1,3,hd);R(x-1,y-27,1,3,hd)}
+      else if(st2==='cowboy'){R(x-4,y-26,8,4,c);R(x-3,y-27,6,1,c);R(x-9,y-22,18,2,c);R(x-10,y-23,2,1,c);R(x+8,y-23,2,1,c);R(x-4,y-23,8,1,'#2a1a0a');R(x-4,y-26,8,1,hl);R(x-1,y-26,2,2,hd);R(x-1,y-23,2,1,'#e8c24a');R(x-9,y-21,18,1,hd)}
+      else if(st2==='wizard'){R(x-3,y-34,3,2,c);R(x-4,y-32,5,3,c);R(x-5,y-29,7,4,c);R(x-6,y-25,9,3,c);R(x-8,y-22,16,2,c);R(x-8,y-21,16,1,hd);R(x-5,y-23,10,1,'#ffe27a');
+        R(x-3,y-31,1,1,'#ffe27a');R(x-1,y-28,1,1,'#fff');R(x+1,y-26,1,1,'#ffe27a');R(x+(d>0?2:-4),y-35,2,2,'#ffe27a');spk(x+(d>0?5:-6),y-31+(tk%3),'#fff',tk%2===0)}
+      else if(st2==='crown'){R(x-4,y-25,8,3,c);R(x-5,y-28,2,4,c);R(x-1,y-30,2,6,c);R(x+3,y-28,2,4,c);R(x-4,y-25,8,1,hl);R(x-4,y-23,8,1,hd);
+        R(x-1,y-28,2,2,'#e8484a');R(x-4,y-24,1,1,'#4ac0f0');R(x+3,y-24,1,1,'#4ae88a');R(x-5,y-29,1,1,'#fff');R(x+4,y-29,1,1,'#fff');R(x-1,y-31,2,1,'#fff');spk(x+6,y-27,'#fff',tk%3===0)}
+      else if(st2==='halo'){g.globalAlpha=.3+.2*Math.sin(t*3);R(x-7,y-30,14,6,'#fff3b0');g.globalAlpha=1;R(x-5,y-29,10,1,c);R(x-5,y-25,10,1,c);R(x-6,y-28,1,3,c);R(x+5,y-28,1,3,c);R(x-4,y-29,3,1,'#fff');R(x-4,y-28,8,2,'#fff8d0');R(x-5,y-27,1,1,hd);R(x+4,y-27,1,1,hd)}}
+    if(F.weapon){var wp=F.weapon,hx=x+d*5,hy=y-8+s,c2=wp.c,wd2=sh(c2,-.4),wl2=sh(c2,.5);
+      if(wp.st==='bat'){R(hx,hy-12,2,13,c2);R(hx+1,hy-12,1,13,wd2);R(hx,hy-12,1,10,wl2);R(hx-1,hy-14,4,3,'#c9d0dc');R(hx-1,hy-14,4,1,'#fff');R(hx,hy+1,2,1,'#6a4a2a');R(hx,hy-4,2,1,'#222');R(hx,hy-6,2,1,'#222')}
+      else if(wp.st==='pistol'||wp.st==='pistolf'){R(hx-(d<0?5:0),hy-2,6,3,c2);R(hx-(d<0?5:0),hy-2,6,1,wl2);R(hx-(d<0?5:0),hy,6,1,wd2);R(hx+(d>0?0:3),hy+1,2,3,'#3a2f2a');R(hx+(d>0?4:-1),hy-3,1,1,'#222');R(hx+(d>0?1:2),hy+1,1,1,'#222');
+        if(wp.st==='pistolf'&&Math.floor(t*6)%3===0){R(hx+d*6-(d<0?2:0),hy-3,4,4,'#ffb02a');R(hx+d*7-(d<0?1:0),hy-2,2,2,'#fff3b0');R(hx+d*10-(d<0?3:0),hy-1,2,1,'#ffd24a')}}
+      else if(wp.st==='rifle'){R(hx-(d<0?11:0),hy-2,12,3,c2);R(hx-(d<0?11:0),hy-2,12,1,wl2);R(hx-(d<0?11:0),hy+1,12,1,wd2);R(hx+(d>0?1:6),hy+1,3,3,'#3a2f2a');R(hx-(d<0?9:-3),hy-4,3,2,'#222');R(hx-(d<0?11:-11),hy-1,1,1,'#222');R(hx+(d>0?6:-2),hy-3,2,1,'#4ac0f0')}
+      else if(wp.st==='bow'){R(hx,hy-10,2,18,c2);R(hx+d*2,hy-8,1,14,'#e8e0c8');R(hx+(d>0?-1:2),hy-11,1,2,wd2);R(hx+(d>0?-1:2),hy+7,1,2,wd2);R(hx,hy-2,2,3,'#6a4a2a');R(hx+d*2,hy-1,d*5,1,'#c9a06a');R(hx+d*7,hy-2,2,3,'#e8e0c8')}
+      else if(wp.st==='sword'||wp.st==='swordf'){var bl=wp.st==='swordf'?'#ffd0a0':c2;R(hx,hy-18,2,17,bl);R(hx,hy-18,1,17,sh(bl,.55));R(hx+1,hy-18,1,17,sh(bl,-.3));R(hx,hy-20,2,2,sh(bl,.6));R(hx-3,hy-2,8,2,'#e8c24a');R(hx-3,hy-2,1,2,'#8a6a3a');R(hx+4,hy-2,1,2,'#8a6a3a');R(hx,hy,2,3,'#6a4a2a');R(hx,hy+1,2,1,'#3a2a1a');R(hx,hy+3,2,1,'#e8c24a');R(hx,hy-1,2,1,'#e84a4a');
+        if(wp.st==='swordf'){g.globalAlpha=.75;for(var k5=0;k5<6;k5++)R(hx-1+(k5%2),hy-21-k5*2+Math.round(Math.sin(t*14+k5)*1.5),3,3,k5<3?'#ff6a2a':'#ffd24a');g.globalAlpha=.3;R(hx-2,hy-20,6,18,'#ff6a2a');g.globalAlpha=1}
+        else if(wp.t==='SP'||wp.t==='S'){spk(hx+1,hy-22-(tk%3),'#fff',tk%2===0)}}}
+    if(F.spell){var spl=F.spell,n=spl.t==='SP'?6:spl.t==='S'?5:4,rc=spl.c,rl=sh(rc,.5);
+      for(var o=0;o<n;o++){var a=t*2.2+o*(6.283/n),px3=x+Math.round(Math.cos(a)*11),py3=y-12+Math.round(Math.sin(a)*5),fr2=Math.sin(a)>0;
+        g.globalAlpha=fr2?.95:.5;R(px3-1,py3-1,3,3,rc);R(px3,py3-1,1,1,rl);
+        g.globalAlpha=.35;var a2=a-.35;R(x+Math.round(Math.cos(a2)*11),y-12+Math.round(Math.sin(a2)*5),2,2,rc);g.globalAlpha=1}
+      if(spl.st==='fire'){for(var k6=0;k6<5;k6++){var fy=(Math.floor(t*10)+k6*2)%6;g.globalAlpha=.9-fy*.12;R(x-6+k6*3,y-25-fy,3,3,fy<2?'#ffd24a':fy<4?'#ff8a2a':'#d83a1a')}g.globalAlpha=1}
+      else if(spl.st==='ice'){for(var k7=0;k7<6;k7++){R(x-10+k7*4,y-26+((Math.floor(t*6)+k7*3)%14),1,1,'#fff');if(k7%2)R(x-11+k7*4,y-26+((Math.floor(t*6)+k7*3)%14),3,1,'#bfe8ff')}R(x-1,y-30,2,4,'#bfe8ff');R(x-3,y-28,6,1,'#bfe8ff')}
+      else if(spl.st==='bolt'&&Math.floor(t*6)%3===0){R(x-9,y-30,2,5,rc);R(x-8,y-26,3,2,rc);R(x-10,y-24,2,5,rc);R(x-9,y-20,1,3,'#fff');R(x+8,y-26,2,4,rc);R(x+7,y-22,2,3,rl)}
+      else if(spl.st==='shadow'){g.globalAlpha=.35;R(x-9,y-5,18,4,rc);R(x-7,y-7,14,2,rc);g.globalAlpha=.5;for(var k8=0;k8<4;k8++)R(x-7+k8*4,y-9-((Math.floor(t*5)+k8*2)%9),2,3,rc);g.globalAlpha=1}
+      else if(spl.st==='holy'){g.globalAlpha=.22+.13*Math.sin(t*3);R(x-9,y-26,18,26,rc);g.globalAlpha=.3;R(x-1,y-34,2,34,'#fff');g.globalAlpha=1;spk(x+7,y-20-(tk%4),'#fff',tk%2===0);spk(x-7,y-12-(tk%3),'#ffe27a',tk%3===0)}}
   };
 })();
 function cardRefreshView(){try{if(typeof view!=='undefined'&&view.look){/* ตัวละครรีเฟรชในฉากถัดไป */}}catch(e){}}
@@ -9811,7 +9864,7 @@ async function lbRecord(E,kind){
     const sn=await ref.get();const cur=sn.exists?lbRow(LB.id,sn.data()):lbRow(LB.id,{});cur.richest=cur.richestRaw!=null?cur.richestRaw:cur.richest;
     const nv={nick:NICK||cur.nick||'ผู้เล่น',lives:cur.lives+1,survived:cur.survived+(kind==='final'?1:0),richest:Math.max(cur.richest,Math.max(0,Math.round(S.mo))),
       meds:Math.max(cur.meds,Math.min(80,S.inv.med)),joy:Math.max(cur.joy,Math.round(S.md)),best:Math.max(cur.best,E.score),role:S.role.n,title:E.title,at:Date.now(),
-      wk:Math.min(cur.lives+1,Math.max(cur.wk,wkCount())),dr:cur.dr+(E.dream&&E.dream.ok?1:0),tt:(S.wk&&kind!=='died'&&WKTITLE[S.wk])||cur.tt||'',
+      wk:Math.min(cur.lives+1,Math.max(cur.wk,wkCount())),dr:cur.dr+(E.dream&&E.dream.ok?1:0),tt:(typeof isAdmin==='function'&&isAdmin())?'ผู้ดูแลระบบ':(S.wk&&kind!=='died'&&WKTITLE[S.wk])||cur.tt||'',
       arms:Math.max(cur.arms,Math.min(60,Object.keys(S.gear||{}).length)),
       ghost:cur.ghost+(S.rares|0),
       banana:cur.banana+((kind==='died'&&SILLY.includes(S.cause))?1:0),
@@ -10302,6 +10355,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-04b',date:'4 พ.ย. 2569',title:'การ์ดสวยขึ้น ลายละเอียดขึ้น',items:['🎴 ชุด: มีคอปก เข็มขัด ขอบแขน กระดุม · ระดับ S/S+ มีขอบทองและประกายแสง','ปีกค้างคาว/ผีเสื้อ/ขนนกวาดใหม่ มีเส้นกระดูก ลายขน และประกาย','หมวก รองเท้า อาวุธ และเวทมนตร์ ใส่ลายเงา ไฮไลต์ และอัญมณีเพิ่ม']},
  {id:'2026-11-04a',date:'4 พ.ย. 2569',title:'ปาร์ตี้ 2–4 คน ตัวละครคนละตัว',items:['👥 ปุ่มใหม่ในหน้าแรก: สร้างปาร์ตี้หรือเข้าด้วยรหัสห้อง เล่นได้ 2–4 คน','ทุกคนสุ่มอาชีพและเงินของตัวเอง เจอเหตุการณ์และภัยพิบัติเดียวกันพร้อมกัน เลือกคนละทางได้ ดูว่าเพื่อนเลือกอะไรหลังตัดสินใจ','เลือกช่วยเหลือ = เพื่อนได้กำลังใจ · ช่วยกันหลายคน = โบนัสทีม · ก่อเรื่อง = ตำรวจมองมาทางกลุ่ม · ใครจากไป เพื่อนเสียใจ แต่เกมยังเล่นต่อ','ไม่ทับเซฟเดี่ยวของคุณ หัวหน้าห้องออกกลางทางก็เล่นต่อได้']},
  {id:'2026-11-03j',date:'3 พ.ย. 2569',title:'อาชีพรวยระดับท็อปอีก 20 อาชีพ',items:['💎 รวยใกล้มหาเศรษฐีแต่ยังไม่เท่า: นักบินส่วนตัวเจ้าสัว เจ้าของสนามกอล์ฟ ซีอีโอแอปส่งอาหาร ดาวเตะพันล้าน ผู้จัดละคร ป๊อปสตาร์ เจ้าของโรงแรม วิศวกรจรวดโรงรถ เจ้าสัวตลาดสด และอีกหลายอาชีพ','แต่ละอาชีพมีเหตุการณ์เฉพาะตัว พร้อมทางเลือกทั้งสายใจดี สายรวย และสายคิด']},
  {id:'2026-11-03i',date:'3 พ.ย. 2569',title:'อาชีพใหม่ 14 อาชีพ',items:['🕶 เท่/ฮา/กวน รายได้ใกล้คนรวย: สตันต์แมน ดีเจหัวเป็ด เชฟมิชลินขี้โมโห นักพากย์อีสปอร์ต เจ้าของแฟรนไชส์ไก่ทอด ที่ปรึกษาลับมหาเศรษฐี นักมายากล นักเทรดมีมคอยน์','📈 จนแล้วรวยเร็วแบบมีทางลัด: คนถูกหวยแล้วลืมไปขึ้นเงิน เด็กส่งพิซซ่าที่รู้ที่อยู่ลับเจ้าพ่อ ช่างกุญแจเปิดตู้เซฟ ไกด์เพื่อนเศรษฐี ตลกเปิดหมวกไวรัล คนรับจ้างต่อคิว','ทุกอาชีพมีเหตุการณ์เฉพาะตัว 2 เรื่อง และอาชีพกลุ่มจนแล้วรวยฐานะขยับขึ้นตามที่ทำสำเร็จ']},
@@ -10549,9 +10603,9 @@ function rkStatus(){
   }catch(e){}
   try{return JSON.parse(lsGet('doom365-rk','{}'))||{}}catch(e){return {}}
 }
-function ttUnlocked(t){return t.src==='ot'?otMine()>=t.need:t.src==='rank'?!!rkStatus()[t.m]:!!(typeof epiMine==='function'&&epiMine()[t.id])}
-function ttEquipped(){const id=lsGet(TTK,'');const t=TT_BY[id];return t&&ttUnlocked(t)?id:''}
-function ttReq(t){return t.src==='rank'?'ติดท็อป '+(t.top||10)+' ในอันดับ '+({survived:'“รอดครบ 365 วัน”',funny:'“ตายฮาหลายแบบที่สุด”',wk:'“ผ่านท้าทายสัปดาห์”',dc:'“ชีวิตประจำวัน (เล่นสะสม)”',te:'“เงินสะสมรวมตั้งแต่เล่น”'}[t.m])+' (หลุดท็อปฉายาจะถูกถอด)':t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
+function ttUnlocked(t){return t.src==='adm'?isAdmin():t.src==='ot'?otMine()>=t.need:t.src==='rank'?!!rkStatus()[t.m]:!!(typeof epiMine==='function'&&epiMine()[t.id])}
+function ttEquipped(){let id=lsGet(TTK,'');if(!id&&isAdmin())return 'adm';const t=TT_BY[id];return t&&ttUnlocked(t)?id:''}
+function ttReq(t){return t.src==='adm'?'เฉพาะเจ้าของเซิร์ฟเวอร์':t.src==='rank'?'ติดท็อป '+(t.top||10)+' ในอันดับ '+({survived:'“รอดครบ 365 วัน”',funny:'“ตายฮาหลายแบบที่สุด”',wk:'“ผ่านท้าทายสัปดาห์”',dc:'“ชีวิตประจำวัน (เล่นสะสม)”',te:'“เงินสะสมรวมตั้งแต่เล่น”'}[t.m])+' (หลุดท็อปฉายาจะถูกถอด)':t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
 function otBadge(v){
   let t=null;TITLES.forEach(x=>{if(x.src==='ot'&&v>=x.need)t=x});
   return t?'<i class="tt" style="color:#8ec5ff;border-color:#8ec5ff">'+t.i+' '+esc(t.n)+'</i>':'';
@@ -12558,5 +12612,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 03:05';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 04:08';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
