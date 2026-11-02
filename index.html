@@ -9627,6 +9627,10 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-03a',date:'3 พ.ย. 2569',title:'แตะชื่อในแชทเพื่อชวนแลกการ์ด + แชทตอนชวนแลก',items:[
+  '💬 แตะชื่อผู้เล่นในแชทโลก จะมีเมนู “ชวนแลกการ์ด” (ถ้าเขาออนไลน์อยู่) หรือซ่อนข้อความ',
+  '🤝 หน้าแลกการ์ดมีช่องแชทตั้งแต่ตอนรอเขาตอบรับ คุยกันก่อนตกลงแลกได้',
+  '🎴 การ์ดหายากขึ้น: A 2% · S 0.4% · S+ 0.1% และมีการ์ดใหม่ 36 ใบ (หมวก รองเท้า อาวุธ คาถา ปีก เสื้อ) รวม 66 ใบ']},
  {id:'2026-11-02a',date:'2 พ.ย. 2569',title:'อัปเดตใหญ่: สามก๊กบุกโลก · มังกรบุก · การ์ดชุด · แลกการ์ด',items:[
   '⚔️ ภัยพิบัติใหม่ “สามก๊กบุกโลก” 6 ตอนต่อเนื่อง ทัพสามแคว้นทะลุประตูมิติมากลางทุ่งนา',
   '🐉 ภัยพิบัติใหม่ “มังกรบุก” 6 ตอน มีเนื้อเรื่องช่วยลูกมังกรกลับไปหาแม่ จบเรื่องได้การ์ดแน่นอน',
@@ -9944,7 +9948,7 @@ function trRecv(from,d){
   if(ty==='acc'&&TR.st==='wait'){TR.st='in';trLog('sys',TR.nm+' ตอบรับแล้ว เริ่มแลกกันได้เลย');drawTrade()}
   else if(ty==='dec'&&TR.st==='wait'){TR.st='list';TR.note=TR.nm+(d.why==='busy'?' กำลังทำอย่างอื่นอยู่':' ไม่ว่างแลกตอนนี้');TR.peer=null;drawTrade()}
   else if(ty==='off'&&TR.st==='in'){var c=String(d.c||'');TR.them=CARD_BY[c]?c:'';trReset();trLog('sys',TR.nm+(TR.them?' เสนอ '+CARD_BY[TR.them].n:' ถอนข้อเสนอ'));drawTrade()}
-  else if(ty==='msg'&&TR.st==='in'){trLog('them',clean(d.x,80));drawTrade()}
+  else if(ty==='msg'&&(TR.st==='in'||TR.st==='wait'||TR.st==='ask')){trLog('them',clean(d.x,80));drawTrade()}
   else if(ty==='cf'&&TR.st==='in'){
     var g=String(d.g||''),r=String(d.r||'');
     if(g===(TR.them||'')&&r===(TR.mine||'')){TR.cfThem=true;trTryDone()}
@@ -9986,6 +9990,8 @@ function trClose(){
   if(TR&&TR.peer&&TR.st!=='done'&&TR.st!=='list')trSend('bye');
   clearInterval(trTimer);trTimer=null;TR=null;
 }
+function trChatHtml(){return '<div class="trlog" id="trlog">'+TR.log.map(function(l){return '<div class="'+l[0]+'">'+(l[0]==='me'?'คุณ: ':l[0]==='them'?esc(TR.nm)+': ':'')+esc(l[1])+'</div>'}).join('')+'</div>'+
+'<div style="display:flex;gap:6px"><input id="trin" maxlength="80" placeholder="พิมพ์คุยกัน…" style="flex:1"><button class="mini" id="trsd">ส่ง</button></div>'}
 function drawTrade(){
   var ov=document.getElementById('ovtrade');if(!ov||!TR)return;
   var h='<div class="ovb" style="max-width:520px" role="dialog" aria-label="แลกการ์ด"><div class="ovh"><b>🤝 แลกการ์ด</b><button class="mini" id="trx">ปิด</button></div>';
@@ -9998,9 +10004,9 @@ function drawTrade(){
       '<p class="hint">ตอนนี้ไม่มีใครออนไลน์ให้แลก ลองชวนเพื่อนเปิดหน้านี้พร้อมกัน แล้วกลับมาใหม่</p>';
     h+='<div class="row"><button class="btn" id="trbk">กลับไปอัลบั้ม</button></div>';
   }else if(TR.st==='ask'){
-    h+='<p style="margin:10px 0"><b>'+esc(TR.nm)+'</b> ชวนคุณแลกการ์ด</p><div class="row"><button class="btn" id="tracc">ตกลง</button><button class="mini" id="trdec">ไม่ว่าง</button></div>';
+    h+='<p style="margin:10px 0"><b>'+esc(TR.nm)+'</b> ชวนคุณแลกการ์ด</p><div class="row"><button class="btn" id="tracc">ตกลง</button><button class="mini" id="trdec">ไม่ว่าง</button></div>'+trChatHtml();
   }else if(TR.st==='wait'){
-    h+='<p style="margin:10px 0">รอ <b>'+esc(TR.nm)+'</b> ตอบรับ…</p><div class="row"><button class="mini" id="trcan">ยกเลิก</button></div>';
+    h+='<p style="margin:10px 0">รอ <b>'+esc(TR.nm)+'</b> ตอบรับ…</p><div class="row"><button class="mini" id="trcan">ยกเลิก</button></div>'+trChatHtml();
   }else if(TR.st==='done'){
     h+='<p style="margin:10px 0">🎉 '+esc(TR.res)+'</p><div class="row"><button class="btn" id="trfin">เสร็จสิ้น</button></div>';
   }else{
@@ -10011,10 +10017,11 @@ function drawTrade(){
       '<div><small>'+esc(TR.nm)+' เสนอ</small>'+(t?cardHTML(t,{}):'<div class="cardx lock"><b>ยังไม่เลือก</b></div>')+(TR.cfThem?'<small>✅ เขายืนยันแล้ว</small>':'')+'</div></div>'+
       '<div style="margin:8px 0"><small>เลือกการ์ดของคุณที่จะแลก</small><div class="cardrow">'+(opts.length?opts.map(function(r){var c=CARD_BY[r[0]];return cardHTML(c,{sel:TR.mine===c.id,n:cardFree(c.id),attr:' data-o="'+c.id+'"'})}).join(''):'<small>ไม่มีใบที่แลกได้</small>')+'</div>'+
       (TR.mine?'<button class="mini" id="troff">ถอนข้อเสนอ</button>':'')+'</div>'+
-      '<div class="row"><button class="btn" id="trcf"'+((!TR.mine&&!TR.them)||TR.cfMine?' disabled':'')+'>ยืนยันการแลก</button></div>'+
-      '<div class="trlog" id="trlog">'+TR.log.map(function(l){return '<div class="'+l[0]+'">'+(l[0]==='me'?'คุณ: ':l[0]==='them'?esc(TR.nm)+': ':'')+esc(l[1])+'</div>'}).join('')+'</div>'+
-      '<div style="display:flex;gap:6px"><input id="trin" maxlength="80" placeholder="พิมพ์คุยกัน…" style="flex:1"><button class="mini" id="trsd">ส่ง</button></div>';
+      '<div class="row"><button class="btn" id="trcf"'+((!TR.mine&&!TR.them)||TR.cfMine?' disabled':'')+'>ยืนยันการแลก</button></div>';
+
+
   }
+  if(TR.st==='in')h+=trChatHtml();
   h+='<p class="hint" style="margin-top:8px;font-size:11px">หมายเหตุ: การ์ดเก็บในเครื่อง/บัญชีของแต่ละคน ไม่มีเซิร์ฟเวอร์กลางตรวจสอบ แลกกับคนที่ไว้ใจได้</p></div>';
   var keep=ov.querySelector&&ov.querySelector('#trin'),kv=keep?keep.value:'',kf=keep&&document.activeElement===keep;
   ov.innerHTML=h;
@@ -10039,6 +10046,25 @@ function drawTrade(){
 }
 {var _b=document.getElementById('bCards');if(_b)_b.onclick=ovCards}
 try{trInit()}catch(e){}
+
+function trInviteFrom(id,nm){
+  if(TR&&TR.st!=='list'&&TR.st!=='done'){ovTrade();return}
+  TR={peer:id,nm:clean(nm,16)||trPeerName(id),st:'wait',mine:'',them:'',cfMine:false,cfThem:false,log:[],n:0};
+  trInit();ovTrade();trSend('inv');drawTrade();
+}
+function peerMenu(id,nm){
+  var old=document.getElementById('ovpeer');if(old)old.remove();
+  var online=false;try{online=MP.api.peers().some(function(p){return p.peer===id&&!p.sameTab})}catch(e){}
+  var ov=document.createElement('div');ov.className='ov';ov.id='ovpeer';ov.style.zIndex=80;document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove()});
+  ov.innerHTML='<div class="ovb" style="max-width:300px;text-align:center"><div class="ovh"><b>'+esc(nm)+'</b><button class="mini" id="pmx">ปิด</button></div>'+
+    '<div style="display:flex;flex-direction:column;gap:6px;margin-top:6px"><button class="btn" id="pmtr"'+(online?'':' disabled')+'>🤝 ชวนแลกการ์ด</button>'+
+    (online?'':'<small>ตอนนี้คนนี้ไม่ได้ออนไลน์ในห้องรวม ชวนแลกไม่ได้</small>')+
+    '<button class="mini" id="pmmu">🔇 ซ่อนข้อความของคนนี้</button></div></div>';
+  ov.querySelector('#pmx').onclick=function(){ov.remove()};
+  ov.querySelector('#pmtr').onclick=function(){ov.remove();var oc=document.getElementById('ovchat');if(oc)oc.remove();trInviteFrom(id,nm)};
+  ov.querySelector('#pmmu').onclick=function(){var c=chatSt();c.mut[id]=1;c.msgs=c.msgs.filter(function(m){return m.pid!==id});chatRefresh();ov.remove()};
+}
 /* ===== UI v2 ===== */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -10981,7 +11007,7 @@ function chatSend(text,inv){
 }
 function chatLineHtml(m){
   const mu=!m.me&&m.pid;
-  const nm='<b class="cn'+(m.me?' me':'')+'"'+(mu?' data-mu="'+esc(m.pid)+'" title="แตะที่ชื่อเพื่อซ่อนข้อความของคนนี้"':'')+'>'+esc(m.n)+(m.me?' (คุณ)':' <i>#'+esc(m.tag)+'</i>')+'</b>';
+  const nm='<b class="cn'+(m.me?' me':'')+'"'+(mu?' data-mu="'+esc(m.pid)+'" title="แตะที่ชื่อเพื่อชวนแลกการ์ดหรือซ่อนข้อความ"':'')+'>'+esc(m.n)+(m.me?' (คุณ)':' <i>#'+esc(m.tag)+'</i>')+'</b>';
   const join=m.rc&&!MP.on&&!m.me?' <button class="mini" data-jrc="'+esc(m.rc)+'">เข้าห้อง '+esc(m.rc.toUpperCase())+'</button>':m.rc?' <span class="rcb">ห้อง '+esc(m.rc.toUpperCase())+'</span>':'';
   return '<div class="cm">'+nm+chatTagsHtml(m.u)+' '+esc(m.t)+'</div>';
 }
@@ -11005,8 +11031,8 @@ function chatBind(w){
     try{if(await mpOpen(b.dataset.jrc,NICK,false)){const ov=document.getElementById('ovchat');if(ov)ov.remove();stage='guest';guestWait()}}catch(e){}
   });
   w.querySelectorAll('[data-mu]').forEach(b=>b.onclick=()=>{
-    const c=chatSt(),id=b.dataset.mu;if(!id)return;
-    if(confirm('ซ่อนข้อความของ '+b.textContent.trim()+' ในรอบนี้?')){c.mut[id]=1;c.msgs=c.msgs.filter(m=>m.pid!==id);chatRefresh()}
+    const id=b.dataset.mu;if(!id)return;
+    if(typeof peerMenu==='function')peerMenu(id,b.textContent.replace(/#\S+$/,'').trim());
   });
 }
 function chatMount(el){
@@ -11494,5 +11520,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 00:14';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 00:28';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
