@@ -6120,6 +6120,7 @@ const TITLES=[
  {id:'rk_sv',src:'rank',m:'survived',n:'ท็อป 10 ผู้รอดครบ 365 วัน',i:'🏆',b:{mo:.04}},
  {id:'rk_fn',src:'rank',m:'funny',n:'ท็อป 10 ตายฮาที่สุด',i:'🤡',b:{mo:.04}},
  {id:'rk_wk',src:'rank',m:'wk',top:20,n:'ท็อป 20 ผู้ผ่านท้าทายสัปดาห์',i:'🏅',b:{mo:.05}},
+ {id:'rk_te',src:'rank',m:'te',n:'ท็อป 10 เงินสะสมรวมตั้งแต่เล่น',i:'💰',b:{mo:.05}},
  {id:'rk_dl',src:'rank',m:'dc',top:20,n:'ท็อป 20 ชีวิตประจำวัน',i:'📅',b:{mo:.05}},
  {id:'e5',src:'epi',n:'ซาตานผู้ปล้นโลกก่อนโลกแตก',i:'💀',b:{mo:.03}}];
 const TT_BY=Object.fromEntries(TITLES.map(t=>[t.id,t]));
@@ -9627,6 +9628,9 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-03b',date:'3 พ.ย. 2569',title:'ฉายาท็อป 10 เงินสะสมรวม +5%',items:[
+  '💰 ฉายาใหม่ “ท็อป 10 เงินสะสมรวมตั้งแต่เล่น” ได้ทอง +5% นับเฉพาะเงินที่หามาได้ ไม่นับเงินตั้งต้นของอาชีพ',
+  '🎖 สวมได้ที่ปุ่ม “ฉายา” หลุดท็อป 10 ฉายาจะถูกถอด']},
  {id:'2026-11-03a',date:'3 พ.ย. 2569',title:'แตะชื่อในแชทเพื่อชวนแลกการ์ด + แชทตอนชวนแลก',items:[
   '💬 แตะชื่อผู้เล่นในแชทโลก จะมีเมนู “ชวนแลกการ์ด” (ถ้าเขาออนไลน์อยู่) หรือซ่อนข้อความ',
   '🤝 หน้าแลกการ์ดมีช่องแชทตั้งแต่ตอนรอเขาตอบรับ คุยกันก่อนตกลงแลกได้',
@@ -9838,7 +9842,7 @@ async function otSync(){
 }
 setInterval(otTick,30000);
 setInterval(()=>{if(!document.hidden)otSync()},300000);
-const RK_TOP={survived:10,funny:10,wk:20,dc:20};
+const RK_TOP={survived:10,funny:10,te:10,wk:20,dc:20};
 function rkStatus(){
   try{
     if(typeof LB!=='undefined'&&LB.id&&LB.rows&&LB.rows.length){
@@ -9850,7 +9854,7 @@ function rkStatus(){
 }
 function ttUnlocked(t){return t.src==='ot'?otMine()>=t.need:t.src==='rank'?!!rkStatus()[t.m]:!!(typeof epiMine==='function'&&epiMine()[t.id])}
 function ttEquipped(){const id=lsGet(TTK,'');const t=TT_BY[id];return t&&ttUnlocked(t)?id:''}
-function ttReq(t){return t.src==='rank'?'ติดท็อป '+(t.top||10)+' ในอันดับ '+({survived:'“รอดครบ 365 วัน”',funny:'“ตายฮาหลายแบบที่สุด”',wk:'“ผ่านท้าทายสัปดาห์”',dc:'“ชีวิตประจำวัน (เล่นสะสม)”'}[t.m])+' (หลุดท็อปฉายาจะถูกถอด)':t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
+function ttReq(t){return t.src==='rank'?'ติดท็อป '+(t.top||10)+' ในอันดับ '+({survived:'“รอดครบ 365 วัน”',funny:'“ตายฮาหลายแบบที่สุด”',wk:'“ผ่านท้าทายสัปดาห์”',dc:'“ชีวิตประจำวัน (เล่นสะสม)”',te:'“เงินสะสมรวมตั้งแต่เล่น”'}[t.m])+' (หลุดท็อปฉายาจะถูกถอด)':t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
 function otBadge(v){
   let t=null;TITLES.forEach(x=>{if(x.src==='ot'&&v>=x.need)t=x});
   return t?'<i class="tt" style="color:#8ec5ff;border-color:#8ec5ff">'+t.i+' '+esc(t.n)+'</i>':'';
@@ -11520,5 +11524,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 00:28';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 00:36';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
