@@ -381,6 +381,19 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
 .cform{display:flex;gap:6px;flex-wrap:wrap}.cform input{flex:1 1 140px;min-width:0;background:var(--bg);border:1px solid var(--line);color:var(--text);padding:7px 10px;font:inherit}
 .cform .btn{padding:7px 12px;font-size:14px}.cnote{font-size:11px!important;margin:0!important}.cerr{color:var(--bad,#c0392b);margin:0!important;min-height:0}
 .rcb{font-size:12px;color:var(--gold2)}
+
+.cardx{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 6px;border-radius:10px;border:2px solid var(--cc,#888);background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(0,0,0,.35)),#1b1f30;color:#f2f2f6;text-align:center;font-size:12px;line-height:1.25;box-shadow:0 0 10px var(--cg,transparent),inset 0 0 14px var(--cg,transparent);cursor:pointer;min-width:0}
+.cardx.tSP{animation:cglow 2.2s ease-in-out infinite}.cardx.tS{animation:cglow 3s ease-in-out infinite}
+.cardx .cdt{position:absolute;top:3px;left:5px;font-weight:800;color:var(--cc);font-size:12px}
+.cardx .cdi{font-size:30px;filter:drop-shadow(0 0 6px var(--cg))}
+.cardx small{opacity:.85}.cardx em{font-size:10px;font-style:normal;opacity:.8}
+.cardx.sel{outline:2px solid #fff}.cardx.lock{opacity:.4;border-color:#666;box-shadow:none;animation:none;cursor:default}
+.cardgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:6px;margin-top:4px}
+.cardrow{display:flex;gap:6px;overflow-x:auto;padding:4px 2px}.cardrow .cardx{min-width:104px}
+.cardpop{width:150px;margin:6px auto;transform:scale(1.15)}.cardpop .cardx{animation:cglow 1.6s ease-in-out infinite,cpop .6s ease-out}
+.trlog{max-height:96px;overflow:auto;font-size:12px;margin:6px 0;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,.18);text-align:left}.trlog .sys{opacity:.7;font-style:italic}
+@keyframes cglow{50%{box-shadow:0 0 22px var(--cg),inset 0 0 20px var(--cg)}}
+@keyframes cpop{from{transform:scale(.3) rotate(-12deg);opacity:0}}
 </style></head><body>
 
 <div class="app" id="app">
@@ -419,6 +432,7 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
           <button class="mini hot" id="bBoard">🏆 อันดับ</button>
           <button class="mini" id="bChat">💬 แชท</button>
           <button class="mini hot" id="bTitle">🎖 ฉายา</button>
+          <button class="mini hot" id="bCards">🎴 การ์ด</button>
           <button class="mini" id="bSave">บันทึกชีวิต</button>
           <button class="mini" id="bQuit">ยอมแพ้</button>
         </div>
@@ -640,7 +654,7 @@ window.claude={use:async n=>{
 'use strict';
 const CFG={apiKey:"AIzaSyAZ1mveEDaA59spw_XRjX_gmV898g_otkA",authDomain:"doom365.firebaseapp.com",projectId:"doom365",storageBucket:"doom365.firebasestorage.app",messagingSenderId:"296220747122",appId:"1:296220747122:web:5a8015a8a7706962dbe9eb"};
 const BASE='https://www.gstatic.com/firebasejs/10.14.1/';
-const SYNC=['doom365-lives','doom365-ach','doom365-meta','doom365-codex','doom365-nick','doom365-wk','doom365-tut','doom365-theme','doom365-len','doom365-mg','doom365-epi','doom365-title','doom365-ot'];
+const SYNC=['doom365-lives','doom365-ach','doom365-meta','doom365-codex','doom365-nick','doom365-wk','doom365-tut','doom365-theme','doom365-len','doom365-mg','doom365-epi','doom365-title','doom365-ot','doom365-cards'];
 const SYNCSET=new Set(SYNC);
 const SAVEK='doom365v2-save',SVAT='doom365-svat';
 const PUSH_MS=25000;
@@ -706,6 +720,7 @@ function mergeKey(k,l,c){
   if(l==null||l==='')return c;
   if(l===c)return l;
   let a,b;try{a=JSON.parse(l);b=JSON.parse(c)}catch(e){return l}
+  if(k==='doom365-cards'&&a&&b&&typeof a==='object')return (+a.t||0)>=(+b.t||0)?l:c;
   if(typeof a==='number'&&typeof b==='number'&&(k==='doom365-ot'))return String(Math.max(a,b));
   if(Array.isArray(a)&&Array.isArray(b)){
     const seen=new Set(),out=[];
@@ -3864,7 +3879,7 @@ function afEp(a,type){
 }
 const AF_SEQ={3:['end'],4:['ep3','end'],5:['ep3','ep4','end']};
 function afterStart(t,e){
-  if(S.after||S.arcPlan&&S.arcPlan.n>0&&S.arcPlan.n<5)return;
+  if(S.after||S.arcPlan&&S.arcPlan.n>0&&S.arcPlan.n<ARC_LEN(S.arcPlan.k))return;
   if((S.afCount|0)>=3||S.day<(S.afCool|0))return;
   const th=afThemeOf(t);if(!th)return;
   const chain=th==='story';
@@ -3882,7 +3897,7 @@ function afterTick(){
   const a=S.after;if(!a)return null;
   if(S.day>=345){S.after=null;return null}
   if(S.day<a.at)return null;
-  if(S.arcPlan&&S.arcPlan.n>0&&S.arcPlan.n<5){a.at=S.day+3;return null}
+  if(S.arcPlan&&S.arcPlan.n>0&&S.arcPlan.n<ARC_LEN(S.arcPlan.k)){a.at=S.day+3;return null}
   const type=a.seq[a.i];if(!type){S.after=null;return null}
   a.i++;
   const scene=a.base+a.i;
@@ -4071,22 +4086,25 @@ tree:[
  ['ใช้พิธีเก่าของผู้เฒ่า น้ำ ไฟ และเกลือ',{md:4,en:-14},.3,'บทสวดของคุณผิดพลาดและต้นแม่ตอบโต้ด้วยเถาวัลย์เส้นใหญ่',{hp:-12,wd:16,md:-10},'พิธีโบราณทำให้ต้นแม่หยุดนิ่งและร่วงใบทีละใบ เหมือนหลับไปอีกครั้งเป็นเวลาอีกสามร้อยปี',{g:'faith',fin:1}],
  ['ยิงหรือฟันด้วยอาวุธที่มี',{md:2,en:-16},.45,'อาวุธติดอยู่ในเนื้อไม้และเถาวัลย์รัดคุณไว้แน่น',{hp:-16,wd:24,md:-12},'คุณฟันซ้ำเป็นร้อยครั้งจนมือชา ต้นแม่ล้มลงพร้อมเสียงโครมครามและคุณทรุดนั่งลงโดยไม่มีแรงแม้แต่จะดีใจ',{show:S=>hasG('bat')(S)||hasG('gun')(S)||hasG('xbow')(S),g:'adv',fin:1}]]]
 ]});
-(function(){
- for(const k of ARC_TYPES){
+function arcGen(k){
+ {
   ARC_EP[k].forEach((ep,i)=>{
-   const key='arc_'+k+(i+1),last=i===4;
+   const key='arc_'+k+(i+1),last=i===ARC_EP[k].length-1;
    const ch=ep[2].map(c=>{
     const o=c[6]||{};
     const r={t:c[0],x:c[1],d:last?2:1,r:c[5]+(last?'':''),k:{p:c[2],e:ARC_E[k],x:c[4],f:c[3]}};
     if(o.q)r.q=o.q;if(o.g)r.g=o.g;if(o.n)r.n=o.n;if(o.show)r.show=o.show;
     if(o.fin)r.flag={arcwin:1,['arc_'+k]:1};
+    if(o.card)r.card=o.card;
     return r;
    });
    T({k:key,sc:ARC_SC[k],w:1,cd:5,req:()=>false,head:ep[0],txt:ep[1],ch,arc:k,ep:i+1,dis:true});
    EXTRA_KD[key]=ARC_D[k];KEYMOOD[key]=ARC_M[k];KEYCAT[key]='danger';
   });
  }
-})();
+}
+ARC_TYPES.forEach(arcGen);
+const ARC_LEN=k=>ARC_EP[k]?ARC_EP[k].length:5;
 /* วางแผนฉากบุกหลายตอนของชีวิตนี้ (~25% ของชีวิต) */
 const ARC_CHANCE=.25;
 function arcTick(){
@@ -4094,12 +4112,12 @@ function arcTick(){
   S.arcPlan=RND()<ARC_CHANCE?{k:pick(ARC_TYPES),at:rr(45,230),n:0}:null;
  }
  const a=S.arcPlan;
- if(!a||a.n>=5||S.day<a.at||S.day>=345)return null;
+ if(!a||a.n>=ARC_LEN(a.k)||S.day<a.at||S.day>=345)return null;
  const t=TPL.find(x=>x.k==='arc_'+a.k+(a.n+1));
  if(!t)return null;
  a.n++;a.at=S.day+rr(8,13);
  S.nextDis=Math.max(S.nextDis,a.at+3);
- S.flags.arcOn=a.n<5?a.k:0;
+ S.flags.arcOn=a.n<ARC_LEN(a.k)?a.k:0;
  return t;
 }
 /* ===== ระบบตั้งแก๊ง / กลุ่ม: ก่อตั้ง → 5 ตอนต่อเนื่อง (ก๊วนมืด / กลุ่มอาสา / กลุ่มตลาด) ===== */
@@ -4907,13 +4925,15 @@ function weightedPick(){
     if(t.req&&!t.req(S))w=0;
     if(S.cool[t.k]!=null&&S.day<S.cool[t.k])w=0;
     if(w&&t.boost)w*=t.boost(S);
+    if(w&&S.recent){const ri=S.recent.lastIndexOf(t.k);if(ri>=0)w*=.12+.06*(S.recent.length-1-ri)/4}
     if(w&&(t.dis||KEYCAT[t.k]==='danger'))w*=DIFF.danger;
     tot+=w;return w;
   });
   if(tot<=0){S.cool={};return TPL[0]}
   let r=RND()*tot;
-  for(let i=0;i<TPL.length;i++){r-=ws[i];if(r<=0)return TPL[i]}
-  return TPL[0];
+  const fin=t=>{if(!S.recent)S.recent=[];S.recent.push(t.k);if(S.recent.length>16)S.recent.shift();return t};
+  for(let i=0;i<TPL.length;i++){r-=ws[i];if(r<=0)return fin(TPL[i])}
+  return fin(TPL[0]);
 }
 
 /* ----- ตัวเลือกเสริม ----- */
@@ -5023,6 +5043,7 @@ function addStat(k,v,o){
   if(k==='mo'&&v>0&&typeof MONEYX==='function')v=Math.round(v*MONEYX()*((S.role&&/^ทายาท/.test(S.role.n))?.7:1));
   if(k==='mo'&&tfx()>1)v=Math.round(v*(1+(tfx()-1)*.9));
   if(v>0&&typeof tb==='function'){const q=tb(k);if(q)v=k==='mo'?Math.round(v*(1+q)):v*(1+q)}
+  if(k==='mo'&&v>0&&typeof cardBonus==='function'){const q=cardBonus();if(q)v=Math.round(v*(1+q))}
   const b=S[k];
   S[k]=k==='mo'?S[k]+v:clamp(S[k]+v,0,100);
   const dv=S[k]-b;
@@ -5154,6 +5175,7 @@ function settle(o,ev,failed){
   return o;
 }
 
+var NOCARD=(typeof window==='undefined');
 function resolve(ev,i){
   const c=ev.ch[i];
   const o={ok:true,deltas:{},text:'',days:c.d,end:null,extra:[],cost:0,choice:c.t,day0:S.day};
@@ -5173,8 +5195,10 @@ function resolve(ev,i){
   if(c.raw.gear&&o.ok){for(const k in c.raw.gear)S.gear[k]=1;o.extra.push('คุณได้ <b>'+Object.keys(c.raw.gear).map(k=>GEAR[k].n).join(', ')+'</b> เพิ่มเข้ามาในคลัง')}
   if(c.raw.flag)for(const k in c.raw.flag)S.flags[k]=(S.flags[k]||0)+c.raw.flag[k];
   if(c.raw.rise&&o.ok&&typeof riseUp==='function')riseUp(c.raw.rise,o);
+  if(c.raw.card&&o.ok&&typeof cardDropHook==='function')cardDropHook(o,c.raw.card);
   if(c.raw.job&&o.ok&&typeof setJob==='function')setJob(c.raw.job,o);
   if(typeof jobTick==='function')jobTick(o);
+  if(typeof cardRoll==='function'&&!NOCARD)cardRoll(o);
   if((c.raw.cbn||c.raw.cb||c.raw.cbl)&&o.ok){const m=S.crew.find(m=>m.n===(c.raw.cbn||S._cn));if(m){const w=c.raw.cbl?'leave':'bond';
     if(w==='bond'){m.b=(m.b|0)+1;o.extra.push('ความผูกพันกับ <b>'+m.n+'</b> เพิ่มขึ้น')}
     else if(w==='leave'){S.crew=S.crew.filter(x=>x!==m);o.extra.push('<b>'+m.n+'</b> ขอแยกทางไปแล้ว')}}}
@@ -5752,7 +5776,7 @@ function evTag(t,isMs){
   if(t.fest){const F=FEST.find(x=>x.k===t.fest);return {c:'late',i:F?F.ic:'🎉',n:'เทศกาล · '+(F?F.n:''),s:calStr(S.day)+' · '+seasonOf(S.day)}}
   if(t.rv&&S.rival)return {c:'chain',i:S.rival.rel==='foe'?'🗡':'🤝',n:S.rival.rel==='foe'?'ศัตรูเก่ากลับมา':'พันธมิตรเก่ากลับมา',s:'ความสัมพันธ์จากชีวิตก่อน · “'+S.rival.n+'”'};
   if(k==='gang_found')return {c:'chain',i:'🐺',n:'ทางแยกของชีวิต',s:'ตั้งแก๊ง ตั้งกลุ่ม หรืออยู่คนเดียว'};
-  if(t.arc)return {c:'dis',i:ARC_I[t.arc],n:'มหันตภัยต่อเนื่อง · '+ARC_N[t.arc],s:'ตอนที่ '+t.ep+' จาก 5'+(t.ep===5?' · ตอนจบ':' · รอดให้ได้จนจบ')};
+  if(t.arc)return {c:'dis',i:ARC_I[t.arc],n:'มหันตภัยต่อเนื่อง · '+ARC_N[t.arc],s:'ตอนที่ '+t.ep+' จาก '+ARC_LEN(t.arc)+(t.ep===ARC_LEN(t.arc)?' · ตอนจบ':' · รอดให้ได้จนจบ')};
   if(t.dis)return {c:'dis',i:'☄',n:'มหันตภัย',s:DIS_N[k]||DIS_N_X[k]||'ภัยพิบัติระดับโลก'};
   if(t.rare)return {c:'rare',i:'🌌',n:'เหตุการณ์หายาก',s:'เจอได้น้อยครั้งมากในชีวิต'};
   const m=/^(c_[a-z]+)(\d)$/.exec(k);
@@ -6436,6 +6460,287 @@ FD_LIST.forEach(x=>{
   FD_SCENE[x[0]]=x[6];
   x[1].split(',').forEach(cat=>{if(CATDEATH[cat])CATDEATH[cat].push(x[0])});
 });
+/* ===== v78: มหันตภัยใหม่ 2 ชุด — สามก๊กบุกโลก / มังกรบุกกับลูกมังกร (ชุดละ 6 ตอน) ===== */
+/* ตัวเลือก: [ข้อความ, ผลทั่วไป, โอกาสพลาด, ข้อความพลาด, ผลตอนพลาด, ข้อความตอนผ่าน, {g,fin,card,...}] */
+ARC_TYPES.push('sangok','dragon');
+Object.assign(ARC_N,{sangok:'สามก๊กบุกโลก',dragon:'มังกรบุก'});
+Object.assign(ARC_I,{sangok:'⚔️',dragon:'🐉'});
+Object.assign(ARC_SC,{sangok:['village','road','harbor','farm'],dragon:['mountain','village','forest','farm']});
+Object.assign(ARC_D,{sangok:['sg_war','collapse','chased'],dragon:['dragonf','dragon','kaiju']});
+Object.assign(ARC_M,{sangok:'chaos',dragon:'tense'});
+Object.assign(ARC_E,{sangok:'fight',dragon:'monster'});
+Object.assign(DEATHS,{
+ sg_war:{c:'สงคราม',t:'ติดอยู่กลางสมรภูมิสามก๊ก',txt:'ทัพสามฝ่ายปะทะกันกลางทุ่งที่คุณยืนอยู่ ธงสามสีโบกสะบัดเหนือหัว และไม่มีใครในสนามนั้นรู้ว่าคุณเป็นพลเรือน',near:'ลูกศรปักข้างตัวคุณเพียงคืบ ทหารคนหนึ่งดึงคุณลงหลุมหลบภัยทันเวลา',epi:'“ใครชนะ”'},
+ dragonf:{c:'มังกร',t:'โดนไฟมังกรเผา',txt:'เงามหึมาบดบังท้องฟ้า แล้วลมร้อนกลืนทุกอย่างในซอยของคุณ คุณมองเห็นดวงตาสีทองหนึ่งดวงก่อนทุกอย่างจะเงียบ',near:'ไฟมังกรลามมาถึงชายเสื้อ ก่อนคุณจะกระโดดลงคลองข้างทาง',epi:'“มันสวยจริงๆ”'}
+});
+Object.assign(FD_SCENE,{sg_war:'road',dragonf:'mountain'});
+ARC_EP.sangok=[
+['ประตูศึกเปิดกลางทุ่งนา','ฟ้ากลางวันแยกเป็นรอยแผลเรืองแสงกลางทุ่ง ควันสีทองพวยพุ่งออกมาพร้อมเสียงกลองศึกและธงสามสีโบกสะบัด ทหารม้าหลายร้อยนายกำลังก้าวออกมาจากอีกยุคหนึ่ง',[
+ ['ซ่อนตัวหลังกองฟางและดูเงียบๆ',{en:-8,md:-2},.25,'ม้าศึกตัวหนึ่งสะดุ้งและวิ่งชนกองฟางที่คุณซ่อน',{hp:-8,wd:10,md:-6},'ทหารขี่ม้าผ่านไปโดยไม่มองลงมาเลย และคุณเห็นธงของทั้งสามทัพชัดเจน',{g:'know'}],
+ ['วิ่งไปเตือนชาวบ้านให้หนีเข้าป่า',{lv:6,md:3,en:-14},.3,'ชาวบ้านบางคนไม่เชื่อและคุณถูกม้าศึกเฉี่ยวระหว่างวิ่งกลับ',{hp:-9,wd:12,md:-6},'ชาวบ้านทั้งซอยเก็บของหนีทัน และมีคนยกมือไหว้คุณทั้งน้ำตา',{g:'help'}],
+ ['เดินเข้าไปถามว่าพวกเขาเป็นใคร',{md:2,en:-6},.45,'ทหารยามชักดาบจ่อคอคุณก่อนที่จะรู้ว่าคุณมือเปล่า',{hp:-10,md:-8},'นายทหารหัวเราะแล้วตอบว่า "ข้าคือแม่ทัพแห่งแคว้นเหนือ" ก่อนจะสั่งให้ปล่อยตัวคุณ',{g:'adv'}],
+ ['เก็บอาหารและน้ำจากบ้านแล้วหนีไปทางเหนือ',{food:-1,water:-1,en:-12,md:-2},.2,'เส้นทางเหนือมีธงแคว้นอื่นขวางอยู่ คุณต้องวนอ้อมหลายชั่วโมง',{en:-10,md:-5},'คุณไปถึงเนินสูงและมองเห็นกองทัพทั้งสามฝ่ายตั้งค่ายกลางทุ่งอย่างชัดเจน',{}]]],
+['ทูตจากสามทัพเข้ามาในหมู่บ้าน','ผู้ส่งสารสามคนมาถึงศาลากลางหมู่บ้านพร้อมกันและแต่ละคนยื่นข้อเสนอ แคว้นเหนือขอเสบียง แคว้นตะวันตกขอกำลังคน แคว้นใต้ขอเรือและท่าน้ำ ทุกคนบอกว่าใครปฏิเสธคือศัตรู',[
+ ['เจรจาแบ่งเสบียงให้ทั้งสามแคว้นพอประมาณ',{food:-2,md:2,lv:3,en:-12},.35,'ทั้งสามฝ่ายไม่พอใจที่ได้น้อย และนายทหารคนหนึ่งตบโต๊ะจนหมูสะดุ้ง',{hp:-6,md:-7,mo:-1500},'ทุกฝ่ายพยักหน้าอย่างไม่พอใจเท่าไหร่ แต่ไม่มีใครชักดาบ',{g:'know'}],
+ ['เลือกข้างแคว้นเดียวที่ดูแข็งแรงที่สุด',{md:-3,mo:2000},.5,'อีกสองแคว้นประกาศว่าหมู่บ้านนี้เป็นศัตรู ทหารม้ากลุ่มเล็กมาเผาเพิงข้างบ้านคุณ',{hp:-8,md:-10,mo:-2500},'แคว้นที่คุณเลือกวางเวรยามให้หนึ่งคืนและตอบแทนด้วยเงิน',{g:'adv'}],
+ ['ขับทูตออกจากหมู่บ้านทั้งสามคน',{md:3,en:-8,lv:2},.45,'ทูตทั้งสามเดินออกไปพร้อมสายตาเย็นชา และคืนนั้นมีลูกศรปักประตูทุกบ้าน',{hp:-8,md:-8,ht:6},'ทั้งสามฝ่ายยังไม่ตัดสินใจโจมตีทันที และไปถกเถียงกันที่ค่าย',{g:'faith'}],
+ ['พาคนเฒ่าและเด็กหลบเข้าถ้ำหลังเขาก่อน',{lv:8,md:4,en:-18},.3,'ทางขึ้นเขาลื่นและมีผู้ใหญ่คนหนึ่งตกลงไปในเหว คุณได้ยินเสียงร้องก้องหุบเขา',{hp:-10,md:-10,en:-8},'ถ้ำหลังเขาลึกพอซ่อนทุกคนและมีลำธารไหลผ่านพอดี',{g:'help'}]]],
+['เผาเรือกลางแม่น้ำ','ตอนค่ำแม่น้ำหน้าหมู่บ้านลุกเป็นไฟ เรือรบหลายสิบลำถูกผูกโซ่ติดกันและกำลังจะเผาทั้งแม่น้ำ ชาวบ้านที่เก็บหอยอยู่ริมตลิ่งยังไม่รู้ว่าลมกำลังหันมาทางหมู่บ้าน',[
+ ['วิ่งไปตีระฆังเตือนทั้งหมู่บ้านให้หนี',{lv:7,md:4,en:-16},.3,'ควันและแรงลมทำให้คุณสำลักจนหมดแรงล้มลงกลางทาง',{hp:-10,wd:12,md:-6},'เสียงระฆังดังข้ามหมู่บ้าน ทุกคนวิ่งออกมาก่อนไฟจะลามถึงบ้านหลังแรก',{g:'help'}],
+ ['ขนน้ำและทรายมาสร้างแนวกันไฟริมตลิ่ง',{en:-20,md:3},.4,'ลมเปลี่ยนทิศอีกรอบและไฟพุ่งมาทางคุณทันทีก่อนที่แนวกันไฟจะเสร็จ',{hp:-12,wd:16,md:-8},'แนวกันไฟช่วยบ้านริมน้ำไว้ได้ครึ่งหนึ่งและคุณถูกเขม่าเกาะทั้งตัว',{g:'adv'}],
+ ['แอบพายเรือเล็กไปเก็บสมบัติที่ลอยมากับเรือไหม้',{mo:3500,en:-14,md:-2},.5,'เรือเล็กของคุณถูกเศษไม้ไฟตกใส่และคุณต้องกระโดดลงน้ำ',{hp:-12,wd:14,md:-8,mo:-1500},'คุณได้ของมีค่ากลับมาหนึ่งถุงก่อนไฟจะกลืนเรือลำสุดท้าย',{g:'wealth'}],
+ ['หลบเข้าบ้านและปิดหน้าต่างให้หมด',{md:-4,en:-6},.35,'ลมร้อนพัดเข้ามาทางช่องใต้ประตูและคุณหายใจติดขัดตลอดคืน',{hp:-6,wd:8,md:-8},'ไฟไม่ลามมาถึงบ้านคุณ แต่เช้าวันรุ่งขึ้นแม่น้ำทั้งสายเต็มไปด้วยขี้เถ้า',{}]]],
+['เกณฑ์ชาวบ้านเข้ากองทัพ','นายทหารพร้อมทหารเกณฑ์สิบนายมาตามบ้านทีละหลังและขอรายชื่อผู้ชายที่ยังแข็งแรง ทุกคนที่ถูกเรียกชื่อต้องไปรายงานตัวที่ค่ายภายในพระอาทิตย์ตก',[
+ ['ซ่อนชาวบ้านไว้ในยุ้งฉางหลังหมู่บ้าน',{lv:7,md:4,en:-14},.4,'ทหารตรวจยุ้งฉางและพบพวกเขา คุณถูกข่มขู่ด้วยปลายหอก',{hp:-9,md:-9,ht:6},'นายทหารเดินผ่านยุ้งฉางไปโดยไม่เปิดประตู และชาวบ้านเงียบกริบถึงตอนเช้า',{g:'help'}],
+ ['ไปรายงานตัวและขอเป็นพ่อครัวหรือหมอแทนทหาร',{md:-2,en:-10},.3,'ทหารยามไม่เชื่อว่าคุณทำอาหารเป็น และสั่งให้คุณหามกระสอบข้าวทั้งคืน',{hp:-6,en:-12,md:-6},'นายทหารมองมือคุณแล้วพยักหน้า คุณได้ที่หลับและอาหารในค่ายที่ปลอดภัยกว่าข้างนอก',{g:'adv'}],
+ ['หลอกว่าป่วยหนักด้วยโรคติดต่อ',{md:-3,en:-8},.45,'ทหารเอาคุณไปกักตัวและขังไว้ในโรงนาโดยไม่มีน้ำสองวัน',{hp:-8,md:-8,water:-1},'ทหารถอยห่างจากบ้านคุณทันทีและไม่กลับมาอีก',{g:'wealth'}],
+ ['หนีออกจากหมู่บ้านก่อนฟ้ามืด',{en:-18,md:-2,food:-1},.35,'ด่านทหารปิดทางออกและคุณต้องวิ่งซิกแซกผ่านทุ่งข้าวโพด',{hp:-10,wd:12,md:-6},'คุณลอดรั้วหลังโรงเรียนเก่าไปได้และเห็นแสงไฟค่ายทหารไกลออกไปเรื่อยๆ',{}]]],
+['กลยุทธ์ลวงและสายลับในหมู่บ้าน','มีข่าวลือว่าหนึ่งในชาวบ้านเป็นสายลับของทัพหนึ่ง และแต่ละทัพกำลังใช้กลศึกลวงกัน คืนนี้ประตูหมู่บ้านถูกเปิดไว้โดยไม่มีใครรับผิดชอบ',[
+ ['ตั้งเวรยามกับชาวบ้านทั้งคืน',{lv:5,md:2,en:-18},.3,'ยามคนหนึ่งหลับคาเสาและสายลับแอบลอบเข้ามาก่อนที่คุณจะสังเกต',{hp:-8,md:-8,mo:-1500},'ทุกคนผลัดกันตื่นและสายลับถูกจับได้ที่ประตูหลังตอนตีสอง',{g:'help'}],
+ ['วางกับดักล่อให้สายลับเผยตัว',{md:2,en:-12},.4,'กับดักของคุณดักได้แค่แมวและคนอื่นเห็นคุณเป็นคนวิกลจริต',{md:-6,lv:-3},'สายลับตกหลุมและถูกมัดไว้โดยไม่ต้องเสียเลือดสักหยด',{g:'know'}],
+ ['นำข่าวไปแลกกับทัพที่ให้ราคาดีที่สุด',{mo:5000,md:-4},.45,'ทั้งสองทัพรู้ว่าคุณขายข่าวทั้งสองฝั่งและส่งคนมาทวงถาม',{hp:-10,md:-10,mo:-2500,ht:8},'คุณได้เงินก้อนใหญ่และสายตาของทุกคนในหมู่บ้านเปลี่ยนไปเล็กน้อย',{g:'wealth'}],
+ ['ปิดประตูบ้านและไม่ยุ่งกับใครทั้งสิ้น',{md:-3,en:-4},.3,'สายลับเลือกบ้านคุณเป็นที่หลบและทิ้งหลักฐานไว้ให้คุณรับกรรม',{hp:-8,md:-9,ht:8},'คืนนั้นเสียงฝีเท้าผ่านหน้าบ้านหลายรอบแต่ไม่มีใครเคาะประตู',{}]]],
+['ศึกใหญ่กลางทุ่ง สามทัพประจันหน้า','ฟ้าสางพอดีกับที่สามทัพตั้งแถวหันหน้าเข้าหากันกลางทุ่งนาที่คุณปลูกข้าวไว้ ทุกฝ่ายยกอาวุธและรอเพียงเสียงกลองสัญญาณ ชาวบ้านทั้งหมู่บ้านยืนอยู่ในรัศมีลูกศร',[
+ ['วิ่งเข้าไปกลางสนามและตะโกนขอให้หยุด',{lv:10,md:8,en:-20,hp:-6},.45,'ลูกศรหนึ่งดอกปักที่ไหล่คุณและแม่ทัพสั่งให้ยกอาวุธต่อ',{hp:-16,wd:22,md:-8},'ทั้งสามทัพนิ่งไปพร้อมกัน เมื่อเด็กน้อยคนหนึ่งวิ่งตามคุณและยืนข้างคุณกลางสนาม',{g:'help',fin:1}],
+ ['นำผู้อาวุโสของหมู่บ้านไปเจรจาสามฝ่ายพร้อมกัน',{md:3,en:-16},.4,'แม่ทัพแคว้นหนึ่งไม่ไว้ใจและลูกน้องของเขาแย่งข้อความไปฉีกต่อหน้า',{hp:-8,md:-10},'ผู้เฒ่าเสนอตั้งเขตปลอดการสู้รบรอบหมู่บ้านและทั้งสามทัพตกลงอย่างไม่เต็มใจ',{g:'know',fin:1}],
+ ['อพยพชาวบ้านไปอยู่หลังแนวเขาให้ทัน',{lv:8,md:2,en:-24},.4,'ทหารม้าตัดทางหนีและชาวบ้านต้องกระจายตัวหนีสามทิศ',{hp:-12,wd:16,md:-10},'ชาวบ้านทั้งหมดไปถึงหลังเขาก่อนที่เสียงกลองจะดังขึ้นพอดี',{g:'help',fin:1}],
+ ['แอบเผาค่ายเสบียงของทั้งสามทัพให้ถอนทัพเอง',{md:-2,en:-20},.5,'ยามเห็นแสงไฟและตามคุณไปจนสุดทุ่งโดนไล่เป็นกิโลเมตร',{hp:-14,wd:18,md:-10,ht:10},'เสบียงของทุกค่ายไหม้พร้อมกันและแม่ทัพสั่งถอนทัพกลับไปตั้งหลัก',{g:'wealth',fin:1}]]]
+];
+ARC_EP.dragon=[
+['ฟ้าร้องโดยไม่มีเมฆ','ตอนบ่ายวันหนึ่งฟ้าร้องก้องทั้งที่ท้องฟ้าใสสะอาด เศษเปลือกสีทองขนาดเท่าจานข้าวร่วงลงกลางลานตลาด มันอุ่นผิดปกติและมีเสียงบางอย่างครางอยู่ข้างใน',[
+ ['เก็บเปลือกชิ้นหนึ่งไปให้คนแก่ในหมู่บ้านดู',{md:2,en:-8},.2,'ผู้เฒ่าตกใจจนทำของหล่นและร้องว่า นี่เปลือกไข่ของมังกร',{md:-4},'ผู้เฒ่าบอกว่าตำนานเล่าว่ามังกรจะตามหาไข่ของตัวเองข้ามฟ้าและมันไม่เคยให้อภัย',{g:'know'}],
+ ['ขอให้คนในตลาดหลบเข้าบ้านก่อนฟ้าร้องซ้ำ',{lv:5,md:3,en:-10},.25,'เสียงฟ้าร้องรอบสองมาก่อนที่ทุกคนจะเข้าบ้าน คุณถูกกระเบื้องร่วงใส่',{hp:-7,wd:10,md:-5},'คนในตลาดแตกตื่นแต่ไม่มีใครบาดเจ็บ',{g:'help'}],
+ ['ขายเศษเปลือกให้นักสะสมในราคาสูง',{mo:4000,md:-2},.35,'ผู้ซื้อลึกลับเดินตามคุณกลับบ้านและเรียกร้องเปลือกทั้งหมดที่ยังเหลือ',{hp:-8,mo:-2000,md:-8},'นักสะสมจ่ายเงินสดและขนเปลือกขึ้นรถทันที เขาไม่ได้ถามว่ามาจากไหน',{g:'wealth'}],
+ ['ปีนขึ้นหลังคาดูว่ามีอะไรบนท้องฟ้า',{en:-10,md:-2},.4,'เงามหึมาหนึ่งเงาบินผ่านเหนือหัวคุณ และลมแรงของมันเกือบเหวี่ยงคุณตกจากหลังคา',{hp:-10,wd:12,md:-8},'เมฆบนฟ้าแหวกเป็นรูปปีกขนาดมหึมาก่อนจะหายไปในแสงอาทิตย์',{g:'adv'}]]],
+['มังกรตัวแรกพ่นไฟใส่ป่า','ควันดำพุ่งขึ้นจากป่าหลังเขาพร้อมเสียงคำรามที่สะเทือนถึงกระเบื้องหลังคา มังกรสีแดงเข้มตัวหนึ่งบินวนเหนือหมู่บ้านและพ่นไฟลงบนต้นไม้ที่อยู่ติดกับทุ่งนา',[
+ ['ช่วยชาวบ้านขนน้ำมาดับไฟไม่ให้ลามเข้าทุ่ง',{lv:7,md:3,en:-20},.38,'เปลวไฟพุ่งมาตามลมและกลืนแนวต้นไม้ที่คุณยืนอยู่',{hp:-14,wd:18,md:-8},'ไฟหยุดลงที่ขอบคันนาและทุกคนทรุดนั่งกลางโคลนหัวเราะปนร้องไห้',{g:'help'}],
+ ['พาวัวควายและคนแก่หนีไปทางหนองน้ำ',{lv:5,md:2,en:-16},.3,'วัวตัวหนึ่งตื่นตกใจและพุ่งชนเกวียนล้มทับขาคุณ',{hp:-10,wd:12,md:-6},'หนองน้ำเป็นที่ปลอดภัยพอและทุกคนนอนหลับกลางเสียงจักจั่น',{g:'help'}],
+ ['วิ่งเข้าไปในป่าเก็บของมีค่าที่หลงเหลือก่อนไฟไหม้หมด',{mo:3000,en:-16,md:-3},.5,'ต้นไม้ล้มขวางทางและมังกรหันมามองคุณพอดี',{hp:-14,wd:20,md:-10},'คุณเจอถุงเงินของนักเดินทางที่หลงป่าและหนีออกมาก่อนไฟลามมา',{g:'wealth'}],
+ ['ซ่อนอยู่ในห้องใต้ดินจนกว่ามังกรจะไป',{md:-3,en:-6},.25,'ความร้อนส่งผ่านพื้นและห้องใต้ดินเริ่มอบอ้าวจนหายใจไม่ออก',{hp:-8,wd:8,md:-8},'ไฟและเสียงคำรามค่อยๆ จางหายไปและคุณขึ้นมาเห็นแต่ขี้เถ้าลอยในอากาศ',{}]]],
+['ลูกมังกรตัวเล็กหลบในโรงนา','เสียงครางเบาๆ ในโรงนาตอนดึกทำให้คุณถือตะเกียงออกไปดู มันคือลูกมังกรขนาดเท่าลูกสุนัข เกล็ดสีทองและปีกยังเปียกอยู่ มันบาดเจ็บที่ขาข้างหนึ่งและจ้องมองคุณด้วยดวงตากลมโตที่หวาดกลัว',[
+ ['ทำแผลและให้อาหารมันอย่างเงียบๆ',{med:-1,food:-1,md:6,lv:5,en:-10},.3,'มันดิ้นและกรงเล็บเล็กๆ ข่วนแขนคุณจนเลือดไหล',{hp:-5,wd:8,md:-2},'มันค่อยๆ วางหัวลงบนตักคุณและหลับไปหลังจากกินเนื้อแห้งชิ้นสุดท้าย',{g:'help'}],
+ ['เอาผ้าห่มปิดมันไว้แล้วบอกชาวบ้านทันที',{md:-2,lv:-2},.4,'ชาวบ้านแตกตื่นและบางคนหยิบพลั่วกับมีดวิ่งมาที่โรงนา',{hp:-8,md:-8,ht:4},'ชาวบ้านมองลูกมังกรด้วยความสงสารมากกว่ากลัวและตกลงช่วยกันเก็บเรื่องนี้เป็นความลับ',{g:'know'}],
+ ['คิดว่าลูกมังกรอาจขายได้ราคาสูงมาก',{mo:2000,md:-5},.5,'นักล่ามังกรได้ยินข่าวและบุกมาตรงโรงนาในคืนเดียวกัน',{hp:-14,md:-12,ht:10},'คุณพบนายหน้าลับที่เสนอราคาสูงจนคุณเกือบเซ็นสัญญา แต่ก็ยังไม่ได้ตกลง',{g:'wealth'}],
+ ['ปล่อยมันกลับเข้าป่าและหวังว่าแม่ของมันจะพบ',{md:3,en:-8},.35,'ลูกมังกรร้องเสียงแหลมและเรียกฝูงมังกรให้ตรงมาที่หมู่บ้านทันที',{hp:-10,md:-10,wd:10},'มันหันกลับมามองคุณสามครั้งก่อนที่จะหายไปในพงไม้',{g:'faith'}]]],
+['ฝูงมังกรมาทวงลูก และนักล่ามาถึง','เงามังกรสามตัวกลบท้องฟ้ารอบหมู่บ้านและส่งเสียงคำรามพร้อมกัน ในเวลาเดียวกันนักล่ามังกรหน้ากากเหล็กขี่ม้ามาถึงทางเข้าหมู่บ้านพร้อมโซ่เงินและหน้าไม้ยักษ์ ทุกฝ่ายต้องการสิ่งเดียวกัน คือลูกมังกรในโรงนาของคุณ',[
+ ['พาลูกมังกรหนีออกทางหลังเขาก่อนทุกฝ่ายจะถึงโรงนา',{lv:6,md:4,en:-22},.42,'นักล่าเห็นคุณและยิงโซ่เงินพุ่งมาหน้าคุณ ลูกมังกรกรีดร้องด้วยความตกใจ',{hp:-14,wd:20,md:-10},'คุณวิ่งผ่านป่าไผ่กับลูกมังกรที่ซุกอยู่ในอ้อมแขนและไม่มีใครตามมาทัน',{g:'help'}],
+ ['ออกไปเจรจากับมังกรตัวใหญ่ด้วยตัวเอง',{md:2,en:-16},.5,'มังกรไม่เข้าใจภาษาคนและพ่นไฟเตือนใกล้ตัวคุณจนผมไหม้',{hp:-16,wd:22,md:-10},'มังกรสีเขียวก้มหัวลงต่ำจนจมูกเกือบแตะหน้าคุณ ก่อนจะคำรามเบาๆ และถอยหลัง',{g:'faith'}],
+ ['หลอกนักล่าให้ไปติดกับดักที่ชาวบ้านเตรียมไว้',{lv:5,md:3,en:-18},.4,'กับดักทำงานผิดจังหวะและกระแทกชาวบ้านสองคนเข้าอย่างจัง',{hp:-10,md:-8},'นักล่าตกหลุมโคลนลึกและต้องใช้เวลาครึ่งวันกว่าจะปีนขึ้นมา',{g:'adv'}],
+ ['ซ่อนลูกมังกรไว้ในเกวียนฟางและพาไปที่ปลอดภัย',{en:-12,md:-2},.35,'ล้อเกวียนติดหล่มและลูกมังกรโผล่หัวออกมากลางทาง',{hp:-10,wd:10,md:-8},'ฟางปิดมันได้เกือบทั้งตัวและเกวียนผ่านด่านนักล่าไปโดยไม่ถูกตรวจ',{}]]],
+['ทางไปยอดเขามังกรเก่า','เรื่องเล่าของผู้เฒ่าบอกว่าแม่มังกรอยู่บนยอดเขาเก่าที่ไม่มีใครขึ้นไปมาร้อยปี ทางขึ้นมีหน้าผาสูง หมอกหนา และเศษกระดูกสัตว์ใหญ่เกลื่อนทาง ลูกมังกรในอ้อมแขนของคุณซุกตัวหนาวสั่นและกำลังอ่อนแรง',[
+ ['ให้อาหารและห่มผ้าให้ลูกมังกรทุกชั่วโมง',{food:-2,md:5,lv:4,en:-20},.3,'ลูกมังกรฝืนกินแล้วอาเจียนออกมาจนคุณต้องหยุดพักกลางทางชัน',{hp:-6,md:-5,en:-8},'ลูกมังกรเริ่มหายใจสม่ำเสมอและส่งเสียงครางเบาๆ เหมือนขอบคุณ',{g:'help'}],
+ ['เดินเร็วที่สุดโดยไม่หยุดพัก',{en:-26,md:-3},.45,'คุณก้าวพลาดบนหินลื่นและร่วงไถลลงไปหลายเมตร',{hp:-14,wd:18,md:-8},'คุณขึ้นไปถึงเนินที่สามก่อนฟ้ามืดและเห็นแสงสีทองเรืองรองอยู่ไกลๆ ข้างบน',{g:'adv'}],
+ ['ให้ชาวบ้านที่แข็งแรงช่วยกันหามเปลขึ้นไป',{lv:6,md:4,en:-16},.35,'ผู้ช่วยสองคนทะเลาะกันกลางทางและเปลเกือบหล่น',{hp:-8,md:-8},'ทีมชาวบ้านรวมแรงกันและผลัดกันหามเปลผ่านหมอกหนาได้อย่างราบรื่น',{g:'help'}],
+ ['ซ่อนตัวในถ้ำข้างทางรอให้ฝูงนักล่าผ่านไปก่อน',{md:-2,en:-10,food:-1},.3,'ในถ้ำมีงูใหญ่ซุกอยู่ คุณและลูกมังกรต้องวิ่งออกมาอย่างทุลักทุเล',{hp:-10,wd:12,md:-8},'เสียงม้านักล่าผ่านไปไกลและคุณออกจากถ้ำเมื่อเสียงเงียบสนิท',{}]]],
+['แม่มังกรแห่งยอดเขา','แม่มังกรขนาดมหึมาลืมตาขึ้นจากหมอก เกล็ดสีทองของมันสะท้อนแสงเหมือนทองคำเหลว ดวงตาจ้องมองคุณและลูกในอ้อมแขน ทั้งโลกเงียบ ไม่มีแม้แต่เสียงลม มันกำลังตัดสินว่าคุณคือผู้ช่วยหรือผู้ลักพา',[
+ ['วางลูกมังกรลงบนพื้นแล้วถอยหลังช้าๆ พร้อมก้มหัว',{lv:10,md:10,en:-14},.3,'แม่มังกรหายใจแรงจนคุณกระเด็นถอยหลังไปสามก้าว ก่อนที่มันจะก้มลงมาดมลูกของมัน',{hp:-10,wd:10,md:-6},'แม่มังกรโอบลูกด้วยปีกทั้งคู่และหยดน้ำตาสีทองหนึ่งหยดร่วงลงมาที่ฝ่ามือคุณ',{g:'help',fin:1,card:'S'}],
+ ['ยืนนิ่งกลางหมอกและเล่าเรื่องทั้งหมดด้วยเสียงสั่นๆ',{md:6,en:-12},.4,'แม่มังกรหันหน้าไปทางอื่นและพ่นไฟลงไปบนหินข้างตัวคุณ เป็นสัญญาณเตือน',{hp:-12,wd:14,md:-10},'แม่มังกรฟังจนจบและเอียงหัวมองคุณนานก่อนที่จะผงกหัวรับอย่างช้าๆ',{g:'faith',fin:1,card:'S'}],
+ ['ขอให้แม่มังกรรับปากว่าจะไม่โจมตีหมู่บ้านอีก',{lv:6,md:2,en:-14},.5,'แม่มังกรคำรามเสียงต่ำและคุณรู้สึกว่ากำลังพูดกับสิ่งที่เหนือกว่าภาษา',{hp:-14,md:-10,wd:14},'แม่มังกรเอาเกล็ดทองหลุดจากอกวางลงตรงหน้าคุณเหมือนคำสัญญาและบินพาลูกขึ้นฟ้า',{g:'adv',fin:1,card:'S'}],
+ ['รีบวางลูกมังกรแล้ววิ่งลงเขาไม่หันกลับมองเลย',{md:-2,en:-18},.35,'คุณวิ่งหนีเร็วเกินไปจนสะดุดรากไม้ และได้ยินเสียงคำรามจากข้างหลังเป็นระยะ',{hp:-10,wd:12,md:-8},'เสียงปีกกระพือดังเหนือหัวคุณก่อนจะหายไปเหนือเมฆ และท้องฟ้ากลับเป็นสีฟ้าอีกครั้ง',{g:'know',fin:1,card:'A'}]]]
+];
+arcGen('sangok');arcGen('dragon');
+/* ===== v78: การ์ดชุด A/S/S+ — ดรอปจากเหตุการณ์ · ใส่/ถอด · โบนัสเงิน (แยกจากฉายาและยศ) ===== */
+var CARD_KEY='doom365-cards';
+var CARD_T={A:{n:'A',c:'#c8794a',g:'rgba(200,121,74,.75)',b:.02,p:.02,l:'ทองแดง'},S:{n:'S',c:'#d5dbe6',g:'rgba(190,205,230,.8)',b:.04,p:.004,l:'เงิน'},SP:{n:'S+',c:'#ffd24a',g:'rgba(255,210,74,.9)',b:.06,p:.001,l:'ทอง'}};
+/* [id, tier, ไอคอน, ชื่อชุด, เสื้อ, กางเกง, หมวก] */
+var CARD_LIST=[
+['a1','A','🧥','ชุดนักเดินทางผ้าแคนวาส','#b5894f','#4a4030','#8a6a3a'],
+['a2','A','🔧','ชุดช่างเครื่องคราบน้ำมัน','#3a6fa8','#2f3340',null],
+['a3','A','🌾','ชุดชาวนาหมวกกาบหมาก','#6a8f4a','#4a4030','#d9b14a'],
+['a4','A','🍜','ชุดพ่อครัวตลาดนัด','#e8e8ee','#2a2f44','#e8e8ee'],
+['a5','A','🛵','ชุดไรเดอร์เสื้อกันฝนส้ม','#ef8a5a','#33384a','#ef8a5a'],
+['a6','A','🎸','ชุดนักดนตรีริมถนน','#a070d0','#2a2f44',null],
+['a7','A','📷','ชุดช่างภาพสตรีท','#555a66','#3b3b4a','#2a2f44'],
+['a8','A','🎣','ชุดนักตกปลาแจ็กเก็ตยีน','#4a8fd0','#2f4a7a','#d9b14a'],
+['a9','A','🚲','ชุดนักปั่นจักรยานเมือง','#5cb85c','#2a2f44','#e8e8ee'],
+['a10','A','☕','ชุดบาริสต้าผ้ากันเปื้อน','#8a5a3a','#2a2f44',null],
+['s1','S','🕵️','ชุดนักสืบเสื้อคลุมยาว','#6b5d4a','#2a2a33','#4a4030'],
+['s2','S','✈️','ชุดนักบินแจ็กเก็ตหนัง','#3a2f2a','#33384a','#222633'],
+['s3','S','🥷','ชุดนินจาราตรี','#1f2230','#171a26','#1f2230'],
+['s4','S','🧪','ชุดนักวิทยาศาสตร์เสื้อกาวน์','#f2f2f6','#3b3b4a',null],
+['s5','S','🏴‍☠️','ชุดกัปตันโจรสลัด','#9b2f2f','#2a2f44','#222633'],
+['s6','S','🎩','ชุดนักมายากลสุดหรู','#2a2f44','#171a26','#171a26'],
+['s7','S','🛡️','ชุดอัศวินเงิน','#c9d0dc','#7b8396','#c9d0dc'],
+['s8','S','🧙','ชุดจอมเวทย์ไอที','#4a3f9a','#2a2f44','#4a3f9a'],
+['s9','S','🏍️','ชุดเจ้าถนนแจ็กเก็ตสะท้อนแสง','#e85a8a','#222633','#222633'],
+['s10','S','🥋','ชุดปรมาจารย์ยุทธ์ขาว','#f2f2f6','#2a2f44',null],
+['p1','SP','🐉','ชุดนักรบมังกรทอง','#e8b44a','#7a2a2a','#e8b44a'],
+['p2','SP','👑','ชุดราชันย์แห่งสามแคว้น','#b02a3a','#2a2f44','#ffd24a'],
+['p3','SP','⚡','ชุดเทพสายฟ้า','#4ad0ff','#2a2f6a','#e8f6ff'],
+['p4','SP','☄️','ชุดจักรพรรดิดาวตก','#8a2fd0','#1f1a3a','#ffd24a'],
+['p5','SP','🔥','ชุดจอมยุทธ์เพลิงมังกร','#ff6a2a','#4a1a1a','#ffb02a'],
+['p6','SP','🌙','ชุดผู้พิทักษ์แห่งแสงจันทร์','#c9d6ff','#2f3a7a','#e8f0ff'],
+['p7','SP','🦅','ชุดอัศวินปีกเหยี่ยวทอง','#f0c040','#3a2f2a','#f0c040'],
+['p8','SP','🌸','ชุดเจ้าหญิงดอกซากุระ','#ff9ac0','#7a3a5a','#ffe0ee'],
+['p9','SP','🪐','ชุดนักเดินทางข้ามกาลเวลา','#40e0c8','#1f2a4a','#e8fff8'],
+['p10','SP','💎','ชุดเจ้าแห่งคริสตัล','#a0e8ff','#3a4a8a','#e0f8ff']
+];
+/* [id, tier, ไอคอน, ชื่อ, ช่อง, สี, สไตล์] */
+var CARD_X=[
+['t1','A','👕','เสื้อยืดลายแมวส้ม','top','#ef8a5a',''],
+['t2','A','🧥','เสื้อกั๊กกันฝนสะท้อนแสง','top','#e8d84a',''],
+['t3','S','🧣','เสื้อคลุมนักเดินทางผืนยาว','top','#6b5d4a','cape'],
+['t4','S','🧥','แจ็กเก็ตหนังนีออน','top','#e85a8a',''],
+['t5','SP','👑','ผ้าคลุมกำมะหยี่ราชา','top','#b02a3a','cape'],
+['t6','SP','🌟','เสื้อเกราะดาวเหนือ','top','#a0e8ff','cape'],
+['h1','A','🧢','หมวกแก๊ปผ้าเก่า','hat','#c85a3a','cap'],
+['h2','A','⛑️','หมวกกันน็อกช่างก่อสร้าง','hat','#e8b44a','helm'],
+['h3','A','👨‍🍳','หมวกพ่อครัวขาว','hat','#f2f2f6','chef'],
+['h4','A','🤠','หมวกคาวบอยหนัง','hat','#8a5a3a','cowboy'],
+['h5','S','🧙','หมวกพ่อมดดาวเงิน','hat','#4a3f9a','wizard'],
+['h6','S','🪖','หมวกเกราะอัศวิน','hat','#c9d0dc','helm'],
+['h7','SP','👑','มงกุฎทองคำ','hat','#ffd24a','crown'],
+['h8','SP','😇','ห่วงรัศมีเทวดา','hat','#fff3b0','halo'],
+['sh1','A','👟','รองเท้าผ้าใบขาว','shoes','#e8e8ee',''],
+['sh2','A','🥾','รองเท้าบูทหนังน้ำตาล','shoes','#6a4a2a',''],
+['sh3','S','👟','รองเท้าวิ่งนีออน','shoes','#40ffa0','trail'],
+['sh4','S','🥾','บูทนักบินเหล็ก','shoes','#7b8396',''],
+['sh5','SP','⚡','รองเท้าสายฟ้า','shoes','#ffe84a','spark'],
+['sh6','SP','🐉','รองเท้ามังกรทอง','shoes','#ffd24a','trail'],
+['w1','A','🏏','ไม้เบสบอลติดตะปู','weapon','#8a5a3a','bat'],
+['w2','A','🔫','ปืนฉีดน้ำแรงดันสูง','weapon','#4a8fd0','pistol'],
+['w3','A','🏹','ธนูไม้ไผ่','weapon','#a07a3a','bow'],
+['w4','S','🔫','ปืนพกลำกล้องเงิน','weapon','#c9d0dc','pistol'],
+['w5','S','🎯','ปืนไรเฟิลนักสืบ','weapon','#6b5d4a','rifle'],
+['w6','S','🗡️','ดาบเหล็กกล้า','weapon','#d5dbe6','sword'],
+['w7','SP','💥','ปืนมือเปลวไฟทอง','weapon','#ffd24a','pistolf'],
+['w8','SP','🔥','ดาบมังกรเพลิง','weapon','#ff6a2a','swordf'],
+['c1','A','🕯️','คาถาแสงเทียน','spell','#ffe27a','orb'],
+['c2','A','🍃','คาถาลมพัดเย็น','spell','#7ad8e8','orb'],
+['c3','A','🌿','คาถาพรรณพฤกษา','spell','#6ad86a','orb'],
+['c4','S','❄️','คาถาน้ำแข็งนิรันดร์','spell','#a0e0ff','ice'],
+['c5','S','🌑','คาถาเงามืด','spell','#9a5ad8','shadow'],
+['c6','S','⚡','คาถาสายฟ้าฟาด','spell','#e8f06a','bolt'],
+['c7','SP','☀️','คาถาเพลิงสุริยะ','spell','#ff8a2a','fire'],
+['c8','SP','✨','คาถาแสงศักดิ์สิทธิ์','spell','#fff3b0','holy'],
+['g1','A','🦋','ปีกผีเสื้อกระดาษ','wings','#e8e0c8','bfly'],
+['g2','A','🦇','ปีกค้างคาวหนัง','wings','#3a2f44','bat'],
+['g3','S','🦉','ปีกนกฮูกขนนุ่ม','wings','#c8a878','feather'],
+['g4','S','🦋','ปีกผีเสื้อเรืองแสง','wings','#5ae8d8','bfly'],
+['g5','SP','🪽','ปีกเทวดาสีทอง','wings','#ffe27a','feather'],
+['g6','SP','🐲','ปีกมังกรเพลิง','wings','#d8401a','bat']
+];
+var SLOTS=[['fit','ชุดเต็ม','👘'],['top','เสื้อ','👕'],['hat','หมวก','🎩'],['shoes','รองเท้า','👟'],['weapon','อาวุธ','🔫'],['spell','คาถา','✨'],['wings','ปีก','🪽']];
+var CARD_BY={};
+CARD_LIST.forEach(function(c){CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:'fit',sh:c[4],pn:c[5],ht:c[6]}});
+CARD_X.forEach(function(c){CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:c[4],c:c[5],st:c[6]};CARD_LIST.push([c[0],c[1],c[2],c[3]])});
+var BONUS_CAP=.20;
+var _cardMem=null;
+var _cardRaw=null;
+function cardLoad(){
+  var raw=null;try{raw=localStorage.getItem(CARD_KEY)}catch(e){}
+  if(_cardMem&&raw===_cardRaw)return _cardMem;
+  var d={o:{},eq:{},t:0};
+  try{var j=JSON.parse(raw||'null');if(j&&typeof j==='object'){
+    var o={};if(j.o&&typeof j.o==='object')Object.keys(j.o).forEach(function(k){if(CARD_BY[k]){var n=Math.min(99,Math.max(0,Math.floor(+j.o[k]||0)));if(n)o[k]=n}});
+    var eq={};if(typeof j.eq==='string'){if(CARD_BY[j.eq]&&o[j.eq])eq[CARD_BY[j.eq].slot]=j.eq}else if(j.eq&&typeof j.eq==='object')Object.keys(j.eq).forEach(function(sl){var id=j.eq[sl];if(CARD_BY[id]&&CARD_BY[id].slot===sl&&o[id])eq[sl]=id});
+    d={o:o,eq:eq,t:+j.t||0};}}catch(e){}
+  _cardMem=d;_cardRaw=raw;return d;
+}
+function cardSave(){var d=cardLoad();d.t=Date.now();try{var r=JSON.stringify(d);localStorage.setItem(CARD_KEY,r);_cardRaw=r}catch(e){}}
+function cardReload(){_cardMem=null}
+function cardOwned(id){return cardLoad().o[id]|0}
+function cardEq(){return cardLoad().eq}
+function cardIsEq(id){var c=CARD_BY[id];return !!c&&cardLoad().eq[c.slot]===id}
+function cardBonus(){var e=cardLoad().eq,b=0;for(var k in e){var c=CARD_BY[e[k]];if(c)b+=CARD_T[c.t].b}return Math.min(BONUS_CAP,b)}
+function cardFree(id){var d=cardLoad();return (d.o[id]|0)-(cardIsEq(id)?1:0)}
+function cardAdd(id,n){var d=cardLoad();d.o[id]=Math.min(99,(d.o[id]|0)+(n||1));cardSave()}
+function cardTake(id){var d=cardLoad();if(cardFree(id)<1)return false;d.o[id]--;if(!d.o[id])delete d.o[id];cardSave();return true}
+function cardEquip(id,slot){var d=cardLoad(),c=CARD_BY[id];
+  if(id&&c&&d.o[id]){if(d.eq[c.slot]===id)delete d.eq[c.slot];else d.eq[c.slot]=id}else if(slot)delete d.eq[slot];
+  cardSave()}
+function cardTotal(){var d=cardLoad(),n=0,u=0;for(var k in d.o){n+=d.o[k];u++}return {n:n,u:u}}
+/* สุ่มการ์ด — ลำดับ S+ → S → A (ทอยครั้งเดียว) */
+function cardRollTier(){var r=Math.random();if(r<CARD_T.SP.p)return 'SP';if(r<CARD_T.SP.p+CARD_T.S.p)return 'S';if(r<CARD_T.SP.p+CARD_T.S.p+CARD_T.A.p)return 'A';return null}
+function cardPickOf(t){var l=CARD_LIST.filter(function(c){return c[1]===t});return CARD_BY[l[Math.floor(Math.random()*l.length)][0]]}
+function cardGive(o,t){
+  var c=cardPickOf(t),isNew=!cardOwned(c.id);
+  cardAdd(c.id,1);
+  if(o){o.card={id:c.id,t:c.t,n:c.n,i:c.i,isNew:isNew};if(o.extra)o.extra.push('<b>ได้รับการ์ด '+CARD_T[c.t].n+'</b> · '+c.i+' '+c.n+(isNew?' (ใหม่!)':' (ซ้ำ)'))}
+  if(typeof document!=='undefined')setTimeout(function(){cardPopup(c,isNew)},350);
+  return c;
+}
+function cardRoll(o){if(!o||o.card)return;var t=cardRollTier();if(t)cardGive(o,t)}
+function cardDropHook(o,tier){/* ตอนจบมหันตภัย: ได้แน่ ๆ ตามระดับ · ระดับ S มีโอกาส 15% ได้ S+ */
+  var t=tier==='S'?(Math.random()<.15?'SP':'S'):(tier==='SP'?'SP':'A');cardGive(o,t)}
+/* ใส่ชุดลงบนตัวละคร */
+function cardLook(L){
+  var e=cardLoad().eq;if(!L||!Object.keys(e).length)return L;
+  var o=Object.assign({},L),fx={},f=CARD_BY[e.fit],tp=CARD_BY[e.top];
+  if(f){o.shirt=f.sh;o.pants=f.pn;if(f.ht)o.hat=f.ht}
+  if(tp){o.shirt=tp.c;if(tp.st)fx.cape=tp.c}
+  ['hat','shoes','weapon','spell','wings'].forEach(function(sl){var c=CARD_BY[e[sl]];if(c)fx[sl]={c:c.c,st:c.st,t:c.t}});
+  if(e.hat&&fx.hat)o.hat=null;
+  o.fx=fx;return o;
+}
+(function(){
+  if(typeof setView!=='function')return;
+  var _sv=setView;
+  setView=function(o){try{if(o&&o.look&&!o.noCard)o=Object.assign({},o,{look:cardLook(o.look)})}catch(e){}return _sv(o)};
+  if(typeof person!=='function')return;
+  var _p=person;
+  var tm=function(){return performance.now()/1000};
+  person=function(x,y,L,fr,flip){
+    var F=L&&L.fx;
+    if(!F||!Object.keys(F).length)return _p(x,y,L,fr,flip);
+    x=Math.round(x);y=Math.round(y);var t=tm(),d=flip?1:-1,s=fr?1:0;
+    if(F.cape){R(x-4,y-13,8,12+s,F.cape);R(x-5,y-8,10,8,F.cape);g.globalAlpha=.35;R(x-5,y-3,10,3,'#000');g.globalAlpha=1}
+    if(F.wings){var w=F.wings,fl=Math.sin(t*7),wh=Math.round(11+fl*3);
+      for(var sd=-1;sd<=1;sd+=2){
+        for(var k=0;k<5;k++){var len=wh-k*2+(w.st==='bat'?1:0),yy=y-15+k*(w.st==='bfly'?3:2);
+          R(x+(sd>0?4:-4-(6+k*2)),yy-len*(w.st==='bat'?0.4:0.6)+k,6+k*2,Math.max(2,len*0.5),w.c)}
+        if(w.t==='SP'){g.globalAlpha=.4;R(x+(sd>0?8:-18),y-24+Math.round(fl*2),10,3,'#fff');g.globalAlpha=1}}}
+    _p(x,y,L,fr,flip);
+    if(F.shoes){var sc=F.shoes.c;R(x-4,y-2,4,2,sc);R(x+1,y-2,4,2,sc);
+      if(F.shoes.st==='trail'||F.shoes.st==='spark'){g.globalAlpha=.55;for(var q=1;q<=4;q++)R(x-d*(q*4+3),y-1-((q+Math.floor(t*10))%3),3,1,sc);g.globalAlpha=1}
+      if(F.shoes.st==='spark'&&Math.floor(t*8)%2===0){R(x-6,y-4,1,3,'#fff');R(x+6,y-3,1,2,'#fff')}}
+    if(F.hat){var h=F.hat,c=h.c,st=h.st;
+      if(st==='cap'){R(x-4,y-24,8,3,c);R(x+(d>0?3:-7),y-22,4,1,c)}
+      else if(st==='helm'){R(x-5,y-25,10,5,c);R(x-6,y-21,12,1,c);R(x-1,y-26,2,1,'#fff')}
+      else if(st==='chef'){R(x-4,y-29,8,6,c);R(x-5,y-27,10,3,c);R(x-4,y-23,8,2,c)}
+      else if(st==='cowboy'){R(x-4,y-26,8,4,c);R(x-8,y-22,16,2,c);R(x-4,y-23,8,1,'#2a1a0a')}
+      else if(st==='wizard'){R(x-3,y-32,4,3,c);R(x-4,y-29,6,4,c);R(x-5,y-25,8,3,c);R(x-7,y-22,14,2,c);R(x+(d>0?2:-3),y-30,2,2,'#ffe27a')}
+      else if(st==='crown'){R(x-4,y-25,8,3,c);R(x-4,y-28,2,3,c);R(x-1,y-29,2,4,c);R(x+2,y-28,2,3,c);R(x-1,y-24,2,1,'#e8484a')}
+      else if(st==='halo'){g.globalAlpha=.4+.2*Math.sin(t*3);R(x-5,y-29,10,4,'#fff3b0');g.globalAlpha=1;R(x-4,y-28,8,1,c);R(x-4,y-26,8,1,c);R(x-5,y-27,1,1,c);R(x+4,y-27,1,1,c)}}
+    if(F.weapon){var wp=F.weapon,hx=x+d*5,hy=y-8+s,c2=wp.c;
+      if(wp.st==='bat'){R(hx,hy-12,2,13,c2);R(hx-1,hy-14,4,3,'#c9d0dc')}
+      else if(wp.st==='pistol'||wp.st==='pistolf'){R(hx-(d<0?5:0),hy-1,6,2,c2);R(hx+(d>0?0:3),hy+1,2,3,'#3a2f2a');
+        if(wp.st==='pistolf'&&Math.floor(t*6)%3===0){R(hx+d*6-(d<0?1:0),hy-2,3,3,'#ffb02a');R(hx+d*7,hy-1,2,1,'#fff3b0')}}
+      else if(wp.st==='rifle'){R(hx-(d<0?11:0),hy-1,12,2,c2);R(hx+(d>0?1:6),hy+1,3,3,'#3a2f2a')}
+      else if(wp.st==='bow'){R(hx,hy-10,2,18,c2);R(hx+d*2,hy-8,1,14,'#e8e0c8')}
+      else if(wp.st==='sword'||wp.st==='swordf'){R(hx,hy-17,2,16,wp.st==='swordf'?'#ffd0a0':c2);R(hx-2,hy-2,6,2,'#8a6a3a');R(hx,hy,2,3,'#6a4a2a');
+        if(wp.st==='swordf'){g.globalAlpha=.7;for(var k2=0;k2<4;k2++)R(hx-1+(k2%2),hy-20-k2*2+Math.round(Math.sin(t*14+k2)*1.5),3,3,k2<2?'#ff6a2a':'#ffd24a');g.globalAlpha=1}}}
+    if(F.spell){var sp=F.spell,n=sp.t==='SP'?5:sp.t==='S'?4:3,rc=sp.c;
+      g.globalAlpha=.85;
+      for(var o=0;o<n;o++){var a=t*2.2+o*(6.283/n);R(x+Math.round(Math.cos(a)*10)-1,y-12+Math.round(Math.sin(a)*5)-1,3,3,rc)}
+      g.globalAlpha=1;
+      if(sp.st==='fire'){for(var k3=0;k3<3;k3++)R(x-5+k3*4,y-26-((Math.floor(t*10)+k3)%4),3,3,k3===1?'#ffd24a':'#ff6a2a')}
+      else if(sp.st==='ice'){for(var k4=0;k4<4;k4++)R(x-9+k4*6,y-24+((Math.floor(t*6)+k4*2)%12),1,1,'#fff')}
+      else if(sp.st==='bolt'&&Math.floor(t*6)%4===0){R(x-9,y-28,2,5,rc);R(x-7,y-24,2,4,rc);R(x-9,y-20,2,3,rc)}
+      else if(sp.st==='shadow'){g.globalAlpha=.3;R(x-8,y-6,16,5,rc);g.globalAlpha=1}
+      else if(sp.st==='holy'){g.globalAlpha=.25+.15*Math.sin(t*3);R(x-8,y-24,16,24,rc);g.globalAlpha=1}}
+  };
+})();
+function cardRefreshView(){try{if(typeof view!=='undefined'&&view.look){/* ตัวละครรีเฟรชในฉากถัดไป */}}catch(e){}}
+function slotName(s){for(var i=0;i<SLOTS.length;i++)if(SLOTS[i][0]===s)return SLOTS[i][1];return ''}
+function cardHTML(c,opt){
+  opt=opt||{};var T=CARD_T[c.t];
+  return '<div class="cardx t'+c.t+(opt.sel?' sel':'')+'" style="--cc:'+T.c+';--cg:'+T.g+'"'+(opt.attr||'')+'>'+
+   '<span class="cdt">'+T.n+'</span><span class="cdi">'+c.i+'</span><b>'+esc(c.n)+'</b><small>'+slotName(c.slot)+' · +'+Math.round(T.b*100)+'% ทอง'+(opt.n>1?' · ×'+opt.n:'')+'</small>'+(opt.foot||'')+'</div>';
+}
+function cardPopup(c,isNew){
+  if(typeof document==='undefined')return;
+  var T=CARD_T[c.t],ov=document.createElement('div');ov.className='ov';ov.style.zIndex=70;document.body.appendChild(ov);
+  ov.innerHTML='<div class="ovb" style="text-align:center;max-width:340px"><div class="ovh"><b>🎴 ได้การ์ดใหม่!</b></div>'+
+   '<div class="cardpop">'+cardHTML(c,{})+'</div>'+
+   '<p style="margin:8px 0">การ์ดระดับ <b style="color:'+T.c+'">'+T.n+' ('+T.l+')</b>'+(isNew?'':' · ซ้ำกับที่มี เก็บไว้แลกเปลี่ยนได้')+'</p>'+
+   '<div class="row"><button class="btn" id="cpeq">สวมเลย</button><button class="mini" id="cpok">เก็บไว้ก่อน</button></div></div>';
+  ov.querySelector('#cpok').onclick=function(){ov.remove()};
+  ov.querySelector('#cpeq').onclick=function(){cardEquip(c.id);ov.remove()};
+  try{if(typeof sfx==='function')sfx('win')}catch(e){}
+}
+/* ตัวคูณเงินจากการ์ด (ใน addStat) */
+var _hook_noop=0;
 /* ===== ENDINGS ===== */
 const END_TAG={
  love:{t:'คนที่ไม่ปล่อยมือ',p:['ในปีสุดท้าย คุณเลือกใช้เวลากับคนที่สำคัญมากกว่าสิ่งอื่นใด ไม่ใช่เพราะไม่มีทางเลือก แต่เพราะคุณรู้แล้วว่าอะไรคือสิ่งที่จะไม่เสียดายทีหลัง','คุณใช้เวลาไปกับการบอกรัก ขอโทษ และขอบคุณ ซึ่งเป็นคำสามคำที่คนส่วนใหญ่เก็บไว้ถึงวันสุดท้ายแต่ไม่เคยได้ใช้จริง']},
@@ -8615,6 +8920,96 @@ function monDraw(t,dt,gy,layer){
     else if(k==='vampire')monVampDraw(x,gy,t);
   }
 }
+/* ===== v78: มังกร/ลูกมังกร/กองทัพสามก๊ก — ฉาก 2D พิกเซลเพิ่มรายละเอียด ===== */
+(function(){
+  if(typeof MONSPEC==='undefined')return;
+  const _mo=monOf;
+  monOf=function(k,scene){
+    k=String(k||'');
+    if(/^arc_dragon[12]$/.test(k))return 'dragon';
+    if(/^arc_dragon[345]$/.test(k))return 'babyd';
+    if(/^arc_dragon6$/.test(k))return 'dragonm';
+    if(/^arc_sangok/.test(k))return 'army';
+    return _mo(k,scene);
+  };
+  MONSPEC.dragon={cnt:1,pos:e=>{const ph=e%15;return ph<11?W+90-ph/10.5*(W+220):-999},flee:0,layer:1};
+  MONSPEC.dragonm={cnt:1,pos:()=>W*.62,flee:0,layer:1};
+  MONSPEC.babyd={cnt:1,pos:()=>Math.min(W-40,Math.max(70,(view.px||90)+26)),flee:0,layer:1};
+  MONSPEC.army={cnt:3,pos:(e,i)=>{const ph=(e*16+i*70)%(W+260);return W+120-ph},flee:0,layer:0};
+  const P=(pts,c)=>{g.fillStyle=c;g.beginPath();g.moveTo(Math.round(pts[0]),Math.round(pts[1]));for(let i=2;i<pts.length;i+=2)g.lineTo(Math.round(pts[i]),Math.round(pts[i+1]));g.closePath();g.fill()};
+  function dragonBody(x,y,t,s,body,belly,wing,fire,breathe){
+    const fl=Math.sin(t*6.5),wy=fl*20*s;
+    // ปีกหลัง
+    P([x-6*s,y-6*s, x-34*s,y-34*s-wy, x-52*s,y-8*s-wy*.4, x-24*s,y+4*s],wing);
+    // หาง
+    for(let i=0;i<9;i++){const a=i/9;R(x+(22+i*7)*s,y+(4+Math.sin(t*3+i*.7)*4-a*2)*s,(9-i*.6)*s,(7-i*.55)*s,body)}
+    P([x+86*s,y+2*s,x+96*s,y+(-2+Math.sin(t*3)*3)*s,x+86*s,y+8*s],belly);
+    // ลำตัว
+    R(x-18*s,y-9*s,46*s,19*s,body);R(x-14*s,y+3*s,40*s,7*s,belly);
+    for(let i=0;i<6;i++)R(x-12*s+i*7*s,y-12*s,4*s,4*s,belly);
+    // คอ+หัว
+    R(x-30*s,y-20*s,14*s,16*s,body);R(x-30*s,y-18*s,6*s,12*s,belly);
+    R(x-50*s,y-26*s,26*s,15*s,body);R(x-54*s,y-21*s,8*s,9*s,body);
+    R(x-48*s,y-15*s,24*s,3*s,'#2a0a0a');
+    P([x-30*s,y-27*s,x-26*s,y-38*s,x-22*s,y-26*s],'#f2e4b8');P([x-38*s,y-27*s,x-35*s,y-36*s,x-32*s,y-26*s],'#f2e4b8');
+    R(x-42*s,y-24*s,4*s,4*s,'#ffd84a');R(x-41*s,y-23*s,2*s,2*s,'#2a0a0a');
+    // ปีกหน้า
+    P([x-2*s,y-8*s, x+6*s,y-42*s-wy*1.3, x+34*s,y-30*s-wy, x+22*s,y-4*s],wing);
+    g.strokeStyle='rgba(0,0,0,.35)';g.lineWidth=1;g.beginPath();g.moveTo(Math.round(x-2*s),Math.round(y-8*s));g.lineTo(Math.round(x+20*s),Math.round(y-30*s-wy));g.stroke();
+    // ขา
+    R(x-6*s,y+8*s,5*s,7*s,body);R(x+14*s,y+8*s,5*s,7*s,body);
+    if(fire){
+      const L=(40+Math.sin(t*20)*8)*s;
+      for(let i=0;i<7;i++){const f=i/7;g.globalAlpha=.85-f*.5;R(x-54*s-f*L,y-17*s+f*L*.55-i%2,(10+i*3)*s,(8+i*2.4)*s,i<2?'#fff3b0':i<4?'#ffb02a':'#e8481a')}
+      g.globalAlpha=1;
+    }
+  }
+  const _md=monDraw;
+  monDraw=function(t,dt,gy,layer){
+    const m=view.mon;
+    if(m&&(m.k==='dragon'||m.k==='dragonm'||m.k==='babyd'||m.k==='army')){
+      if(layer===2)return;
+      const sp=MONSPEC[m.k];if(layer!==(sp.layer||0))return;
+      const e=t-m.t0;
+      if(m.k==='dragon'){
+        const x=sp.pos(e,0);if(x<-120)return;
+        const y=gy-110+Math.sin(e*1.8)*12;
+        const fire=x>W*.12&&x<W*.78;
+        // เงาบนพื้น
+        g.globalAlpha=.25;R(x-40,gy+2,110,6,'#000');g.globalAlpha=1;
+        dragonBody(x,y,t,1,'#8a1f2a','#e0a860','rgba(110,20,30,.88)',fire);
+        if(fire){view.shake=Math.max(view.shake,.18);g.globalAlpha=.18;R(0,0,W,gy+10,'#ff6a1a');g.globalAlpha=1}
+      }else if(m.k==='dragonm'){
+        const x=sp.pos(e,0),y=gy-96+Math.sin(e*1.2)*8;
+        g.globalAlpha=.22;g.fillStyle='#ffd24a';g.beginPath();g.arc(x-16,y-10,86+Math.sin(t*2)*4,0,Math.PI*2);g.fill();g.globalAlpha=1;
+        dragonBody(x,y,t,1.25,'#d9a42a','#fff0b0','rgba(255,214,90,.85)',false);
+      }else if(m.k==='babyd'){
+        const x=sp.pos(e,0),y=gy-7+Math.round(Math.sin(t*4)*1.5);
+        R(x-9,y-3,16,9,'#e8b44a');R(x-7,y+2,12,4,'#fff0b0');R(x-15,y-8,10,9,'#e8b44a');R(x-18,y-4,5,5,'#e8b44a');
+        R(x-13,y-6,2,2,'#2a1a0a');P([x-12,y-9,x-10,y-14,x-8,y-9],'#fff0b0');
+        const fl=Math.sin(t*9)*4;P([x-4,y-4,x+1,y-13-fl,x+7,y-4],'rgba(255,214,90,.9)');
+        for(let i=0;i<4;i++)R(x+7+i*3,y+1+Math.sin(t*5+i)*2,3,3,'#e8b44a');
+        if(Math.floor(t*2)%2===0){g.globalAlpha=.8;R(x-24,y-8,3,3,'#ffe27a');g.globalAlpha=1}
+      }else{
+        const cols=['#d23a3a','#3a78d2','#3aa86a'];
+        for(let i=sp.cnt-1;i>=0;i--){
+          const bx=sp.pos(e,i);if(bx<-90||bx>W+90)continue;
+          for(let j=0;j<6;j++){
+            const x=bx+j*13,y=gy-1+(j%2)*3,st=Math.floor(t*6+j+i)%2;
+            R(x,y-9,5,8,cols[i]);R(x+1,y-13,4,4,'#e8c9a0');R(x,y-14,6,2,'#555a66');
+            R(x+(st?0:3),y-1,2,3,'#2a2f44');R(x+(st?3:0),y-1,2,3,'#2a2f44');
+            R(x+6,y-22+(j%3)*2,1,22,'#8a8a92');
+          }
+          const fx=bx+34,fw=Math.sin(t*5+i)*3;
+          R(fx,gy-46,2,40,'#6a4a2a');P([fx+2,gy-46,fx+22+fw,gy-41,fx+2,gy-34],cols[i]);
+          g.globalAlpha=.3;for(let d=0;d<4;d++)R(bx-4+d*18,gy-3-(d%2)*2,10,3,'#c8b8a0');g.globalAlpha=1;
+        }
+      }
+      return;
+    }
+    return _md(t,dt,gy,layer);
+  };
+})();
 /* ===== เสียงประกอบเหตุการณ์: ภัยพิบัติ สัตว์ประหลาด เทพเจ้า เอเลี่ยน ฯลฯ (สังเคราะห์ด้วย WebAudio) ===== */
 let _evLast='';
 function sweepNoise(dur,vol,lp0,lp1,when,hp){
@@ -8705,8 +9100,8 @@ function lbRow(id,d){
   row.at=num(d.at,4e12);row.at0=num(d.at0,4e12);row.sig=clean(d.sig,16);
   row.gname=clean(d.gname,40);row.rr={};if(d.rr&&typeof d.rr==='object')RRK.forEach(k=>{const v=clean(d.rr[k],40);if(v)row.rr[k]=v});
   row.funny=new Set(row.causes.filter(c=>SILLY.includes(c))).size;row.rolesN=new Set(row.roles).size;
-  row.ot=num(d.ot,1e7);row.dd=dd;row.dc=num(d.dc,99999);row.bs=num(d.bs,99999);row.cs=num(d.cs,99999);row.gd=num(d.gd,99999);row.ev=num(d.ev,99999);row.rate=row.lives>=5?Math.round(row.survived/row.lives*100):0;
-  row.bad=row.dc>row.lives||(row.at0>0&&row.ot>(Date.now()-row.at0)/60000+180)||row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60||row.bs>row.survived||row.cs>row.bs||row.gd>row.lives*60||row.ev>row.lives*60;
+  row.te=num(d.te,5e13);row.ot=num(d.ot,1e7);row.dd=dd;row.dc=num(d.dc,99999);row.bs=num(d.bs,99999);row.cs=num(d.cs,99999);row.gd=num(d.gd,99999);row.ev=num(d.ev,99999);row.rate=row.lives>=5?Math.round(row.survived/row.lives*100):0;
+  row.bad=row.dc>row.lives||row.te>row.lives*5e8||(row.at0>0&&row.ot>(Date.now()-row.at0)/60000+180)||row.richest>5e8||row.meds>80||row.joy>100||row.best>100||row.survived>row.lives||row.dr>row.lives||row.wk>row.lives+5||row.funny>row.lives||row.rolesN>row.lives||row.banana>row.lives||row.arms>60||!lbSigOk(row)||!lbTimeOk(row)||row.survived>row.lives||row.meds>row.lives*60||row.bs>row.survived||row.cs>row.bs||row.gd>row.lives*60||row.ev>row.lives*60;
   row.richestRaw=row.richest;if(row.at<NERF_AT&&/^ทายาท/.test(row.rr.richest||''))row.richest=Math.round(row.richest*.7);
   return row;
 }
@@ -8768,7 +9163,7 @@ async function lbRecord(E,kind){
     if(Math.min(80,S.inv.med)>cur.meds||!rr.meds)rr.meds=Math.min(80,S.inv.med)>=cur.meds?rn:(rr.meds||cur.role||rn);
     if(Math.min(60,Object.keys(S.gear||{}).length)>cur.arms||!rr.arms)rr.arms=Math.min(60,Object.keys(S.gear||{}).length)>=cur.arms?rn:(rr.arms||cur.role||rn);
     if(nv.ds!=null&&nv.ds>(cur.daily||0))rr.daily=rn;else if(cur.rr.daily&&nv.ds)rr.daily=cur.rr.daily;
-    const cs0=kind==='final'?(cur.cs||0)+1:0;const ex={rr,cs:cs0,bs:Math.max(cur.bs||0,cs0),gd:(cur.gd||0)+Math.min(60,S.c.help|0),ev:(cur.ev||0)+Math.min(60,S.c.steal|0)},g=gnameNow();const otp=typeof otPending==='function'?otPending():0;if(S.daily&&S.daily===today&&cur.dd!==today)ex.dc=(cur.dc||0)+1;else if(cur.dc)ex.dc=cur.dc;if(otp>0||cur.ot)ex.ot=(cur.ot||0)+(sn.exists?otp:Math.min(otp,180));if(g)ex.gname=g;
+    const cs0=kind==='final'?(cur.cs||0)+1:0;const ex={rr,te:Math.min((cur.lives+1)*5e8,(cur.te||0)+Math.max(0,Math.min(5e8,Math.round(S.c.earned||0)))),cs:cs0,bs:Math.max(cur.bs||0,cs0),gd:(cur.gd||0)+Math.min(60,S.c.help|0),ev:(cur.ev||0)+Math.min(60,S.c.steal|0)},g=gnameNow();const otp=typeof otPending==='function'?otPending():0;if(S.daily&&S.daily===today&&cur.dd!==today)ex.dc=(cur.dc||0)+1;else if(cur.dc)ex.dc=cur.dc;if(otp>0||cur.ot)ex.ot=(cur.ot||0)+(sn.exists?otp:Math.min(otp,180));if(g)ex.gname=g;
     try{await ref.set(Object.assign({},nv,ex));Object.assign(nv,ex);if(otp>0)lsSet(OTP,String(Math.max(0,(parseFloat(lsGet(OTP,'0'))||0)-otp)))}catch(e1){await ref.set(nv)}
     const i=LB.rows.findIndex(r=>r.id===LB.id);const row=lbRow(LB.id,nv);
     if(i>=0)LB.rows[i]=row;else LB.rows.push(row);
@@ -8776,9 +9171,9 @@ async function lbRecord(E,kind){
   }catch(e){return false}
 }
 const SILLY=(typeof FD_IDS!=='undefined'?FD_IDS:[]).concat(['banana','coconut','selfie','laugh','choke','veg','mushroom','spicy','karaoke','allergy','bee','pool','yacht','fugu','safe','heartplay','liver']);
-const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาหลายแบบที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭'],['bs','รอดติดกันยาวที่สุด',v=>v+' ชีวิตติด','🔥'],['rate','อัตรารอดสูงสุด (เล่น ≥5 ชีวิต)',v=>v+'%','📈'],['lives','นักสู้ตัวยง (เล่นมากสุด)',v=>v+' ชีวิต','🎮'],['gd','คนดีที่สุด (ช่วยเหลือรวม)',v=>v+' ครั้ง','😇'],['ev','คนชั่วที่สุด (หยิบของรวม)',v=>v+' ครั้ง','😈'],['ot','ออนไลน์นานที่สุด',v=>fmtOt(v),'⏱'],['dc','เล่นชีวิตประจำวันสะสม',v=>v+' วัน','📅']];
+const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['best','คะแนนชีวิตสูงสุด',v=>v+' / 100','⭐'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['joy','มีความสุข',v=>v+' / 100','😊'],['arms','มีอาวุธมากที่สุด',v=>v+' ชิ้น','⚔️'],['meds','ยาเยอะที่สุด',v=>v+' ชุด','💊'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['dr','ทำความฝันสำเร็จ',v=>v+' ครั้ง','🎯'],['daily','ชีวิตประจำวันนี้',v=>v+' / 100','📅'],['funny','ตายฮาหลายแบบที่สุด',v=>v+' แบบ','🤡'],['banana','เหยื่อกล้วยหอม',v=>v+' ครั้ง','🍌'],['ghost','เพื่อนสนิทผี',v=>v+' เหตุการณ์หายาก','👻'],['rolesN','ร้อยอาชีพ',v=>v+' / '+ROLES.length+' อาชีพ','🎭'],['bs','รอดติดกันยาวที่สุด',v=>v+' ชีวิตติด','🔥'],['rate','อัตรารอดสูงสุด (เล่น ≥5 ชีวิต)',v=>v+'%','📈'],['lives','นักสู้ตัวยง (เล่นมากสุด)',v=>v+' ชีวิต','🎮'],['gd','คนดีที่สุด (ช่วยเหลือรวม)',v=>v+' ครั้ง','😇'],['ev','คนชั่วที่สุด (หยิบของรวม)',v=>v+' ครั้ง','😈'],['ot','ออนไลน์นานที่สุด',v=>fmtOt(v),'⏱'],['te','เงินสะสมรวมตั้งแต่เล่น',v=>fmt(v),'💰'],['dc','เล่นชีวิตประจำวันสะสม',v=>v+' วัน','📅']];
 /* ซ่อนอันดับที่ยังไม่มีใครทำได้ (ยกเว้น 3 อันดับหลัก) ให้โผล่เองเมื่อมีคนผ่านเกณฑ์ */
-const CORE_M=['richest','best','survived','gd','ev','ot'];
+const CORE_M=['richest','best','survived','gd','ev','ot','te'];
 function activeMetrics(){return METRICS.filter(m=>CORE_M.includes(m[0])||LB.rows.some(r=>!r.bad&&r[m[0]]>0))}
 function rankList(k){return LB.rows.filter(r=>!r.bad&&r[k]>0).sort((a,b)=>b[k]-a[k]||b.best-a.best)}
 function myRank(k){const l=rankList(k);const i=l.findIndex(r=>r.id===LB.id);return i<0?0:i+1}
@@ -9232,6 +9627,13 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-02a',date:'2 พ.ย. 2569',title:'อัปเดตใหญ่: สามก๊กบุกโลก · มังกรบุก · การ์ดชุด · แลกการ์ด',items:[
+  '⚔️ ภัยพิบัติใหม่ “สามก๊กบุกโลก” 6 ตอนต่อเนื่อง ทัพสามแคว้นทะลุประตูมิติมากลางทุ่งนา',
+  '🐉 ภัยพิบัติใหม่ “มังกรบุก” 6 ตอน มีเนื้อเรื่องช่วยลูกมังกรกลับไปหาแม่ จบเรื่องได้การ์ดแน่นอน',
+  '🎴 ระบบการ์ด A (ทองแดง) S (เงิน) S+ (ทอง) 66 ใบ แบ่ง 7 ช่อง: ชุดเต็ม เสื้อ/ผ้าคลุม หมวก รองเท้า อาวุธ (ปืน ดาบ ธนู) คาถา ปีก สวมแล้วเห็นบนตัวละครจริง ดรอปจากเหตุการณ์ A 2% · S 0.4% · S+ 0.1% ได้ทอง +2% / +4% / +6% ต่อใบ รวมไม่เกิน +20% (แยกจากฉายาและยศ)',
+  '🤝 แลกการ์ดกับผู้เล่นที่ออนไลน์ พร้อมแชตคุยกันระหว่างแลก (ถอดชุดก่อนถึงจะแลกได้)',
+  '💰 อันดับใหม่ “เงินสะสมรวมตั้งแต่เล่น” รวมเงินที่หาได้ทุกชีวิต',
+  '🎲 เหตุการณ์ที่เพิ่งเจอจะออกซ้ำยากขึ้นมาก · เพิ่มภาพมังกร ลูกมังกร และกองทัพสามสีเดินขบวนในฉาก']},
  {id:'2026-10-29m',date:'29 ต.ค. 2569',title:'บอกอันดับของเราทุกหมวด + ตายฮาเพิ่ม 50 แบบ',items:[
   '📊 ปุ่มหมวดในตารางอันดับมีเลข # บอกอันดับของคุณในหมวดนั้นๆ ให้เห็นทันที (ต้องล็อกอิน)',
   '🤡 เพิ่มฉากตายฮาๆ อีก 50 แบบ เช่น นกพิราบแย่งซาลาเปา ตามจีพีเอสลงทะเลสาบ ทุเรียนหล่นใส่หัว ตู้เอทีเอ็มกลืนมือ',
@@ -9483,6 +9885,160 @@ function ovTitles(){
 }
 document.addEventListener('click',e=>{if(e.target.closest&&e.target.closest('[data-tt]'))ovTitles()});
 {const b=document.getElementById('bTitle');if(b)b.onclick=ovTitles}
+/* ===== v78: อัลบั้มการ์ด + ระบบแลกเปลี่ยนการ์ดกับผู้เล่นออนไลน์ ===== */
+var cardTab='fit';
+function ovCards(){
+  var ov=document.getElementById('ovcard');if(ov)ov.remove();
+  ov=document.createElement('div');ov.className='ov';ov.id='ovcard';document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove()});
+  function draw(){
+    var d=cardLoad(),tot=cardTotal(),eq=d.eq,bn=Math.round(cardBonus()*100);
+    function sec(t){
+      var T=CARD_T[t],l=CARD_LIST.filter(function(c){var x=CARD_BY[c[0]];return c[1]===t&&x.slot===cardTab});
+      if(!l.length)return '';
+      return '<b style="color:'+T.c+'">'+T.n+' · '+T.l+' · +'+Math.round(T.b*100)+'% · ดรอป '+(T.p*100)+'%</b><div class="cardgrid">'+
+        l.map(function(r){
+          var c=CARD_BY[r[0]],n=d.o[c.id]|0;
+          if(!n)return '<div class="cardx lock"><span class="cdt">'+T.n+'</span><span class="cdi">?</span><b>ยังไม่เจอ</b></div>';
+          return cardHTML(c,{n:n,sel:cardIsEq(c.id),attr:' data-c="'+c.id+'"',foot:'<em>'+(cardIsEq(c.id)?'✅ สวมอยู่ (แตะถอด)':'แตะเพื่อสวม')+'</em>'});
+        }).join('')+'</div>';
+    }
+    var wear=SLOTS.map(function(s){var c=CARD_BY[eq[s[0]]];return c?c.i:'▫️'}).join(' ');
+    ov.innerHTML='<div class="ovb" style="max-width:520px" role="dialog" aria-label="การ์ด"><div class="ovh"><b>🎴 การ์ดของฉัน</b><button class="mini" id="cdx">ปิด</button></div>'+
+      '<p class="hint">เก็บแล้ว <b>'+tot.u+'/'+CARD_LIST.length+'</b> แบบ ('+tot.n+' ใบ) · สวมได้ช่องละ 1 ใบ รวม 7 ช่อง<br>ตอนนี้สวม: '+wear+' · โบนัสทองรวม <b>+'+bn+'%</b> (A +2% · S +4% · S+ +6% ต่อใบ รวมกันไม่เกิน +'+Math.round(BONUS_CAP*100)+'% แยกจากฉายาและยศ)</p>'+
+      '<div class="tabs" style="margin:4px 0;display:flex;flex-wrap:wrap;gap:4px">'+SLOTS.map(function(s){return '<button class="mini'+(s[0]===cardTab?' hot':'')+'" data-tab="'+s[0]+'">'+s[2]+' '+s[1]+(eq[s[0]]?' ✅':'')+'</button>'}).join('')+'</div>'+
+      '<div style="display:flex;gap:6px;margin-bottom:6px"><button class="btn" id="cdtr">🤝 แลกการ์ดกับผู้เล่นออนไลน์</button></div>'+
+      '<p class="hint" style="margin:2px 0">โอกาสดรอปต่อเหตุการณ์: A 2% · S 0.4% · S+ 0.1% · จบมหันตภัยมังกรได้การ์ดแน่นอน</p>'+
+      '<div style="max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:8px">'+sec('SP')+sec('S')+sec('A')+'</div></div>';
+    ov.querySelector('#cdx').onclick=function(){ov.remove()};
+    ov.querySelector('#cdtr').onclick=function(){ov.remove();ovTrade()};
+    ov.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){cardTab=b.dataset.tab;draw()}});
+    ov.querySelectorAll('[data-c]').forEach(function(b){b.onclick=function(){cardEquip(b.dataset.c);draw()}});
+  }
+  draw();
+}
+/* ---------- แลกเปลี่ยน ---------- */
+var TR=null,trTimer=null,trUnsub=null,trRx={};
+function trMe(){return typeof myPeerId==='function'?myPeerId():null}
+function trPeerName(id){try{var p=MP.api.peers().find(function(x){return x.peer===id});return clean(p&&p.presence&&p.presence.nm,16)||'ผู้เล่น'}catch(e){return 'ผู้เล่น'}}
+function trSend(ty,x){if(!TR||!TR.peer)return Promise.resolve();var d=Object.assign({to:TR.peer,ty:ty},x||{});try{return MP.api.emit('trade',d)}catch(e){return Promise.resolve()}}
+function trReset(){TR.cfMine=false;TR.cfThem=false;TR.cfBox=null}
+function trLog(w,t){if(!TR)return;TR.log.push([w,t]);if(TR.log.length>40)TR.log.shift()}
+function trInit(){
+  if(trUnsub||!MP.api||typeof MP.api.on!=='function')return;
+  try{trUnsub=MP.api.on('trade',function(m){
+    if(!m||m.sameTab||m.isMe)return;
+    var d=m.data;if(!d||typeof d!=='object')return;
+    var me=trMe();if(!me||d.to!==me)return;
+    var now=Date.now();if(now-(trRx[m.peer]|0)<150)return;trRx[m.peer]=now;
+    trRecv(m.peer,d);
+  })}catch(e){}
+}
+function trRecv(from,d){
+  var ty=String(d.ty||'');
+  if(ty==='inv'){
+    if(TR&&TR.st!=='list'&&TR.st!=='done'){try{MP.api.emit('trade',{to:from,ty:'dec',why:'busy'})}catch(e){}return}
+    TR={peer:from,nm:trPeerName(from),st:'ask',mine:'',them:'',cfMine:false,cfThem:false,log:[],n:0};ovTrade();return;
+  }
+  if(!TR||TR.peer!==from)return;
+  if(ty==='acc'&&TR.st==='wait'){TR.st='in';trLog('sys',TR.nm+' ตอบรับแล้ว เริ่มแลกกันได้เลย');drawTrade()}
+  else if(ty==='dec'&&TR.st==='wait'){TR.st='list';TR.note=TR.nm+(d.why==='busy'?' กำลังทำอย่างอื่นอยู่':' ไม่ว่างแลกตอนนี้');TR.peer=null;drawTrade()}
+  else if(ty==='off'&&TR.st==='in'){var c=String(d.c||'');TR.them=CARD_BY[c]?c:'';trReset();trLog('sys',TR.nm+(TR.them?' เสนอ '+CARD_BY[TR.them].n:' ถอนข้อเสนอ'));drawTrade()}
+  else if(ty==='msg'&&TR.st==='in'){trLog('them',clean(d.x,80));drawTrade()}
+  else if(ty==='cf'&&TR.st==='in'){
+    var g=String(d.g||''),r=String(d.r||'');
+    if(g===(TR.them||'')&&r===(TR.mine||'')){TR.cfThem=true;trTryDone()}
+    else{TR.cfThem=false}
+    drawTrade();
+  }
+  else if(ty==='dn'){if(TR.done)TR.partnerDn=true}
+  else if(ty==='bye'){if(TR.st!=='done'){TR.st='list';TR.note=TR.nm+' ออกจากการแลกแล้ว';TR.peer=null;trReset()}drawTrade()}
+}
+function trTryDone(){
+  if(!TR||TR.done||!TR.cfMine||!TR.cfThem)return;
+  if(TR.mine&&cardFree(TR.mine)<1){TR.cfMine=false;trLog('sys','การ์ดที่เสนอไม่พร้อมแลกแล้ว');return}
+  TR.done=true;
+  if(TR.mine)cardTake(TR.mine);
+  if(TR.them)cardAdd(TR.them,1);
+  TR.st='done';
+  TR.res='แลกสำเร็จ! คุณได้ '+(TR.them?CARD_BY[TR.them].i+' '+CARD_BY[TR.them].n:'(ไม่ได้รับการ์ด)')+(TR.mine?' · มอบ '+CARD_BY[TR.mine].n+' ให้ '+TR.nm:'');
+  try{if(typeof sfx==='function')sfx('buy')}catch(e){}
+  trSend('dn');
+}
+function trResend(){
+  if(!TR||TR.st!=='in'&&!(TR.st==='done'&&!TR.partnerDn))return;
+  if(TR.st==='done'){if(++TR.n>14){clearInterval(trTimer);trTimer=null;return}trSend('dn');return}
+  if(TR.cfMine&&!TR.done){trSend('cf',{g:TR.mine||'',r:TR.them||''})}
+}
+function ovTrade(){
+  trInit();
+  var ov=document.getElementById('ovtrade');if(ov)ov.remove();
+  ov=document.createElement('div');ov.className='ov';ov.id='ovtrade';ov.style.zIndex=60;document.body.appendChild(ov);
+  if(!TR)TR={peer:null,nm:'',st:'list',mine:'',them:'',cfMine:false,cfThem:false,log:[],n:0};
+  clearInterval(trTimer);trTimer=setInterval(function(){
+    if(!document.getElementById('ovtrade')){clearInterval(trTimer);trTimer=null;return}
+    trResend();if(TR&&TR.st==='list')drawTrade();
+  },1500);
+  drawTrade();
+}
+function trClose(){
+  var ov=document.getElementById('ovtrade');if(ov)ov.remove();
+  if(TR&&TR.peer&&TR.st!=='done'&&TR.st!=='list')trSend('bye');
+  clearInterval(trTimer);trTimer=null;TR=null;
+}
+function drawTrade(){
+  var ov=document.getElementById('ovtrade');if(!ov||!TR)return;
+  var h='<div class="ovb" style="max-width:520px" role="dialog" aria-label="แลกการ์ด"><div class="ovh"><b>🤝 แลกการ์ด</b><button class="mini" id="trx">ปิด</button></div>';
+  if(TR.st==='list'){
+    var fr=[];try{fr=typeof friendsOnline==='function'?friendsOnline():[]}catch(e){}
+    var api=MP.api&&typeof MP.api.emit==='function';
+    h+='<p class="hint">ผู้เล่นที่ออนไลน์ตอนนี้ — เลือกคนที่อยากแลกด้วย</p>'+(TR.note?'<div class="amb">'+esc(TR.note)+'</div>':'');
+    h+=api&&fr.length?'<div class="shop">'+fr.map(function(p){var nm=clean(p.presence&&p.presence.nm,16)||'ผู้เล่น',st=clean(p.presence&&p.presence.st,50);
+      return '<div class="shopi"><span><b>'+esc(nm)+'</b><small>'+esc(st)+'</small></span><span class="pr"></span><button class="mini hot" data-inv="'+esc(p.peer)+'">ชวนแลก</button></div>'}).join('')+'</div>':
+      '<p class="hint">ตอนนี้ไม่มีใครออนไลน์ให้แลก ลองชวนเพื่อนเปิดหน้านี้พร้อมกัน แล้วกลับมาใหม่</p>';
+    h+='<div class="row"><button class="btn" id="trbk">กลับไปอัลบั้ม</button></div>';
+  }else if(TR.st==='ask'){
+    h+='<p style="margin:10px 0"><b>'+esc(TR.nm)+'</b> ชวนคุณแลกการ์ด</p><div class="row"><button class="btn" id="tracc">ตกลง</button><button class="mini" id="trdec">ไม่ว่าง</button></div>';
+  }else if(TR.st==='wait'){
+    h+='<p style="margin:10px 0">รอ <b>'+esc(TR.nm)+'</b> ตอบรับ…</p><div class="row"><button class="mini" id="trcan">ยกเลิก</button></div>';
+  }else if(TR.st==='done'){
+    h+='<p style="margin:10px 0">🎉 '+esc(TR.res)+'</p><div class="row"><button class="btn" id="trfin">เสร็จสิ้น</button></div>';
+  }else{
+    var d=cardLoad(),opts=CARD_LIST.filter(function(c){return cardFree(c[0])>0});
+    var m=CARD_BY[TR.mine],t=CARD_BY[TR.them];
+    h+='<p class="hint">กำลังแลกกับ <b>'+esc(TR.nm)+'</b> · ใบที่สวมอยู่แลกไม่ได้ (ถอดก่อน) · ทั้งสองฝ่ายต้องกด “ยืนยัน” ด้วยข้อเสนอเดียวกัน</p>'+
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><small>คุณเสนอ</small>'+(m?cardHTML(m,{}):'<div class="cardx lock"><b>ยังไม่เลือก</b></div>')+(TR.cfMine?'<small>✅ คุณยืนยันแล้ว</small>':'')+'</div>'+
+      '<div><small>'+esc(TR.nm)+' เสนอ</small>'+(t?cardHTML(t,{}):'<div class="cardx lock"><b>ยังไม่เลือก</b></div>')+(TR.cfThem?'<small>✅ เขายืนยันแล้ว</small>':'')+'</div></div>'+
+      '<div style="margin:8px 0"><small>เลือกการ์ดของคุณที่จะแลก</small><div class="cardrow">'+(opts.length?opts.map(function(r){var c=CARD_BY[r[0]];return cardHTML(c,{sel:TR.mine===c.id,n:cardFree(c.id),attr:' data-o="'+c.id+'"'})}).join(''):'<small>ไม่มีใบที่แลกได้</small>')+'</div>'+
+      (TR.mine?'<button class="mini" id="troff">ถอนข้อเสนอ</button>':'')+'</div>'+
+      '<div class="row"><button class="btn" id="trcf"'+((!TR.mine&&!TR.them)||TR.cfMine?' disabled':'')+'>ยืนยันการแลก</button></div>'+
+      '<div class="trlog" id="trlog">'+TR.log.map(function(l){return '<div class="'+l[0]+'">'+(l[0]==='me'?'คุณ: ':l[0]==='them'?esc(TR.nm)+': ':'')+esc(l[1])+'</div>'}).join('')+'</div>'+
+      '<div style="display:flex;gap:6px"><input id="trin" maxlength="80" placeholder="พิมพ์คุยกัน…" style="flex:1"><button class="mini" id="trsd">ส่ง</button></div>';
+  }
+  h+='<p class="hint" style="margin-top:8px;font-size:11px">หมายเหตุ: การ์ดเก็บในเครื่อง/บัญชีของแต่ละคน ไม่มีเซิร์ฟเวอร์กลางตรวจสอบ แลกกับคนที่ไว้ใจได้</p></div>';
+  var keep=ov.querySelector&&ov.querySelector('#trin'),kv=keep?keep.value:'',kf=keep&&document.activeElement===keep;
+  ov.innerHTML=h;
+  ov.querySelector('#trx').onclick=trClose;
+  var q=function(s){return ov.querySelector(s)};
+  if(q('#trbk'))q('#trbk').onclick=function(){trClose();ovCards()};
+  if(q('#tracc'))q('#tracc').onclick=function(){TR.st='in';trSend('acc');trLog('sys','เริ่มแลกกับ '+TR.nm);drawTrade()};
+  if(q('#trdec'))q('#trdec').onclick=function(){trSend('dec');TR=null;trClose();};
+  if(q('#trcan'))q('#trcan').onclick=function(){trSend('bye');TR.st='list';TR.peer=null;drawTrade()};
+  if(q('#trfin'))q('#trfin').onclick=function(){TR=null;trClose();ovCards()};
+  ov.querySelectorAll('[data-inv]').forEach(function(b){b.onclick=function(){
+    var to=b.dataset.inv;TR={peer:to,nm:trPeerName(to),st:'wait',mine:'',them:'',cfMine:false,cfThem:false,log:[],n:0};
+    trSend('inv');drawTrade()}});
+  ov.querySelectorAll('[data-o]').forEach(function(b){b.onclick=function(){
+    TR.mine=TR.mine===b.dataset.o?'':b.dataset.o;trReset();trSend('off',{c:TR.mine});drawTrade()}});
+  if(q('#troff'))q('#troff').onclick=function(){TR.mine='';trReset();trSend('off',{c:''});drawTrade()};
+  if(q('#trcf'))q('#trcf').onclick=function(){TR.cfMine=true;trSend('cf',{g:TR.mine||'',r:TR.them||''});trTryDone();drawTrade()};
+  var sd=function(){var i=q('#trin');if(!i)return;var x=clean(i.value,80);if(!x)return;i.value='';trLog('me',x);trSend('msg',{x:x});drawTrade()};
+  if(q('#trsd'))q('#trsd').onclick=sd;
+  if(q('#trin')){q('#trin').value=kv;q('#trin').onkeydown=function(e){if(e.key==='Enter')sd()};if(kf)q('#trin').focus()}
+  var lg=q('#trlog');if(lg)lg.scrollTop=lg.scrollHeight;
+}
+{var _b=document.getElementById('bCards');if(_b)_b.onclick=ovCards}
+try{trInit()}catch(e){}
 /* ===== UI v2 ===== */
 const $=id=>document.getElementById(id);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -10938,5 +11494,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 29/10 18:02';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 00:14';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
