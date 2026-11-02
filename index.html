@@ -6547,7 +6547,7 @@ ARC_EP.dragon=[
 arcGen('sangok');arcGen('dragon');
 /* ===== v78: การ์ดชุด A/S/S+ — ดรอปจากเหตุการณ์ · ใส่/ถอด · โบนัสเงิน (แยกจากฉายาและยศ) ===== */
 var CARD_KEY='doom365-cards';
-var CARD_T={A:{n:'A',c:'#c8794a',g:'rgba(200,121,74,.75)',b:.02,p:.02,l:'ทองแดง'},S:{n:'S',c:'#d5dbe6',g:'rgba(190,205,230,.8)',b:.04,p:.004,l:'เงิน'},SP:{n:'S+',c:'#ffd24a',g:'rgba(255,210,74,.9)',b:.06,p:.001,l:'ทอง'}};
+var CARD_T={A:{n:'A',c:'#c8794a',g:'rgba(200,121,74,.75)',b:.01,p:.02,l:'ทองแดง'},S:{n:'S',c:'#d5dbe6',g:'rgba(190,205,230,.8)',b:.02,p:.004,l:'เงิน'},SP:{n:'S+',c:'#ffd24a',g:'rgba(255,210,74,.9)',b:.03,p:.001,l:'ทอง'}};
 /* [id, tier, ไอคอน, ชื่อชุด, เสื้อ, กางเกง, หมวก] */
 var CARD_LIST=[
 ['a1','A','🧥','ชุดนักเดินทางผ้าแคนวาส','#b5894f','#4a4030','#8a6a3a'],
@@ -6579,7 +6579,13 @@ var CARD_LIST=[
 ['p7','SP','🦅','ชุดอัศวินปีกเหยี่ยวทอง','#f0c040','#3a2f2a','#f0c040'],
 ['p8','SP','🌸','ชุดเจ้าหญิงดอกซากุระ','#ff9ac0','#7a3a5a','#ffe0ee'],
 ['p9','SP','🪐','ชุดนักเดินทางข้ามกาลเวลา','#40e0c8','#1f2a4a','#e8fff8'],
-['p10','SP','💎','ชุดเจ้าแห่งคริสตัล','#a0e8ff','#3a4a8a','#e0f8ff']
+['p10','SP','💎','ชุดเจ้าแห่งคริสตัล','#a0e8ff','#3a4a8a','#e0f8ff'],
+['a11','A','🎒','ชุดนักเรียนกระเป๋าเป้','#4a6fc0','#2a2f44','#222633'],
+['a12','A','🌻','ชุดคนสวนเอี๊ยมเขียว','#6fbf5a','#3a5a8a','#d9c070'],
+['s11','S','🩺','ชุดหมอเสื้อกาวน์ฟ้า','#8fd0e8','#3a6a8a',null],
+['s12','S','🧑‍🚀','ชุดนักบินอวกาศ','#f2f2f6','#c9d0dc','#f2f2f6'],
+['p11','SP','🌌','ชุดจอมเวทย์จักรวาล','#2a1f6a','#14103a','#ffd24a'],
+['p12','SP','🌈','ชุดเทพเจ้าสายรุ้ง','#ff7ac0','#4a8fd0','#fff3b0']
 ];
 /* [id, tier, ไอคอน, ชื่อ, ช่อง, สี, สไตล์] */
 var CARD_X=[
@@ -6624,13 +6630,41 @@ var CARD_X=[
 ['g3','S','🦉','ปีกนกฮูกขนนุ่ม','wings','#c8a878','feather'],
 ['g4','S','🦋','ปีกผีเสื้อเรืองแสง','wings','#5ae8d8','bfly'],
 ['g5','SP','🪽','ปีกเทวดาสีทอง','wings','#ffe27a','feather'],
-['g6','SP','🐲','ปีกมังกรเพลิง','wings','#d8401a','bat']
+['g6','SP','🐲','ปีกมังกรเพลิง','wings','#d8401a','bat'],
+['t7','A','🧶','เสื้อฮู้ดสีเทา','top','#8a909c',''],
+['t8','S','🔮','เสื้อคลุมเวทย์ม่วง','top','#7a3ad0','cape'],
+['t9','SP','☀️','ผ้าคลุมเปลวสุริยะ','top','#ff9a2a','cape'],
+['h9','A','🌾','หมวกฟางชาวสวน','hat','#e8c878','cowboy'],
+['h10','S','🌙','หมวกแม่มดราตรี','hat','#2a1f4a','wizard'],
+['h11','SP','❄️','มงกุฎคริสตัลน้ำแข็ง','hat','#a0e8ff','crown'],
+['sh7','A','🩴','รองเท้าแตะหูหนีบ','shoes','#4ab0e8',''],
+['sh8','S','🛼','รองเท้าสเก็ตโรลเลอร์','shoes','#ff5a8a','trail'],
+['sh9','SP','🪽','รองเท้าปีกเทพ','shoes','#fff3b0','spark'],
+['w9','A','🧹','ไม้กวาดนักสู้','weapon','#a07a3a','bat'],
+['w10','S','🌙','ธนูเงินจันทรา','weapon','#d5dbe6','bow'],
+['w11','SP','⚡','ดาบสายฟ้าฟาด','weapon','#7ae8ff','sword'],
+['c9','A','🪲','คาถาหิ่งห้อย','spell','#c8f06a','orb'],
+['c10','S','🏜️','คาถาพายุทราย','spell','#e8c070','orb'],
+['c11','SP','🌠','คาถาดาวตกจักรวาล','spell','#b07aff','holy'],
+['g7','A','🪰','ปีกแมลงปอใส','wings','#bfe8ff','bfly'],
+['g8','S','🌃','ปีกค้างคาวราตรี','wings','#6a3a9a','bat'],
+['g9','SP','🔥','ปีกฟีนิกซ์สายรุ้ง','wings','#ff7a4a','feather'],
+['pt1','A','🐱','แมวส้มเดินตาม','pet','#ef9a4a','cat'],
+['pt2','A','🐶','หมาน้อยหางแกว่ง','pet','#c8a070','dog'],
+['pt3','A','🐰','กระต่ายขนปุย','pet','#f2f2f6','rabbit'],
+['pt4','A','🐹','แฮมสเตอร์แก้มตุ่ย','pet','#e8c88a','hamster'],
+['pt5','S','🦊','จิ้งจอกหางพู่','pet','#f08a3a','fox'],
+['pt6','S','🐺','ลูกหมาป่าเงิน','pet','#9aa4b4','wolf'],
+['pt7','S','🦉','นกฮูกบินตาม','pet','#b8905a','owl'],
+['pt8','SP','🐲','มังกรจิ๋วพ่นไฟ','pet','#4ac86a','dragon'],
+['pt9','SP','🔥','ฟีนิกซ์น้อยเพลิงทอง','pet','#ff8a2a','phoenix'],
+['pt10','SP','🦄','ยูนิคอร์นสายรุ้ง','pet','#fff0f8','unicorn']
 ];
-var SLOTS=[['fit','ชุดเต็ม','👘'],['top','เสื้อ','👕'],['hat','หมวก','🎩'],['shoes','รองเท้า','👟'],['weapon','อาวุธ','🔫'],['spell','คาถา','✨'],['wings','ปีก','🪽']];
+var SLOTS=[['fit','ชุดเต็ม','👘'],['top','เสื้อ','👕'],['hat','หมวก','🎩'],['shoes','รองเท้า','👟'],['weapon','อาวุธ','🔫'],['spell','คาถา','✨'],['wings','ปีก','🪽'],['pet','สัตว์เลี้ยง','🐾']];
 var CARD_BY={};
 CARD_LIST.forEach(function(c){CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:'fit',sh:c[4],pn:c[5],ht:c[6]}});
 CARD_X.forEach(function(c){CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:c[4],c:c[5],st:c[6]};CARD_LIST.push([c[0],c[1],c[2],c[3]])});
-var BONUS_CAP=.20;
+var BONUS_CAP=.24;
 var _cardMem=null;
 var _cardRaw=null;
 function isAdmin(){try{var u=window.D365_FB&&D365_FB.user;return !!u&&String(u.email||'').toLowerCase()==='zxcoma1a2a3@gmail.com'}catch(e){return false}}
@@ -6681,7 +6715,7 @@ function cardLook(L){
   var o=Object.assign({},L),fx={},f=CARD_BY[e.fit],tp=CARD_BY[e.top];
   if(f){o.shirt=f.sh;o.pants=f.pn;if(f.ht)o.hat=f.ht;fx.fit={t:f.t}}
   if(tp){o.shirt=tp.c;if(tp.st)fx.cape=tp.c}
-  ['hat','shoes','weapon','spell','wings'].forEach(function(sl){var c=CARD_BY[e[sl]];if(c)fx[sl]={c:c.c,st:c.st,t:c.t}});
+  ['hat','shoes','weapon','spell','wings','pet'].forEach(function(sl){var c=CARD_BY[e[sl]];if(c)fx[sl]={c:c.c,st:c.st,t:c.t}});
   if(e.hat&&fx.hat)o.hat=null;
   o.fx=fx;return o;
 }
@@ -6696,10 +6730,61 @@ function cardLook(L){
     function f(v){v=Math.round(a>=0?v+(255-v)*a:v*(1+a));return Math.max(0,Math.min(255,v))}
     return 'rgb('+f(r)+','+f(gg)+','+f(b)+')'}
   function spk(x,y,c,on){if(!on)return;R(x,y-1,1,3,c);R(x-1,y,3,1,c)}
+  /* ===== สัตว์เลี้ยง: เดินตามหลังตัวละคร ===== */
+  function petDraw(P,x,y,d,t){
+    var st=P.st,c=P.c,cd=sh(c,-.4),cl=sh(c,.45),tier=P.t,tk=Math.floor(t*8);
+    var px=x-d*13,py=y,m=d,step=Math.floor(t*6)%2;
+    function Q(ox,oy,w,h,col){R(px+(m>0?ox:-ox-w),py+oy,w,h,col)}
+    var fly=(st==='owl'||st==='dragon'||st==='phoenix'),bob=fly?Math.round(Math.sin(t*3)*2)-10:0;
+    g.globalAlpha=fly?.18:.28;R(px-6,py-1,12,2,'#000');g.globalAlpha=1;
+    var oy0=bob;
+    if(st==='cat'||st==='dog'||st==='fox'||st==='wolf'||st==='unicorn'){
+      var big=(st==='unicorn'||st==='wolf')?1:0;
+      /* ขา */
+      Q(-5,-3,2,3,cd);Q(-3,-3+step,2,3-step,cd);Q(1,-3+(1-step),2,3-(1-step),cd);Q(3,-3,2,3,cd);
+      /* ลำตัว */
+      Q(-6,-8-big,11,6+big,c);Q(-6,-8-big,11,1,cl);Q(-6,-3,11,1,cd);Q(-1,-6-big,4,2,cl);
+      /* หัว */
+      Q(3,-12-big,6,6,c);Q(3,-12-big,6,1,cl);Q(7,-8-big,3,3,cl);Q(9,-8-big,1,1,'#222');Q(6,-11-big,1,1,'#111');Q(6,-11-big,1,1,'#111');
+      if(st==='cat'||st==='fox'||st==='wolf'){Q(3,-14-big,2,2,c);Q(7,-14-big,2,2,c);Q(4,-14-big,1,1,'#ffb0b0');Q(8,-14-big,1,1,'#ffb0b0')}
+      if(st==='dog'){Q(2,-12,2,5,cd);Q(8,-14,2,2,cd)}
+      if(st==='cat'){var tw=Math.round(Math.sin(t*4)*1);Q(-8,-14+tw,2,7,c);Q(-8,-15+tw,2,1,cl);Q(-6,-6,1,3,cd);Q(5,-9,2,1,'#fff');Q(7,-8,2,1,'#fff')}
+      if(st==='dog'){var wg=Math.round(Math.sin(t*12)*1);Q(-8,-10+wg,3,2,c);Q(-9,-11+wg,1,2,cl);Q(8,-7,1,2,'#e84a6a')}
+      if(st==='fox'){var tw2=Math.round(Math.sin(t*3));Q(-12,-9+tw2,7,5,c);Q(-12,-9+tw2,7,1,cl);Q(-14,-8+tw2,3,4,'#fff');Q(-11,-5+tw2,6,1,cd);Q(7,-8,3,3,'#fff')}
+      if(st==='wolf'){Q(-9,-8,4,3,cd);Q(-10,-6,2,3,cd);Q(-1,-8,5,1,cd);Q(8,-8,2,1,'#ffe27a')}
+      if(st==='unicorn'){Q(3,-12,1,1,'#fff');Q(7,-18,1,4,'#ffd24a');Q(7,-19,1,1,'#fff');Q(2,-13,2,5,'#ff7ac0');Q(1,-11,2,4,'#7ac8ff');Q(-8,-9,3,2,'#ff7ac0');Q(-9,-7,3,3,'#7ac8ff');Q(-8,-5,3,2,'#a0f0a0');
+        spk(px+(m>0?9:-9),py-18-(tk%3),'#fff',tk%2===0);spk(px+(m>0?-8:8),py-12,'#ffe27a',tk%3===0)}
+    }else if(st==='rabbit'||st==='hamster'){
+      var hp=Math.abs(Math.sin(t*5))>.7?2:0;py-=hp;
+      if(st==='rabbit'){Q(-4,-6,8,5,c);Q(-4,-6,8,1,cl);Q(-7,-5,3,3,'#fff');Q(1,-9,5,5,c);Q(2,-15,1,6,c);Q(4,-15,1,6,c);Q(2,-14,1,4,'#ffb0b0');Q(5,-8,1,1,'#111');Q(6,-7,1,1,'#ffb0b0');Q(-3,-1,3,1,cd);Q(2,-1,3,1,cd)}
+      else{Q(-4,-6,9,6,c);Q(-4,-6,9,1,cl);Q(-2,-3,5,3,'#fff');Q(3,-8,4,4,c);Q(4,-9,2,1,cd);Q(3,-10,1,2,c);Q(6,-7,1,1,'#111');Q(7,-6,1,1,'#ffb0b0');Q(-4,-1,2,1,cd);Q(3,-1,2,1,cd);Q(1,-5,3,2,cl)}
+      py+=hp
+    }else if(st==='owl'){
+      var fw=Math.round(Math.sin(t*9)*4);
+      Q(-6,oy0-12-fw,4,6,cd);Q(3,oy0-12-fw,4,6,cd);Q(-7,oy0-14-fw,2,4,c);Q(6,oy0-14-fw,2,4,c);
+      Q(-4,oy0-12,8,9,c);Q(-4,oy0-12,8,1,cl);Q(-2,oy0-8,4,5,'#f2e8d0');Q(-3,oy0-16,6,5,c);Q(-3,oy0-17,2,2,cd);Q(1,oy0-17,2,2,cd);
+      Q(-3,oy0-15,2,2,'#fff');Q(1,oy0-15,2,2,'#fff');Q(-2,oy0-15,1,1,'#111');Q(2,oy0-15,1,1,'#111');Q(-1,oy0-13,2,1,'#ffb02a');Q(-3,oy0-3,2,2,'#ffb02a');Q(1,oy0-3,2,2,'#ffb02a')
+    }else if(st==='dragon'){
+      var fw2=Math.round(Math.sin(t*8)*3);
+      Q(-6,oy0-13-fw2,5,5,sh(c,.25));Q(-8,oy0-15-fw2,3,4,sh(c,.25));Q(-6,oy0-10,10,6,c);Q(-6,oy0-10,10,1,cl);Q(-3,oy0-7,5,4,'#ffe27a');
+      Q(3,oy0-14,6,6,c);Q(3,oy0-14,6,1,cl);Q(7,oy0-11,3,3,cl);Q(6,oy0-13,1,1,'#ff3a3a');Q(3,oy0-16,1,3,'#ffd24a');Q(6,oy0-16,1,3,'#ffd24a');
+      Q(-12,oy0-8+Math.round(Math.sin(t*4)),7,2,c);Q(-14,oy0-7+Math.round(Math.sin(t*4)),3,2,'#ffd24a');Q(-4,oy0-4,2,3,cd);Q(1,oy0-4,2,3,cd);
+      if(tk%4<2){Q(10,oy0-10,3,2,'#ffb02a');Q(13,oy0-10,2,1,'#ff6a2a');Q(11,oy0-11,1,1,'#fff3b0')}
+    }else if(st==='phoenix'){
+      var fw3=Math.round(Math.sin(t*8)*4);
+      Q(-7,oy0-14-fw3,6,6,'#ffb02a');Q(-9,oy0-16-fw3,3,4,'#ff6a2a');Q(3,oy0-14-fw3,5,5,'#ffb02a');
+      Q(-5,oy0-11,9,7,c);Q(-5,oy0-11,9,1,'#ffd24a');Q(-2,oy0-8,4,4,'#ffe27a');Q(2,oy0-15,5,5,c);Q(2,oy0-15,5,1,'#ffd24a');Q(6,oy0-13,2,2,'#ffb02a');Q(5,oy0-14,1,1,'#111');
+      Q(1,oy0-18,1,3,'#ff3a3a');Q(3,oy0-18,1,3,'#ffd24a');
+      for(var fk=0;fk<5;fk++){g.globalAlpha=.9-fk*.15;Q(-7-fk*3,oy0-6+Math.round(Math.sin(t*6+fk)*2),3,2,fk<2?'#ffd24a':fk<4?'#ff8a2a':'#d83a1a')}g.globalAlpha=1
+    }
+    if(tier==='SP'){spk(px+(tk%5)*2-4,py-16-(tk%4)+bob,'#fff',tk%2===0);spk(px-(tk%4)*2,py-8+bob,'#ffe27a',tk%3===0)}
+    else if(tier==='S'&&tk%6===0)spk(px+3,py-14+bob,'#fff',true);
+  }
   person=function(x,y,L,fr,flip){
     var F=L&&L.fx;
     if(!F||!Object.keys(F).length)return _p(x,y,L,fr,flip);
     x=Math.round(x);y=Math.round(y);var t=tm(),d=flip?1:-1,s=fr?1:0,tk=Math.floor(t*8);
+    if(F.pet)petDraw(F.pet,x,y,d,t);
     if(F.cape){var cc=F.cape,cd=sh(cc,-.35),cl=sh(cc,.25),sw=Math.round(Math.sin(t*3)*1);
       R(x-4,y-13,8,12+s,cc);R(x-5,y-8,10,8,cc);R(x-6+sw,y-3,12,3,cc);
       R(x-4,y-13,1,12,cl);R(x+3,y-13,1,12,cd);R(x-1,y-9,1,8,cd);R(x-6+sw,y-1,12,1,cd);
@@ -10355,6 +10440,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-04c',date:'4 พ.ย. 2569',title:'ช่องสัตว์เลี้ยง + การ์ดใหม่ 34 ใบ',items:['🐾 ช่องใหม่ “สัตว์เลี้ยง” 10 ตัว: แมว หมา กระต่าย แฮมสเตอร์ จิ้งจอก หมาป่า นกฮูก มังกรจิ๋ว ฟีนิกซ์ ยูนิคอร์น เดินหรือบินตามหลังตัวละคร','🎴 การ์ดใหม่ทุกหมวด: ชุดเต็ม 6 · เสื้อ 3 · หมวก 3 · รองเท้า 3 · อาวุธ 3 · คาถา 3 · ปีก 3 รวม 106 ใบ','⚖️ ปรับโบนัสทอง: A +1% · S +2% · S+ +3% ต่อใบ สวมได้ 8 ช่อง รวมสูงสุด +24%']},
  {id:'2026-11-04b',date:'4 พ.ย. 2569',title:'การ์ดสวยขึ้น ลายละเอียดขึ้น',items:['🎴 ชุด: มีคอปก เข็มขัด ขอบแขน กระดุม · ระดับ S/S+ มีขอบทองและประกายแสง','ปีกค้างคาว/ผีเสื้อ/ขนนกวาดใหม่ มีเส้นกระดูก ลายขน และประกาย','หมวก รองเท้า อาวุธ และเวทมนตร์ ใส่ลายเงา ไฮไลต์ และอัญมณีเพิ่ม']},
  {id:'2026-11-04a',date:'4 พ.ย. 2569',title:'ปาร์ตี้ 2–4 คน ตัวละครคนละตัว',items:['👥 ปุ่มใหม่ในหน้าแรก: สร้างปาร์ตี้หรือเข้าด้วยรหัสห้อง เล่นได้ 2–4 คน','ทุกคนสุ่มอาชีพและเงินของตัวเอง เจอเหตุการณ์และภัยพิบัติเดียวกันพร้อมกัน เลือกคนละทางได้ ดูว่าเพื่อนเลือกอะไรหลังตัดสินใจ','เลือกช่วยเหลือ = เพื่อนได้กำลังใจ · ช่วยกันหลายคน = โบนัสทีม · ก่อเรื่อง = ตำรวจมองมาทางกลุ่ม · ใครจากไป เพื่อนเสียใจ แต่เกมยังเล่นต่อ','ไม่ทับเซฟเดี่ยวของคุณ หัวหน้าห้องออกกลางทางก็เล่นต่อได้']},
  {id:'2026-11-03j',date:'3 พ.ย. 2569',title:'อาชีพรวยระดับท็อปอีก 20 อาชีพ',items:['💎 รวยใกล้มหาเศรษฐีแต่ยังไม่เท่า: นักบินส่วนตัวเจ้าสัว เจ้าของสนามกอล์ฟ ซีอีโอแอปส่งอาหาร ดาวเตะพันล้าน ผู้จัดละคร ป๊อปสตาร์ เจ้าของโรงแรม วิศวกรจรวดโรงรถ เจ้าสัวตลาดสด และอีกหลายอาชีพ','แต่ละอาชีพมีเหตุการณ์เฉพาะตัว พร้อมทางเลือกทั้งสายใจดี สายรวย และสายคิด']},
@@ -10664,7 +10750,7 @@ function ovCards(){
     }
     var wear=SLOTS.map(function(s){var c=CARD_BY[eq[s[0]]];return c?c.i:'▫️'}).join(' ');
     ov.innerHTML='<div class="ovb" style="max-width:520px" role="dialog" aria-label="การ์ด"><div class="ovh"><b>🎴 การ์ดของฉัน</b><button class="mini" id="cdx">ปิด</button></div>'+
-      '<p class="hint">เก็บแล้ว <b>'+tot.u+'/'+CARD_LIST.length+'</b> แบบ ('+tot.n+' ใบ) · สวมได้ช่องละ 1 ใบ รวม 7 ช่อง<br>ตอนนี้สวม: '+wear+' · โบนัสทองรวม <b>+'+bn+'%</b> (A +2% · S +4% · S+ +6% ต่อใบ รวมกันไม่เกิน +'+Math.round(BONUS_CAP*100)+'% แยกจากฉายาและยศ)</p>'+
+      '<p class="hint">เก็บแล้ว <b>'+tot.u+'/'+CARD_LIST.length+'</b> แบบ ('+tot.n+' ใบ) · สวมได้ช่องละ 1 ใบ รวม 8 ช่อง (มีช่องสัตว์เลี้ยง 🐾)<br>ตอนนี้สวม: '+wear+' · โบนัสทองรวม <b>+'+bn+'%</b> (A +2% · S +4% · S+ +6% ต่อใบ รวมกันไม่เกิน +'+Math.round(BONUS_CAP*100)+'% แยกจากฉายาและยศ)</p>'+
       '<div class="tabs" style="margin:4px 0;display:flex;flex-wrap:wrap;gap:4px">'+SLOTS.map(function(s){return '<button class="mini'+(s[0]===cardTab?' hot':'')+'" data-tab="'+s[0]+'">'+s[2]+' '+s[1]+(eq[s[0]]?' ✅':'')+'</button>'}).join('')+'</div>'+
       '<div style="display:flex;gap:6px;margin-bottom:6px"><button class="btn" id="cdtr">🤝 แลกการ์ดกับผู้เล่นออนไลน์</button></div>'+
       '<p class="hint" style="margin:2px 0">โอกาสดรอปต่อเหตุการณ์: A 2% · S 0.4% · S+ 0.1% · จบมหันตภัยมังกรได้การ์ดแน่นอน</p>'+
@@ -12613,5 +12699,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 04:20';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 04:37';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
