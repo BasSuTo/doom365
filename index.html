@@ -6858,9 +6858,21 @@ function cardLook(L){
     else if(k==='blanket'){R(x-4,y-14,8,1,'#e8c24a');R(x-3,y-11,2,2,'#c06a5a');R(x+1,y-9,2,2,'#6a9ac0');R(x-2,y-7,2,2,'#e8c24a')}
   }
   /* ===== สัตว์เลี้ยง: เดินตามหลังตัวละคร ===== */
+  var PS={x:null,tx:0,nt:0,cool:0,m:-1,last:0,mv:0};
+  function petState(P,x,t){
+    var dt=Math.min(.1,Math.max(0,t-PS.last)),fl=(P.st==='owl'||P.st==='dragon'||P.st==='phoenix');PS.last=t;
+    if(PS.x==null||Math.abs(PS.x-x)>90){PS.x=x+24;PS.tx=PS.x;PS.nt=t+1;PS.cool=0}
+    var dist=PS.x-x,ad=Math.abs(dist);
+    if((ad>40||ad<16)&&t>PS.cool){PS.tx=x+(dist>=0?1:-1)*(20+Math.random()*14);PS.cool=t+.7;PS.nt=t+2+Math.random()*3}
+    else if(t>PS.nt){PS.tx=x+(Math.random()<.5?1:-1)*(20+Math.random()*16);PS.nt=t+2.5+Math.random()*3.5}
+    PS.tx=Math.max(12,Math.min(308,PS.tx));
+    var df=PS.tx-PS.x,sp=(fl?46:32)*dt;
+    if(Math.abs(df)>1){PS.x+=Math.sign(df)*Math.min(Math.abs(df),sp);PS.m=df>0?1:-1;PS.mv=1}else PS.mv=0;
+  }
   function petDraw(P,x,y,d,t){
     var st=P.st,c=P.c,cd=sh(c,-.4),cl=sh(c,.45),tier=P.t,tk=Math.floor(t*8);
-    var px=x-d*13,py=y,m=d,step=Math.floor(t*6)%2;
+    petState(P,x,t);
+    var px=Math.round(PS.x),py=y,m=PS.m,step=PS.mv?Math.floor(t*9)%2:0;
     function Q(ox,oy,w,h,col){R(px+(m>0?ox:-ox-w),py+oy,w,h,col)}
     var fly=(st==='owl'||st==='dragon'||st==='phoenix'),bob=fly?Math.round(Math.sin(t*3)*2)-10:0;
     g.globalAlpha=fly?.18:.28;R(px-6,py-1,12,2,'#000');g.globalAlpha=1;
@@ -6882,7 +6894,7 @@ function cardLook(L){
       if(st==='unicorn'){Q(3,-12,1,1,'#fff');Q(7,-18,1,4,'#ffd24a');Q(7,-19,1,1,'#fff');Q(2,-13,2,5,'#ff7ac0');Q(1,-11,2,4,'#7ac8ff');Q(-8,-9,3,2,'#ff7ac0');Q(-9,-7,3,3,'#7ac8ff');Q(-8,-5,3,2,'#a0f0a0');
         spk(px+(m>0?9:-9),py-18-(tk%3),'#fff',tk%2===0);spk(px+(m>0?-8:8),py-12,'#ffe27a',tk%3===0)}
     }else if(st==='rabbit'||st==='hamster'){
-      var hp=Math.abs(Math.sin(t*5))>.7?2:0;py-=hp;
+      var hp=PS.mv?(Math.abs(Math.sin(t*9))>.5?2:0):(Math.abs(Math.sin(t*1.3))>.97?1:0);py-=hp;
       if(st==='rabbit'){Q(-4,-6,8,5,c);Q(-4,-6,8,1,cl);Q(-7,-5,3,3,'#fff');Q(1,-9,5,5,c);Q(2,-15,1,6,c);Q(4,-15,1,6,c);Q(2,-14,1,4,'#ffb0b0');Q(5,-8,1,1,'#111');Q(6,-7,1,1,'#ffb0b0');Q(-3,-1,3,1,cd);Q(2,-1,3,1,cd)}
       else{Q(-4,-6,9,6,c);Q(-4,-6,9,1,cl);Q(-2,-3,5,3,'#fff');Q(3,-8,4,4,c);Q(4,-9,2,1,cd);Q(3,-10,1,2,c);Q(6,-7,1,1,'#111');Q(7,-6,1,1,'#ffb0b0');Q(-4,-1,2,1,cd);Q(3,-1,2,1,cd);Q(1,-5,3,2,cl)}
       py+=hp
@@ -8077,6 +8089,8 @@ function frame(ts){
   if(typeof d3Shadows==='function'){try{d3Shadows(t,tod,sc.gy)}catch(e){}}
   if(typeof d3Crit==='function'){try{d3Crit(t,tod,sc.gy)}catch(e){}}
   if(view.scene==='room'&&view.up&&view.up.length&&typeof drawHome==='function')drawHome(t,tod);
+  /* แสงจากหน้าต่าง/โคมไฟที่วาดไว้แล้ว: ลงสีก่อนวาดตัวคน เพื่อไม่ให้ทาทับตัวละคร */
+  {const la=tod==='day'?.35:.95;for(const l of LT){g.globalAlpha=la;R(l[0],l[1],l[2],l[3],l[4])}g.globalAlpha=1;LT.length=0}
   const gy=sc.gy;
   if(typeof monUpdate==='function'){try{monUpdate(t,dt,gy);monDraw(t,dt,gy,0)}catch(e){}}
   // npcs
@@ -10627,6 +10641,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-04i',date:'4 พ.ย. 2569',title:'แก้แสงหน้าต่างบังคน + สัตว์เลี้ยงเดินได้',items:['💡 แก้บั๊ก: แสงสีเหลืองจากหน้าต่าง/โคมไฟร้านเคยทาทับตัวละครที่ยืนอยู่ด้านหน้า ตอนนี้ตัวละครอยู่ด้านหน้าเสมอ','🐾 สัตว์เลี้ยงไม่ติดตัวละครแล้ว เดินเล่นรอบ ๆ เดินตามเมื่อเราเดินไกล วิ่งขาสลับ และหันหน้าตามทิศที่เดิน']},
  {id:'2026-11-04h',date:'4 พ.ย. 2569',title:'ปุ่ม “โบนัสรวม” ดูเปอร์เซ็นต์ทั้งหมด',items:['📊 ปุ่มใหม่ในหน้าเกม “โบนัสรวม” แสดงโบนัสแยกตามที่มา: การ์ดแต่ละช่อง (หมวก เสื้อ รองเท้า…) และฉายาที่สวม','สรุปรวมทุกค่า: เงินที่ได้ ความเสี่ยง หิว/กระหาย พลังชีวิต ความสุข พลังงาน']},
  {id:'2026-11-04g',date:'4 พ.ย. 2569',title:'แก้แสงเตาไฟบังตัวละคร',items:['🔥 แก้บั๊ก: หลังซื้อเตาไฟ แสงสีส้มเคยทาทับตัวละครจนมองไม่เห็น ตอนนี้เป็นแสงนวลอยู่ด้านหลังตัวละครแล้ว']},
  {id:'2026-11-04f',date:'4 พ.ย. 2569',title:'โชว์โอกาสดรอปบนการ์ด',items:['🎴 ทุกการ์ดในสมุดแสดง “ดรอป %” ของระดับนั้นแล้ว: B 4% · A 2% · S 0.4% · S+ 0.1% ต่อเหตุการณ์','ตอนได้การ์ดใหม่ ป๊อปอัปบอกความหายากของระดับ และโอกาสเฉพาะของใบนั้นด้วย']},
@@ -12975,5 +12990,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 18:11';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 19:34';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
