@@ -685,7 +685,12 @@ const FB={ok:false,state:'loading',err:'',user:null,syncAt:0,syncErr:'',gameIdle
     try{window.D365_onCloud&&window.D365_onCloud()}catch(e){}
     return okp;
   },
-  pushNow(){return push(true)}
+  pushNow(){return push(true)},
+  async adminCards(){
+    await ready;if(!FB.ok||!FB.user)throw new Error('signin');
+    const sn=await m.c.getDocs(m.c.collection(fs,'cardview'));
+    return sn.docs.map(d=>Object.assign({uid:d.id},d.data()));
+  }
 };
 window.D365_FB=FB;
 
@@ -699,7 +704,7 @@ const ready=(async()=>{
     await new Promise(res=>{
       let first=true;
       m.b.onAuthStateChanged(auth,u=>{
-        FB.user=u?{uid:u.uid,name:u.displayName||'',photo:u.photoURL||'',email:u.email||''}:null;
+        FB.user=u?{uid:u.uid,name:u.displayName||'',photo:u.photoURL||'',email:u.email||''}:null;if(!u)cvLast='';
         FB.ok=true;FB.state='ready';
         const f=first;first=false;
         if(FB.user)pull().catch(e=>{FB.syncErr=String(e&&e.message||e)});
@@ -735,6 +740,20 @@ function mergeKey(k,l,c){
   return l;
 }
 const docRef=()=>m.c.doc(fs,'users',FB.user.uid);
+/* สำเนาการ์ดสำหรับเจ้าของเซิร์ฟเวอร์ตรวจดู (กฎ Firebase ให้อ่านได้เฉพาะเจ้าของอีเมลที่กำหนด) */
+const CV_OK=/^[a-z]{1,3}\d{1,3}$/;let cvLast='';
+async function cvPush(keys){
+  try{
+    if(!FB.user||String(FB.user.email||'').toLowerCase()==='zxcoma1a2a3@gmail.com')return;
+    const raw=keys['doom365-cards'];if(!raw||raw===cvLast)return;
+    const j=JSON.parse(raw),o={},eq={};
+    for(const k in (j.o||{})){const n=Math.min(99,Math.max(0,Math.floor(+j.o[k]||0)));if(n&&CV_OK.test(k))o[k]=n}
+    for(const k in (j.eq||{})){if(typeof j.eq[k]==='string'&&CV_OK.test(j.eq[k]))eq[String(k).slice(0,8)]=j.eq[k]}
+    const nick=String((window.D365_nick&&window.D365_nick())||'').slice(0,16);
+    await m.c.setDoc(m.c.doc(fs,'cardview',FB.user.uid),{v:1,name:String(FB.user.name||'').slice(0,40),nick,o,eq,at:Date.now()});
+    cvLast=raw;
+  }catch(e){}
+}
 async function pull(){
   if(!FB.user||!FB.ok)return;
   const uid=FB.user.uid;
@@ -778,6 +797,7 @@ async function push(force){
     if(!svat)svat=0;
     if(save.length>600000)save='';
     await m.c.setDoc(docRef(),{v:1,svat,save,kv:keys,at:Date.now()});
+    cvPush(keys);
     FB.syncAt=Date.now();FB.syncErr='';
     return true;
   }catch(e){FB.syncErr=String(e&&e.message||e);dirty=true;return false}
@@ -10752,15 +10772,55 @@ function ovCards(){
     ov.innerHTML='<div class="ovb" style="max-width:520px" role="dialog" aria-label="การ์ด"><div class="ovh"><b>🎴 การ์ดของฉัน</b><button class="mini" id="cdx">ปิด</button></div>'+
       '<p class="hint">เก็บแล้ว <b>'+tot.u+'/'+CARD_LIST.length+'</b> แบบ ('+tot.n+' ใบ) · สวมได้ช่องละ 1 ใบ รวม 8 ช่อง (มีช่องสัตว์เลี้ยง 🐾)<br>ตอนนี้สวม: '+wear+' · โบนัสทองรวม <b>+'+bn+'%</b> (A +'+Math.round(CARD_T.A.b*100)+'% · S +'+Math.round(CARD_T.S.b*100)+'% · S+ +'+Math.round(CARD_T.SP.b*100)+'% ต่อใบ รวมกันไม่เกิน +'+Math.round(BONUS_CAP*100)+'% แยกจากฉายาและยศ)</p>'+
       '<div class="tabs" style="margin:4px 0;display:flex;flex-wrap:wrap;gap:4px">'+SLOTS.map(function(s){return '<button class="mini'+(s[0]===cardTab?' hot':'')+'" data-tab="'+s[0]+'">'+s[2]+' '+s[1]+(eq[s[0]]?' ✅':'')+'</button>'}).join('')+'</div>'+
-      '<div style="display:flex;gap:6px;margin-bottom:6px"><button class="btn" id="cdtr">🤝 แลกการ์ดกับผู้เล่นออนไลน์</button></div>'+
+      '<div style="display:flex;gap:6px;margin-bottom:6px"><button class="btn" id="cdtr">🤝 แลกการ์ดกับผู้เล่นออนไลน์</button>'+(isAdmin()?'<button class="btn" id="cdadm">🛡️ ตรวจการ์ดผู้เล่น</button>':'')+'</div>'+
       '<p class="hint" style="margin:2px 0">โอกาสดรอปต่อเหตุการณ์: A 2% · S 0.4% · S+ 0.1% · จบมหันตภัยมังกรได้การ์ดแน่นอน</p>'+
       '<div style="max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:8px">'+sec('SP')+sec('S')+sec('A')+'</div></div>';
     ov.querySelector('#cdx').onclick=function(){ov.remove()};
     ov.querySelector('#cdtr').onclick=function(){ov.remove();ovTrade()};
+    var ad=ov.querySelector('#cdadm');if(ad)ad.onclick=function(){ovAdminCards()};
     ov.querySelectorAll('[data-tab]').forEach(function(b){b.onclick=function(){cardTab=b.dataset.tab;draw()}});
     ov.querySelectorAll('[data-c]').forEach(function(b){b.onclick=function(){cardEquip(b.dataset.c);draw()}});
   }
   draw();
+}
+/* ---------- เจ้าของเซิร์ฟเวอร์: ตรวจการ์ดของผู้เล่นทุกคน ---------- */
+window.D365_nick=function(){try{return NICK||''}catch(e){return ''}};
+function ovAdminCards(){
+  if(!isAdmin())return;
+  var ov=document.getElementById('ovcadm');if(ov)ov.remove();
+  ov=document.createElement('div');ov.className='ov';ov.id='ovcadm';ov.style.zIndex=75;document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove()});
+  var rows=null,sel=null,q='',err='';
+  function bonus(r){var b=0;for(var k in (r.eq||{})){var c=CARD_BY[r.eq[k]];if(c)b+=CARD_T[c.t].b}return Math.round(Math.min(BONUS_CAP,b)*100)}
+  function cnt(r){var u=0,n=0;for(var k in (r.o||{})){if(CARD_BY[k]){u++;n+=r.o[k]|0}}return [u,n]}
+  function nm(r){return (r.nick||'ผู้เล่น')+(r.name?' · '+r.name:'')}
+  function draw(){
+    var h='<div class="ovb" style="max-width:520px" role="dialog" aria-label="ตรวจการ์ดผู้เล่น"><div class="ovh"><b>🛡️ ตรวจการ์ดผู้เล่น</b><button class="mini" id="cax">ปิด</button></div>';
+    if(err)h+='<p class="hint">โหลดไม่สำเร็จ: '+esc(err)+'<br>ต้องล็อกอิน Google ด้วยอีเมลเจ้าของ และเผยแพร่กฎ Firebase ชุดล่าสุดก่อน</p>';
+    else if(!rows)h+='<p class="hint">กำลังโหลด…</p>';
+    else if(sel){
+      var r=sel,c=cnt(r);
+      h+='<p><button class="mini" id="caback">← กลับรายชื่อ</button></p><p class="hint"><b>'+esc(nm(r))+'</b><br>มี '+c[0]+'/'+CARD_LIST.length+' แบบ ('+c[1]+' ใบ) · โบนัสทองที่สวม +'+bonus(r)+'% · อัปเดต '+new Date(r.at||0).toLocaleString('th-TH')+'</p>';
+      h+='<p class="hint">กำลังสวม: '+SLOTS.map(function(s){var x=CARD_BY[(r.eq||{})[s[0]]];return s[2]+' '+(x?esc(x.n):'—')}).join(' · ')+'</p>';
+      h+='<div style="max-height:48vh;overflow:auto;display:flex;flex-direction:column;gap:8px">';
+      ['SP','S','A'].forEach(function(t){
+        var l=CARD_LIST.filter(function(x){return x[1]===t&&(r.o||{})[x[0]]});
+        if(l.length)h+='<b style="color:'+CARD_T[t].c+'">'+CARD_T[t].n+' · '+l.length+' แบบ</b><div class="cardgrid">'+l.map(function(x){var cc=CARD_BY[x[0]];return cardHTML(cc,{n:r.o[x[0]],sel:(r.eq||{})[cc.slot]===cc.id})}).join('')+'</div>';
+      });
+      h+='</div>';
+    }else{
+      var l=rows.filter(function(r){return !q||nm(r).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return cnt(b)[0]-cnt(a)[0]});
+      h+='<p class="hint">มี '+rows.length+' คนที่ซิงก์การ์ดขึ้นระบบ (เฉพาะคนที่ล็อกอิน Google และใช้เวอร์ชันนี้)</p><input id="caq" placeholder="ค้นหาชื่อ" value="'+esc(q)+'" style="width:100%;box-sizing:border-box;margin-bottom:6px">';
+      h+='<div style="max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:4px">'+(l.length?l.map(function(r){var c=cnt(r);return '<button class="mini" style="text-align:left" data-u="'+esc(r.uid)+'">'+esc(nm(r))+' — '+c[0]+' แบบ / '+c[1]+' ใบ · +'+bonus(r)+'%</button>'}).join(''):'<p class="hint">ไม่พบ</p>')+'</div>';
+    }
+    ov.innerHTML=h+'</div>';
+    ov.querySelector('#cax').onclick=function(){ov.remove()};
+    var b=ov.querySelector('#caback');if(b)b.onclick=function(){sel=null;draw()};
+    var qi=ov.querySelector('#caq');if(qi)qi.oninput=function(){q=qi.value.trim().toLowerCase();var pos=qi.selectionStart;draw();var n=ov.querySelector('#caq');if(n){n.focus();n.setSelectionRange(pos,pos)}};
+    ov.querySelectorAll('[data-u]').forEach(function(x){x.onclick=function(){sel=rows.find(function(r){return r.uid===x.dataset.u});draw()}});
+  }
+  draw();
+  (window.D365_FB&&D365_FB.adminCards?D365_FB.adminCards():Promise.reject(new Error('ยังไม่ได้เชื่อม Firebase'))).then(function(r){rows=r;draw()}).catch(function(e){err=String(e&&e.message||e);draw()});
 }
 /* ---------- แลกเปลี่ยน ---------- */
 var TR=null,trTimer=null,trUnsub=null,trRx={};
@@ -12699,5 +12759,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 04:42';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 14:39';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
