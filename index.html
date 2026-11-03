@@ -39,6 +39,7 @@ button:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 .st .v{min-width:2ch;text-align:right}
 .st.money{font-size:13px;color:var(--mo)}
 .ic{display:inline-block;width:17px;height:17px;vertical-align:-4px;filter:drop-shadow(0 1px 0 rgba(0,0,0,.25));background-size:contain;background-repeat:no-repeat;image-rendering:pixelated;flex:none}
+.ic.emo{background:none;filter:none;font-style:normal;font-size:14px;line-height:17px;width:16px;text-align:center;vertical-align:-2px;font-family:'Apple Color Emoji','Segoe UI Emoji','Noto Color Emoji',sans-serif}
 
 /* Stage */
 .stage{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:16px;align-items:start}
@@ -10658,6 +10659,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-04m',date:'4 พ.ย. 2569',title:'ไอคอนในเกมเปลี่ยนใหม่',items:['🎨 ไอคอนสถานะ เงิน อาหาร น้ำ ยา โล่ ฯลฯ เปลี่ยนเป็นแบบอีโมจิ สีสด อ่านง่าย สบายตากว่าเดิม']},
  {id:'2026-11-04l',date:'4 พ.ย. 2569',title:'ไอคอนในเกมสวยขึ้น',items:['✨ ไอคอนสถานะ หัวใจ เหรียญ อาหาร น้ำ ยา ฯลฯ วาดใหม่ มีหลายสี เงา และประกายสวยขึ้น']},
  {id:'2026-11-04k',date:'4 พ.ย. 2569',title:'หน้าสัญลักษณ์สวยขึ้น',items:['🎨 หน้า “สัญลักษณ์” ออกแบบใหม่: แยกหมวกด้วยสี ไอคอนอยู่ในกรอบเรืองแสงตามสีของค่านั้น หัวข้อติดอยู่บนสุดตอนเลื่อน']},
  {id:'2026-11-04j',date:'4 พ.ย. 2569',title:'ปุ่มดูแลตัวเอง/ตลาดมืดห่างขึ้น + แลกการ์ดที่สวมอยู่ได้',items:['🛒 ปุ่ม “ดูแลตัวเอง / ตลาดมืด” โผล่ทุก 5–6 เหตุการณ์ (ถ้าหิว กระหาย ติดเชื้อ หรือบาดเจ็บ จะโผล่เร็วขึ้นหลัง 3 เหตุการณ์) เหตุการณ์จึงต่อเนื่องขึ้น ควรกักเสบียงและยาไว้เอง','🎴 แลกการ์ดกับเพื่อนได้ทุกใบ รวมถึงใบที่กำลังสวมอยู่ (ถ้าเป็นใบสุดท้ายระบบถอดให้เอง)']},
@@ -11559,7 +11561,8 @@ function ICO(k){
   }
   return icoCache[k]=c.toDataURL();
 }
-const ic=k=>'<i class="ic" style="background-image:url('+ICO(k)+')"></i>';
+const EMO={hp:'❤️',md:'😊',lv:'💗',ht:'🔥',mo:'💰',d:'⏳',fd:'🍚',wt:'💧',en:'⚡',wd:'🤕',inf:'🦠',food:'🥫',water:'🚰',med:'💊',mat:'🧱',df:'🛡️',hd:'👁️',crew:'🧑'};
+const ic=k=>EMO[k]?'<i class="ic emo" aria-hidden="true">'+EMO[k]+'</i>':'<i class="ic" style="background-image:url('+ICO(k)+')"></i>';
 const LABEL={hp:'สุขภาพ',md:'ใจ',lv:'ความสัมพันธ์',ht:'ถูกตามล่า',mo:'เงิน',fd:'อิ่ม',wt:'น้ำ',en:'แรง',wd:'บาดแผล',inf:'ติดเชื้อ',food:'อาหาร',water:'น้ำสะอาด',med:'ยา',mat:'วัสดุ'};
 const BADUP=['ht','wd','inf'],INVL=['food','water','med','mat'];
 function chip(k,v){
@@ -12487,22 +12490,26 @@ showStart();
   /* crew คน */
   I.crew={p:{s:'#ffcf9e',b:'#ff6ac8',p:'#6a5ad8',K:'#3a2418',W:'#ffe3f2'},g:grid(['','......KKKK......','.....KssssK.....','.....ssssss.....','.....ssssss.....','......ssss......','....bbbbbbbb....','...bbbbbbbbbb...','...bbbbbbbbbb...','...bb.bbbb.bb...','..sss.bbbb.sss..','.....bbbbbb.....','.....pp..pp.....','.....pp..pp.....'])};
   function mix(h,t,a){var p=function(n){return parseInt(h.slice(n,n+2),16)},q=function(n){return parseInt(t.slice(n,n+2),16)},f=function(n){return Math.round(p(n)+(q(n)-p(n))*a)};return [f(1),f(3),f(5)]}
+  function rgb2h(c){return '#'+c.map(function(v){return ('0'+v.toString(16)).slice(-2)}).join('')}
   function css(c){return 'rgb('+c[0]+','+c[1]+','+c[2]+')'}
   var cache={};
+  window.ICFG={hi:.42,lo:.32,out:.7,outA:1,pastel:0};
+  window.ICO2clear=function(){cache={}};
   var oldICO=typeof ICO==='function'?ICO:null;
   window.ICO2=function(k){
     if(cache[k])return cache[k];
+    var C=window.ICFG;
     var d=I[k];if(!d)return oldICO?oldICO(k):'';
     var cv=document.createElement('canvas');cv.width=N;cv.height=N;var x=cv.getContext('2d'),g=d.g;
     var on=function(X,Y){return X>=0&&Y>=0&&X<N&&Y<N&&g[Y][X]!=='.'};
     for(var Y=0;Y<N;Y++)for(var X=0;X<N;X++){
       var ch=g[Y][X];
       if(ch!=='.'){
-        var base=d.p[ch]||'#ffffff',flat=ch===ch.toUpperCase();
+        var base=d.p[ch]||'#ffffff',flat=ch===ch.toUpperCase();if(C.pastel)base=rgb2h(mix(base,'#ffffff',C.pastel));
         var c=mix(base,'#000000',0);
         if(!flat){
-          if(!on(X,Y-1)||!on(X-1,Y))c=mix(base,'#ffffff',.42);
-          else if(!on(X,Y+1)||!on(X+1,Y))c=mix(base,'#000000',.32);
+          if(!on(X,Y-1)||!on(X-1,Y))c=mix(base,'#ffffff',C.hi);
+          else if(!on(X,Y+1)||!on(X+1,Y))c=mix(base,'#000000',C.lo);
           else c=mix(base,'#ffffff',Y<6?.14:Y>10?-.0:.0);
           if(flat===false&&on(X,Y+1)&&on(X+1,Y)&&on(X,Y-1)&&on(X-1,Y)&&(X+Y)%5===0)c=mix(base,'#000000',.1);
         }
@@ -12510,7 +12517,7 @@ showStart();
       }else{
         var nb=[[X-1,Y],[X+1,Y],[X,Y-1],[X,Y+1]],pick=null;
         for(var i=0;i<4;i++){if(on(nb[i][0],nb[i][1])){pick=g[nb[i][1]][nb[i][0]];break}}
-        if(pick){var b2=d.p[pick]||'#888888';x.fillStyle=css(mix(b2,'#000000',.7));x.fillRect(X,Y,1,1)}
+        if(pick){var b2=d.p[pick]||'#888888';if(C.outA>0){var oc=mix(b2,'#000000',C.out);x.fillStyle='rgba('+oc[0]+','+oc[1]+','+oc[2]+','+C.outA+')';x.fillRect(X,Y,1,1)}}
       }
     }
     return cache[k]=cv.toDataURL();
@@ -13100,5 +13107,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 19:51';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 23:16';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
