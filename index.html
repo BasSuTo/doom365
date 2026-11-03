@@ -12608,7 +12608,7 @@ function chatRecv(ev){
     }
     const t=chatClean(d.t);if(!t)return;
     const rc='';
-    const m={id:++c.seq,pid,me,n:(clean(d.n,16)||'ผู้เล่น'),ad:d.ad===1,tag:pid.slice(-3),t,rc:rc.length===4?rc:'',at:Date.now(),inv:false};
+    const m={id:++c.seq,pid,me,n:(clean(d.n,16)||'ผู้เล่น'),ad:d.ad===1,g:d.g===1,tag:pid.slice(-3),t,rc:rc.length===4?rc:'',at:Date.now(),inv:false};
     c.msgs.push(m);if(c.msgs.length>80)c.msgs.shift();
     if(!me&&!chatOpenNow())c.unread++;
     chatRefresh();
@@ -12623,7 +12623,7 @@ function chatSend(text,inv){
   const now=Date.now();if(now-c.last<1800)return 'ส่งเร็วเกินไป รอสักครู่';
   const t=chatClean(text);if(!t&&!inv)return '';
   c.last=now;
-  const d={t:t||'ชวนเล่นด้วยกัน',n:NICK||'ผู้เล่น',inv:inv?1:0};if(typeof isAdmin==='function'&&isAdmin())d.ad=1;
+  const d={t:t||'ชวนเล่นด้วยกัน',n:NICK||'ผู้เล่น',inv:inv?1:0};if(typeof isAdmin==='function'&&isAdmin())d.ad=1;try{if(LB&&LB.signed)d.g=1}catch(e){}
   if(inv&&MP.on&&MP.host&&MP.code)d.rc=MP.code;
   try{MP.api.emit('chat',d).catch(()=>{})}catch(e){return 'ส่งไม่สำเร็จ'}
   return '';
@@ -12633,8 +12633,9 @@ function chatLineHtml(m){
   const nm='<b class="cn'+(m.me?' me':'')+'"'+(mu?' data-mu="'+esc(m.pid)+'" title="แตะที่ชื่อเพื่อชวนแลกการ์ดหรือซ่อนข้อความ"':'')+'>'+esc(m.n)+(m.me?' (คุณ)':' <i>#'+esc(m.tag)+'</i>')+'</b>';
   const join=m.rc&&!MP.on&&!m.me?' <button class="mini" data-jrc="'+esc(m.rc)+'">เข้าห้อง '+esc(m.rc.toUpperCase())+'</button>':m.rc?' <span class="rcb">ห้อง '+esc(m.rc.toUpperCase())+'</span>':'';
   const adb=(m.ad||(m.me&&typeof isAdmin==='function'&&isAdmin()))?' <i class="tt" style="background:#4a2a9a;color:#fff;border-color:#2e1a66;font-weight:700">🛡️ ผู้ดูแลระบบ</i>':'';
+  const gb=(!m.me&&typeof isAdmin==='function'&&isAdmin())?(m.g?' <i title="ล็อกอิน Google แล้ว" style="font-size:11px;color:#2e8b57">✔G</i>':' <i title="ยังไม่ได้ล็อกอิน Google" style="font-size:11px;color:#b33">✖G</i>'):'';
   const dl=(typeof isAdmin==='function'&&isAdmin())?' <button class="mini" data-chdel="'+esc(m.id)+'" title="ลบข้อความนี้ (เฉพาะผู้ดูแลระบบ)" style="padding:0 5px;opacity:.7">🗑</button>':'';
-  return '<div class="cm">'+nm+adb+chatTagsHtml(m.u)+' '+esc(m.t)+dl+'</div>';
+  return '<div class="cm">'+nm+adb+gb+chatTagsHtml(m.u)+' '+esc(m.t)+dl+'</div>';
 }
 function chatAdminDel(id){
   if(!(typeof isAdmin==='function'&&isAdmin()))return;
@@ -12674,6 +12675,7 @@ function chatBind(w){
   });
   w.querySelectorAll('[data-mu]').forEach(b=>b.onclick=()=>{
     const id=b.dataset.mu;if(!id)return;
+    if(typeof isAdmin==='function'&&isAdmin()){const mm=chatSt().msgs.slice().reverse().find(x=>x.pid===id);if(mm&&typeof toast==='function')toast((mm.n||'ผู้เล่น')+' #'+mm.tag+(mm.g?' : ล็อกอิน Google แล้ว ✔':' : ยังไม่ได้ล็อกอิน Google ✖ (หรือใช้เวอร์ชันเก่า)'))}
     if(typeof peerMenu==='function')peerMenu(id,b.textContent.replace(/#\S+$/,'').trim());
   });
 }
@@ -13163,5 +13165,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 04/11 00:51';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 04/11 02:17';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
