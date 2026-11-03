@@ -10199,6 +10199,38 @@ function showBoard(back){
   boardBack=back||showStart;stage='board';renderBoard();
   if(LB.useGet)lbLoad().then(()=>{if(stage==='board')renderBoard()});
 }
+function badWhy(r){const w=[];
+ if(r.dc>r.lives)w.push('ชีวิตประจำวันมากกว่าจำนวนชีวิต');if(r.te>r.lives*5e8)w.push('เงินสะสมรวมสูงเกิน');
+ if(r.at0>0&&r.ot>(Date.now()-r.at0)/60000+180)w.push('เวลาออนไลน์เกินเวลาจริง');if(r.richest>5e8)w.push('เงินสูงสุดเกินเพดาน');
+ if(r.meds>80)w.push('meds>80');if(r.joy>100||r.best>100)w.push('joy/best>100');if(r.survived>r.lives)w.push('รอดมากกว่าจำนวนชีวิต');
+ if(r.dr>r.lives)w.push('dr>lives');if(r.wk>r.lives+5)w.push('ท้าทายสัปดาห์เกิน');if(r.funny>r.lives)w.push('ตายฮาเกินจำนวนชีวิต');
+ if(r.rolesN>r.lives)w.push('อาชีพเกินจำนวนชีวิต');if(r.banana>r.lives)w.push('banana>lives');if(r.arms>60)w.push('arms>60');
+ if(!lbSigOk(r))w.push('ลายเซ็นไม่ผ่าน (ข้อมูลจากเวอร์ชันเก่าหรือถูกแก้)');
+ if(!lbTimeOk(r))w.push('จบชีวิตเร็วเกินเวลาที่เป็นไปได้ (เกิน 1 ชีวิตต่อ 2.5 นาที)');
+ if(r.meds>r.lives*60)w.push('meds เกิน');if(r.bs>r.survived||r.cs>r.bs)w.push('สถิติรอดติดต่อกันไม่สอดคล้อง');
+ if(r.gd>r.lives*60||r.ev>r.lives*60)w.push('คนดี/คนชั่วสูงเกิน');return w}
+function adBoardCheck(){
+  if(typeof isAdmin!=='function'||!isAdmin())return;
+  let ov=document.getElementById('ovbchk');if(ov)ov.remove();
+  ov=document.createElement('div');ov.className='ov';ov.id='ovbchk';ov.style.zIndex=76;document.body.appendChild(ov);
+  ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()});
+  let q='',sel=null;
+  const draw=()=>{
+    let h='<div class="ovb" style="max-width:520px"><div class="ovh"><b>🛡️ ตรวจสถิติผู้เล่น</b><button class="mini" id="bcx">ปิด</button></div>';
+    if(sel){const r=sel,w=badWhy(r);
+      h+='<p><button class="mini" id="bcb">← กลับ</button></p><p class="hint"><b>'+esc(r.nick)+'</b> '+(r.gname?'· '+esc(r.gname):'')+'<br>เล่น '+r.lives+' ชีวิต · รอดครบ 365 วัน '+r.survived+' ครั้ง · เงินสูงสุด '+fmt(r.richestRaw!=null?r.richestRaw:r.richest)+'<br>เงินสะสม '+fmt(r.te||0)+' · ท้าทายสัปดาห์ '+r.wk+' · ชีวิตประจำวัน '+r.dc+' · ตายฮา '+r.funny+' แบบ<br>อัปเดตล่าสุด '+(r.at?new Date(r.at).toLocaleString('th-TH'):'-')+'</p>'+
+      (r.bad?'<div class="amb" style="border-color:#b33"><b>⚠ ถูกซ่อนจากทุกอันดับ</b><br>'+(w.length?w.map(esc).join('<br>'):'ไม่ทราบสาเหตุ')+'</div>':'<div class="amb"><b>✔ ผ่านการตรวจ</b> อยู่ในอันดับได้ตามค่าของแต่ละหมวด<br>หมวดที่มีค่า: '+activeMetrics().filter(m=>r[m[0]]>0).map(m=>esc(m[1])).join(', ')+'</div>');
+    }else{
+      const l=LB.rows.filter(r=>!q||r.nick.toLowerCase().includes(q)||(r.gname||'').toLowerCase().includes(q)||r.id.toLowerCase().includes(q)).sort((a,b)=>(b.bad?1:0)-(a.bad?1:0)||b.lives-a.lives).slice(0,60);
+      h+='<p class="hint">ทั้งหมด '+LB.rows.length+' แถว · ที่ถูกซ่อน '+LB.rows.filter(r=>r.bad).length+' แถว (แสดงแถวที่ถูกซ่อนก่อน)</p><input id="bcq" placeholder="ค้นหาชื่อ" value="'+esc(q)+'" style="width:100%;box-sizing:border-box;margin-bottom:6px"><div style="max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:4px">'+(l.length?l.map(r=>'<button class="mini" style="text-align:left" data-i="'+esc(r.id)+'">'+(r.bad?'⚠ ':'')+esc(r.nick)+' — '+r.lives+' ชีวิต / รอด '+r.survived+'</button>').join(''):'<p class="hint">ไม่พบ</p>')+'</div>';}
+    ov.innerHTML=h+'</div>';
+    ov.querySelector('#bcx').onclick=()=>ov.remove();
+    const b=ov.querySelector('#bcb');if(b)b.onclick=()=>{sel=null;draw()};
+    const qi=ov.querySelector('#bcq');if(qi)qi.oninput=()=>{q=qi.value.trim().toLowerCase();const p=qi.selectionStart;draw();const n=ov.querySelector('#bcq');if(n){n.focus();n.setSelectionRange(p,p)}};
+    ov.querySelectorAll('[data-i]').forEach(x=>x.onclick=()=>{sel=LB.rows.find(r=>r.id===x.dataset.i);draw()});
+  };
+  draw();
+}
 let boardQ='';
 function renderBoard(){
   const AM=activeMetrics();const m=AM.find(x=>x[0]===boardTab)||AM[0],k=m[0];
@@ -10226,8 +10258,9 @@ function renderBoard(){
    mine+pod+
    '<input id="bq" class="bq" placeholder="ค้นหาชื่อผู้เล่น ชื่อ Google หรืออาชีพ" value="'+esc(boardQ)+'">'+
    '<ol class="rank rk2">'+(shown.length?shown.filter(x=>q||x.i>2).map(x=>{const r=x.r,w=Math.max(4,Math.round(r[k]/Math.max(1,topV)*100));return '<li class="'+(r.id===LB.id?'me':'')+tier(x.i)+'"><b>'+(x.i+1)+'</b><span>'+esc(r.nick)+badge(r)+'<small>อาชีพ: '+esc(roleOf(r))+(r.title?' · '+esc(r.title):'')+'</small>'+sv2(r)+gn(r)+'<u style="width:'+w+'%"></u></span><em>'+esc(m[2](r[k]))+'</em></li>'}).join('')||'<li style="display:block"><span>'+(q?'ไม่พบในท็อป 50':'ยังไม่มีอันดับ 4 ขึ้นไป')+'</span></li>':'<li><span>ยังไม่มีใครในหมวดนี้ มาเป็นคนแรกสิ</span></li>')+'</ol>'+
-   '<div class="row"><button class="btn ghost" id="bk">กลับ</button></div>';
+   '<div class="row"><button class="btn ghost" id="bk">กลับ</button>'+((typeof isAdmin==='function'&&isAdmin())?'<button class="btn ghost" id="bchk">🛡️ ตรวจสถิติผู้เล่น</button>':'')+'</div>';
   panel.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>{boardTab=b.dataset.t;renderBoard()});
+  {const bc=panel.querySelector('#bchk');if(bc)bc.onclick=adBoardCheck}
   const bq=$('bq');if(bq)bq.oninput=e=>{boardQ=e.target.value;const p=e.target.selectionStart;renderBoard();const n=$('bq');if(n){n.focus();try{n.setSelectionRange(p,p)}catch(x){}}};
   $('bk').onclick=()=>{stage='start';(boardBack||showStart)()};
 }
@@ -12650,7 +12683,7 @@ function chatLineHtml(m){
   const adb=(m.ad||(m.me&&typeof isAdmin==='function'&&isAdmin()))?' <i class="tt" style="background:#4a2a9a;color:#fff;border-color:#2e1a66;font-weight:700">🛡️ ผู้ดูแลระบบ</i>':'';
   const gb=(!m.me&&typeof isAdmin==='function'&&isAdmin())?(m.g?' <i title="ล็อกอิน Google แล้ว" style="font-size:11px;color:#2e8b57">✔G</i>':' <i title="ยังไม่ได้ล็อกอิน Google" style="font-size:11px;color:#b33">✖G</i>'):'';
   const dl=(typeof isAdmin==='function'&&isAdmin())?' <button class="mini" data-chdel="'+esc(m.id)+'" title="ลบข้อความนี้ (เฉพาะผู้ดูแลระบบ)" style="padding:0 5px;opacity:.7">🗑</button>':'';
-  return '<div class="cm">'+nm+adb+gb+chatTagsHtml(m.u)+' '+esc(m.t)+dl+'</div>';
+  return '<div class="cm">'+nm+adb+chatTagsHtml(m.u)+' '+esc(m.t)+dl+'</div>';
 }
 function chatAdminDel(id){
   if(!(typeof isAdmin==='function'&&isAdmin()))return;
@@ -13180,5 +13213,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 04/11 02:22';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 04/11 02:53';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
