@@ -6567,9 +6567,13 @@ ARC_EP.dragon=[
 arcGen('sangok');arcGen('dragon');
 /* ===== v78: การ์ดชุด A/S/S+ — ดรอปจากเหตุการณ์ · ใส่/ถอด · โบนัสเงิน (แยกจากฉายาและยศ) ===== */
 var CARD_KEY='doom365-cards';
-var CARD_T={A:{n:'A',c:'#c8794a',g:'rgba(200,121,74,.75)',b:.01,p:.02,l:'ทองแดง'},S:{n:'S',c:'#d5dbe6',g:'rgba(190,205,230,.8)',b:.02,p:.004,l:'เงิน'},SP:{n:'S+',c:'#ffd24a',g:'rgba(255,210,74,.9)',b:.03,p:.001,l:'ทอง'}};
+var CARD_T={B:{n:'B',c:'#8a9a8a',g:'rgba(138,154,138,.7)',b:.005,p:.04,l:'เหล็ก'},A:{n:'A',c:'#c8794a',g:'rgba(200,121,74,.75)',b:.01,p:.02,l:'ทองแดง'},S:{n:'S',c:'#d5dbe6',g:'rgba(190,205,230,.8)',b:.02,p:.004,l:'เงิน'},SP:{n:'S+',c:'#ffd24a',g:'rgba(255,210,74,.9)',b:.03,p:.001,l:'ทอง'}};
 /* [id, tier, ไอคอน, ชื่อชุด, เสื้อ, กางเกง, หมวก] */
 var CARD_LIST=[
+['b1','B','👕','ชุดเสื้อยืดกางเกงขาสั้น','#d8d0c0','#6a7a8a',null],
+['b2','B','🎓','ชุดนักศึกษาฝึกงาน','#9ab0c8','#4a4f5a',null],
+['b3','B','🦺','ชุดแรงงานเสื้อกล้าม','#c8c8c0','#5a6a4a','#c8b070'],
+['b4','B','🏪','ชุดพนักงานร้านสะดวกซื้อ','#5ab07a','#3a3f4a','#5ab07a'],
 ['a1','A','🧥','ชุดนักเดินทางผ้าแคนวาส','#b5894f','#4a4030','#8a6a3a'],
 ['a2','A','🔧','ชุดช่างเครื่องคราบน้ำมัน','#3a6fa8','#2f3340',null],
 ['a3','A','🌾','ชุดชาวนาหมวกกาบหมาก','#6a8f4a','#4a4030','#d9b14a'],
@@ -6678,13 +6682,42 @@ var CARD_X=[
 ['pt7','S','🦉','นกฮูกบินตาม','pet','#b8905a','owl'],
 ['pt8','SP','🐲','มังกรจิ๋วพ่นไฟ','pet','#4ac86a','dragon'],
 ['pt9','SP','🔥','ฟีนิกซ์น้อยเพลิงทอง','pet','#ff8a2a','phoenix'],
-['pt10','SP','🦄','ยูนิคอร์นสายรุ้ง','pet','#fff0f8','unicorn']
+['pt10','SP','🦄','ยูนิคอร์นสายรุ้ง','pet','#fff0f8','unicorn'],
+['tb1','B','👕','เสื้อยืดสีซีด','top','#b8b8b0',''],
+['tb2','B','🎽','เสื้อกล้ามลายทาง','top','#7a9ac0',''],
+['tb3','B','👔','เสื้อเชิ้ตลายสก๊อต','top','#c06a5a',''],
+['tb4','B','🧣','ผ้าห่มกันหนาวผืนเก่า','top','#8a7a9a','cape'],
+['hb1','B','🧶','หมวกถักไหมพรม','hat','#8a6a7a','cap'],
+['hb2','B','📰','หมวกกระดาษพับ','hat','#e8e4d8','cap'],
+['hb3','B','🪚','ผ้าโพกหัวช่างไม้','hat','#c8a05a','cap'],
+['hb4','B','👒','หมวกปีกกว้างกันแดด','hat','#d8c488','cowboy'],
+['shb1','B','🩴','รองเท้าแตะยาง','shoes','#7a8a6a',''],
+['shb2','B','👞','รองเท้านักเรียนดำ','shoes','#2a2a33',''],
+['shb3','B','👟','รองเท้าผ้าใบมอซอ','shoes','#9a9aa4',''],
+['shb4','B','🥾','บูทยางกันน้ำ','shoes','#4a7a5a',''],
+['wb1','B','🏏','ไม้เบสบอลธรรมดา','weapon','#a08050','bat'],
+['wb2','B','🦯','ไม้ตะพดเก่า','weapon','#7a5a3a','bat'],
+['wb3','B','🎯','หนังสติ๊กไม้','weapon','#8a6a4a','bow'],
+['wb4','B','🔪','มีดทำครัวเล่มยาว','weapon','#b8bcc4','sword'],
+['cb1','B','🔥','คาถาลูกไฟจิ๋ว','spell','#ff9a5a','orb'],
+['cb2','B','🌧️','คาถาฝนปรอย','spell','#8ab8e8','orb'],
+['cb3','B','💨','คาถาควันขาว','spell','#c8c8d0','orb'],
+['cb4','B','🎇','คาถาประกายไฟ','spell','#ffd86a','orb'],
+['gb1','B','📄','ปีกกระดาษพับ','wings','#e8e4d8','bfly'],
+['gb2','B','🦋','ปีกผีเสื้อกลางคืน','wings','#8a7a6a','bfly'],
+['gb3','B','🕊️','ปีกนกพิราบ','wings','#c8c8d0','feather'],
+['gb4','B','🦇','ปีกค้างคาวจิ๋ว','wings','#4a3f4a','bat'],
+['ptb1','B','😼','แมวจรหูแหว่ง','pet','#9a9a9a','cat'],
+['ptb2','B','🐕','หมาข้างถนน','pet','#a08a6a','dog'],
+['ptb3','B','🐹','หนูตะเภา','pet','#c8a070','hamster'],
+['ptb4','B','🐇','กระต่ายป่า','pet','#a89a8a','rabbit']
 ];
 var SLOTS=[['fit','ชุดเต็ม','👘'],['top','เสื้อ','👕'],['hat','หมวก','🎩'],['shoes','รองเท้า','👟'],['weapon','อาวุธ','🔫'],['spell','คาถา','✨'],['wings','ปีก','🪽'],['pet','สัตว์เลี้ยง','🐾']];
 var CARD_BY={};
 CARD_LIST.forEach(function(c){CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:'fit',sh:c[4],pn:c[5],ht:c[6]}});
 CARD_X.forEach(function(c){CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:c[4],c:c[5],st:c[6]};CARD_LIST.push([c[0],c[1],c[2],c[3]])});
 var BONUS_CAP=.24;
+function pct(x){return Math.round(x*1000)/10}
 var _cardMem=null;
 var _cardRaw=null;
 function isAdmin(){try{var u=window.D365_FB&&D365_FB.user;return !!u&&String(u.email||'').toLowerCase()==='zxcoma1a2a3@gmail.com'}catch(e){return false}}
@@ -6717,7 +6750,7 @@ function cardEquip(id,slot){var d=cardLoad(),c=CARD_BY[id];
   cardSave()}
 function cardTotal(){var d=cardLoad(),n=0,u=0;for(var k in d.o){n+=d.o[k];u++}return {n:n,u:u}}
 /* สุ่มการ์ด — ลำดับ S+ → S → A (ทอยครั้งเดียว) */
-function cardRollTier(){var r=Math.random();if(r<CARD_T.SP.p)return 'SP';if(r<CARD_T.SP.p+CARD_T.S.p)return 'S';if(r<CARD_T.SP.p+CARD_T.S.p+CARD_T.A.p)return 'A';return null}
+function cardRollTier(){var r=Math.random();if(r<CARD_T.SP.p)return 'SP';if(r<CARD_T.SP.p+CARD_T.S.p)return 'S';if(r<CARD_T.SP.p+CARD_T.S.p+CARD_T.A.p)return 'A';if(r<CARD_T.SP.p+CARD_T.S.p+CARD_T.A.p+CARD_T.B.p)return 'B';return null}
 function cardPickOf(t){var l=CARD_LIST.filter(function(c){return c[1]===t});return CARD_BY[l[Math.floor(Math.random()*l.length)][0]]}
 function cardGive(o,t){
   var c=cardPickOf(t),isNew=!cardOwned(c.id);
@@ -6889,7 +6922,7 @@ function slotName(s){for(var i=0;i<SLOTS.length;i++)if(SLOTS[i][0]===s)return SL
 function cardHTML(c,opt){
   opt=opt||{};var T=CARD_T[c.t];
   return '<div class="cardx t'+c.t+(opt.sel?' sel':'')+'" style="--cc:'+T.c+';--cg:'+T.g+'"'+(opt.attr||'')+'>'+
-   '<span class="cdt">'+T.n+'</span><span class="cdi">'+c.i+'</span><b>'+esc(c.n)+'</b><small>'+slotName(c.slot)+' · +'+Math.round(T.b*100)+'% ทอง'+(opt.n>1?' · ×'+opt.n:'')+'</small>'+(opt.foot||'')+'</div>';
+   '<span class="cdt">'+T.n+'</span><span class="cdi">'+c.i+'</span><b>'+esc(c.n)+'</b><small>'+slotName(c.slot)+' · +'+pct(T.b)+'% ทอง'+(opt.n>1?' · ×'+opt.n:'')+'</small>'+(opt.foot||'')+'</div>';
 }
 function cardPopup(c,isNew){
   if(typeof document==='undefined')return;
@@ -10460,6 +10493,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-04d',date:'4 พ.ย. 2569',title:'การ์ดระดับ B ใหม่ 32 ใบ',items:['🎴 เพิ่มการ์ดระดับ B (สีเขียวหม่น) 32 ใบ ครบทุกช่อง ช่องละ 4 ใบ รวมการ์ดทั้งหมด 138 ใบ','เจอง่ายกว่า A สองเท่า: ดรอป 4% ต่อเหตุการณ์ ให้โบนัสทองใบละ +0.5%','มีของธรรมดาติดดิน เช่น เสื้อยืดสีซีด รองเท้าแตะยาง แมวจรหูแหว่ง ปีกกระดาษพับ']},
  {id:'2026-11-04c',date:'4 พ.ย. 2569',title:'ช่องสัตว์เลี้ยง + การ์ดใหม่ 34 ใบ',items:['🐾 ช่องใหม่ “สัตว์เลี้ยง” 10 ตัว: แมว หมา กระต่าย แฮมสเตอร์ จิ้งจอก หมาป่า นกฮูก มังกรจิ๋ว ฟีนิกซ์ ยูนิคอร์น เดินหรือบินตามหลังตัวละคร','🎴 การ์ดใหม่ทุกหมวด: ชุดเต็ม 6 · เสื้อ 3 · หมวก 3 · รองเท้า 3 · อาวุธ 3 · คาถา 3 · ปีก 3 รวม 106 ใบ']},
  {id:'2026-11-04b',date:'4 พ.ย. 2569',title:'การ์ดสวยขึ้น ลายละเอียดขึ้น',items:['🎴 ชุด: มีคอปก เข็มขัด ขอบแขน กระดุม · ระดับ S/S+ มีขอบทองและประกายแสง','ปีกค้างคาว/ผีเสื้อ/ขนนกวาดใหม่ มีเส้นกระดูก ลายขน และประกาย','หมวก รองเท้า อาวุธ และเวทมนตร์ ใส่ลายเงา ไฮไลต์ และอัญมณีเพิ่ม']},
  {id:'2026-11-04a',date:'4 พ.ย. 2569',title:'ปาร์ตี้ 2–4 คน ตัวละครคนละตัว',items:['👥 ปุ่มใหม่ในหน้าแรก: สร้างปาร์ตี้หรือเข้าด้วยรหัสห้อง เล่นได้ 2–4 คน','ทุกคนสุ่มอาชีพและเงินของตัวเอง เจอเหตุการณ์และภัยพิบัติเดียวกันพร้อมกัน เลือกคนละทางได้ ดูว่าเพื่อนเลือกอะไรหลังตัดสินใจ','เลือกช่วยเหลือ = เพื่อนได้กำลังใจ · ช่วยกันหลายคน = โบนัสทีม · ก่อเรื่อง = ตำรวจมองมาทางกลุ่ม · ใครจากไป เพื่อนเสียใจ แต่เกมยังเล่นต่อ','ไม่ทับเซฟเดี่ยวของคุณ หัวหน้าห้องออกกลางทางก็เล่นต่อได้']},
@@ -10757,11 +10791,11 @@ function ovCards(){
   ov=document.createElement('div');ov.className='ov';ov.id='ovcard';document.body.appendChild(ov);
   ov.addEventListener('click',function(e){if(e.target===ov)ov.remove()});
   function draw(){
-    var d=cardLoad(),tot=cardTotal(),eq=d.eq,bn=Math.round(cardBonus()*100);
+    var d=cardLoad(),tot=cardTotal(),eq=d.eq,bn=pct(cardBonus());
     function sec(t){
       var T=CARD_T[t],l=CARD_LIST.filter(function(c){var x=CARD_BY[c[0]];return c[1]===t&&x.slot===cardTab});
       if(!l.length)return '';
-      return '<b style="color:'+T.c+'">'+T.n+' · '+T.l+' · +'+Math.round(T.b*100)+'% · ดรอป '+(T.p*100)+'%</b><div class="cardgrid">'+
+      return '<b style="color:'+T.c+'">'+T.n+' · '+T.l+' · +'+pct(T.b)+'% · ดรอป '+(T.p*100)+'%</b><div class="cardgrid">'+
         l.map(function(r){
           var c=CARD_BY[r[0]],n=d.o[c.id]|0;
           if(!n)return '<div class="cardx lock"><span class="cdt">'+T.n+'</span><span class="cdi">?</span><b>ยังไม่เจอ</b></div>';
@@ -10770,11 +10804,11 @@ function ovCards(){
     }
     var wear=SLOTS.map(function(s){var c=CARD_BY[eq[s[0]]];return c?c.i:'▫️'}).join(' ');
     ov.innerHTML='<div class="ovb" style="max-width:520px" role="dialog" aria-label="การ์ด"><div class="ovh"><b>🎴 การ์ดของฉัน</b><button class="mini" id="cdx">ปิด</button></div>'+
-      '<p class="hint">เก็บแล้ว <b>'+tot.u+'/'+CARD_LIST.length+'</b> แบบ ('+tot.n+' ใบ) · สวมได้ช่องละ 1 ใบ รวม 8 ช่อง (มีช่องสัตว์เลี้ยง 🐾)<br>ตอนนี้สวม: '+wear+' · โบนัสทองรวม <b>+'+bn+'%</b> (A +'+Math.round(CARD_T.A.b*100)+'% · S +'+Math.round(CARD_T.S.b*100)+'% · S+ +'+Math.round(CARD_T.SP.b*100)+'% ต่อใบ รวมกันไม่เกิน +'+Math.round(BONUS_CAP*100)+'% แยกจากฉายาและยศ)</p>'+
+      '<p class="hint">เก็บแล้ว <b>'+tot.u+'/'+CARD_LIST.length+'</b> แบบ ('+tot.n+' ใบ) · สวมได้ช่องละ 1 ใบ รวม 8 ช่อง (มีช่องสัตว์เลี้ยง 🐾)<br>ตอนนี้สวม: '+wear+' · โบนัสทองรวม <b>+'+bn+'%</b> (B +'+pct(CARD_T.B.b)+'% · A +'+pct(CARD_T.A.b)+'% · S +'+pct(CARD_T.S.b)+'% · S+ +'+pct(CARD_T.SP.b)+'% ต่อใบ รวมกันไม่เกิน +'+Math.round(BONUS_CAP*100)+'% แยกจากฉายาและยศ)</p>'+
       '<div class="tabs" style="margin:4px 0;display:flex;flex-wrap:wrap;gap:4px">'+SLOTS.map(function(s){return '<button class="mini'+(s[0]===cardTab?' hot':'')+'" data-tab="'+s[0]+'">'+s[2]+' '+s[1]+(eq[s[0]]?' ✅':'')+'</button>'}).join('')+'</div>'+
       '<div style="display:flex;gap:6px;margin-bottom:6px"><button class="btn" id="cdtr">🤝 แลกการ์ดกับผู้เล่นออนไลน์</button>'+(isAdmin()?'<button class="btn" id="cdadm">🛡️ ตรวจการ์ดผู้เล่น</button>':'')+'</div>'+
-      '<p class="hint" style="margin:2px 0">โอกาสดรอปต่อเหตุการณ์: A 2% · S 0.4% · S+ 0.1% · จบมหันตภัยมังกรได้การ์ดแน่นอน</p>'+
-      '<div style="max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:8px">'+sec('SP')+sec('S')+sec('A')+'</div></div>';
+      '<p class="hint" style="margin:2px 0">โอกาสดรอปต่อเหตุการณ์: B 4% · A 2% · S 0.4% · S+ 0.1% · จบมหันตภัยมังกรได้การ์ดแน่นอน</p>'+
+      '<div style="max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:8px">'+sec('SP')+sec('S')+sec('A')+sec('B')+'</div></div>';
     ov.querySelector('#cdx').onclick=function(){ov.remove()};
     ov.querySelector('#cdtr').onclick=function(){ov.remove();ovTrade()};
     var ad=ov.querySelector('#cdadm');if(ad)ad.onclick=function(){ovAdminCards()};
@@ -10791,7 +10825,7 @@ function ovAdminCards(){
   ov=document.createElement('div');ov.className='ov';ov.id='ovcadm';ov.style.zIndex=75;document.body.appendChild(ov);
   ov.addEventListener('click',function(e){if(e.target===ov)ov.remove()});
   var rows=null,sel=null,q='',err='';
-  function bonus(r){var b=0;for(var k in (r.eq||{})){var c=CARD_BY[r.eq[k]];if(c)b+=CARD_T[c.t].b}return Math.round(Math.min(BONUS_CAP,b)*100)}
+  function bonus(r){var b=0;for(var k in (r.eq||{})){var c=CARD_BY[r.eq[k]];if(c)b+=CARD_T[c.t].b}return pct(Math.min(BONUS_CAP,b))}
   function cnt(r){var u=0,n=0;for(var k in (r.o||{})){if(CARD_BY[k]){u++;n+=r.o[k]|0}}return [u,n]}
   function nm(r){return (r.nick||'ผู้เล่น')+(r.name?' · '+r.name:'')}
   function draw(){
@@ -10803,7 +10837,7 @@ function ovAdminCards(){
       h+='<p><button class="mini" id="caback">← กลับรายชื่อ</button></p><p class="hint"><b>'+esc(nm(r))+'</b><br>มี '+c[0]+'/'+CARD_LIST.length+' แบบ ('+c[1]+' ใบ) · โบนัสทองที่สวม +'+bonus(r)+'% · อัปเดต '+new Date(r.at||0).toLocaleString('th-TH')+'</p>';
       h+='<p class="hint">กำลังสวม: '+SLOTS.map(function(s){var x=CARD_BY[(r.eq||{})[s[0]]];return s[2]+' '+(x?esc(x.n):'—')}).join(' · ')+'</p>';
       h+='<div style="max-height:48vh;overflow:auto;display:flex;flex-direction:column;gap:8px">';
-      ['SP','S','A'].forEach(function(t){
+      ['SP','S','A','B'].forEach(function(t){
         var l=CARD_LIST.filter(function(x){return x[1]===t&&(r.o||{})[x[0]]});
         if(l.length)h+='<b style="color:'+CARD_T[t].c+'">'+CARD_T[t].n+' · '+l.length+' แบบ</b><div class="cardgrid">'+l.map(function(x){var cc=CARD_BY[x[0]];return cardHTML(cc,{n:r.o[x[0]],sel:(r.eq||{})[cc.slot]===cc.id})}).join('')+'</div>';
       });
@@ -12759,5 +12793,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 14:39';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 15:02';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
