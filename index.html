@@ -433,6 +433,7 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
           <button class="mini" id="bChat">💬 แชท</button>
           <button class="mini hot" id="bTitle">🎖 ฉายา</button>
           <button class="mini hot" id="bCards">🎴 การ์ด</button>
+          <button class="mini" id="bBon">📊 โบนัสรวม</button>
           <button class="mini" id="bSave">บันทึกชีวิต</button>
           <button class="mini" id="bQuit">ยอมแพ้</button>
         </div>
@@ -10625,6 +10626,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-04h',date:'4 พ.ย. 2569',title:'ปุ่ม “โบนัสรวม” ดูเปอร์เซ็นต์ทั้งหมด',items:['📊 ปุ่มใหม่ในหน้าเกม “โบนัสรวม” แสดงโบนัสแยกตามที่มา: การ์ดแต่ละช่อง (หมวก เสื้อ รองเท้า…) และฉายาที่สวม','สรุปรวมทุกค่า: เงินที่ได้ ความเสี่ยง หิว/กระหาย พลังชีวิต ความสุข พลังงาน']},
  {id:'2026-11-04g',date:'4 พ.ย. 2569',title:'แก้แสงเตาไฟบังตัวละคร',items:['🔥 แก้บั๊ก: หลังซื้อเตาไฟ แสงสีส้มเคยทาทับตัวละครจนมองไม่เห็น ตอนนี้เป็นแสงนวลอยู่ด้านหลังตัวละครแล้ว']},
  {id:'2026-11-04f',date:'4 พ.ย. 2569',title:'โชว์โอกาสดรอปบนการ์ด',items:['🎴 ทุกการ์ดในสมุดแสดง “ดรอป %” ของระดับนั้นแล้ว: B 4% · A 2% · S 0.4% · S+ 0.1% ต่อเหตุการณ์','ตอนได้การ์ดใหม่ ป๊อปอัปบอกความหายากของระดับ และโอกาสเฉพาะของใบนั้นด้วย']},
  {id:'2026-11-04e',date:'4 พ.ย. 2569',title:'การ์ดตรงชื่อมากขึ้น สวยขึ้น',items:['🎴 วาดการ์ดใหม่ให้ตรงชื่อทุกใบ: มีดเป็นมีดสั้น ปืนฉีดน้ำมีน้ำพุ่ง ไม้กวาดมีขนกวาด หนังสติ๊กเป็นรูปตัว Y','คาถาแต่ละแบบต่างกัน: ฝนมีเมฆและเม็ดฝน หิ่งห้อยกะพริบ ดาวตกพุ่งลงมา ควันลอยขึ้น พายุทรายหมุนวน','ชุดเต็มทุกชุดมีของประกอบ เช่น กระเป๋าเป้ กีตาร์ กล้อง คันเบ็ด เสื้อกาวน์ เกราะ ชุดนักบินอวกาศ','หมวก รองเท้า ปีก และเสื้อ ปรับรูปทรงให้ตรงชื่อ เช่น หมวกแม่มดปลายงอ รองเท้าแตะหูหนีบ ปีกแมลงปอใส']},
@@ -11115,6 +11117,31 @@ function drawTrade(){
   var lg=q('#trlog');if(lg)lg.scrollTop=lg.scrollHeight;
 }
 {var _b=document.getElementById('bCards');if(_b)_b.onclick=ovCards}
+/* ---------- สรุปโบนัส % ทั้งหมดตอนนี้ ---------- */
+function ovBonus(){
+  var ov=document.getElementById('ovbon');if(ov)ov.remove();
+  ov=document.createElement('div');ov.className='ov';ov.id='ovbon';document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove()});
+  var eq=cardLoad().eq,tid=(typeof S!=='undefined'&&S&&S.ttl)?S.ttl:(typeof ttEquipped==='function'?ttEquipped():''),T=(typeof TT_BY!=='undefined')?TT_BY[tid]:null;
+  var raw=0,cr='';
+  SLOTS.forEach(function(s){var c=CARD_BY[eq[s[0]]],b=c?CARD_T[c.t].b:0;raw+=b;
+    cr+='<div style="display:flex;justify-content:space-between;gap:8px"><span>'+s[2]+' '+s[1]+': '+(c?c.i+' '+esc(c.n)+' <small>('+CARD_T[c.t].n+')</small>':'<span style="opacity:.55">ไม่ได้สวม</span>')+'</span><b>'+(c?'+'+pct(b)+'%':'—')+'</b></div>'});
+  var cb=Math.min(BONUS_CAP,raw),capped=raw>BONUS_CAP;
+  var tb2=function(k){return T&&T.b&&T.b[k]||0};
+  var mo=(1+tb2('mo'))*(1+cb)-1;
+  var tl='';
+  if(T){Object.keys(T.b).forEach(function(k){tl+='<div style="display:flex;justify-content:space-between;gap:8px"><span>'+TB_TXT[k]+'</span><b>'+(k==='rk'||k==='dr'?'−':'+')+pct(T.b[k])+'%</b></div>'})}
+  var rows=[['mo','💰 เงินที่ได้'],['rk','🛡 ความเสี่ยงลดลง'],['dr','🍞 หิว/กระหายช้าลง'],['hp','❤ ฟื้นพลังชีวิต'],['md','😊 ความสุขที่ได้'],['en','⚡ พลังงานฟื้นเร็วขึ้น']];
+  var sum=rows.map(function(r){var v=r[0]==='mo'?mo:tb2(r[0]);return '<div style="display:flex;justify-content:space-between;gap:8px"><span>'+r[1]+'</span><b style="color:'+(v?'#2a8a3a':'inherit')+'">'+(v?((r[0]==='rk'||r[0]==='dr')?'−':'+')+pct(v)+'%':'—')+'</b></div>'}).join('');
+  ov.innerHTML='<div class="ovb" style="max-width:480px" role="dialog" aria-label="โบนัสรวม"><div class="ovh"><b>📊 โบนัสรวมตอนนี้</b><button class="mini" id="bonx">ปิด</button></div>'+
+   '<div style="max-height:68vh;overflow:auto;line-height:1.55;font-size:14px">'+
+   '<b>🎴 การ์ดที่สวม (โบนัสเงินทอง)</b><div style="margin:4px 0 8px">'+cr+'<div style="display:flex;justify-content:space-between;border-top:1px solid rgba(128,100,60,.4);margin-top:3px;padding-top:3px"><span>รวมจากการ์ด'+(capped?' (ชนเพดาน +'+pct(BONUS_CAP)+'%)':'')+'</span><b>+'+pct(cb)+'%</b></div></div>'+
+   '<b>🎖 ฉายาที่สวม</b><div style="margin:4px 0 8px">'+(T?'<div>'+T.i+' '+esc(T.n)+'</div>'+tl:'<span style="opacity:.6">ยังไม่ได้สวมฉายา</span>')+'</div>'+
+   '<b>✅ รวมทั้งหมด</b><div style="margin:4px 0">'+sum+'</div>'+
+   '<p class="hint" style="margin:6px 0 0">เงินที่ได้: คิดแบบคูณกัน (ฉายา +'+pct(tb2('mo'))+'% × การ์ด +'+pct(cb)+'% = +'+pct(mo)+'%) ใช้กับเงินที่ได้ทุกครั้ง โบนัสการ์ดใช้กับเงินเท่านั้น ยังไม่รวมตัวคูณจากอาชีพ ความยาก และกิจกรรมของโลก</p></div></div>';
+  ov.querySelector('#bonx').onclick=function(){ov.remove()};
+}
+{var _bb=document.getElementById('bBon');if(_bb)_bb.onclick=ovBonus}
 try{trInit()}catch(e){}
 
 function trInviteFrom(id,nm){
@@ -12928,5 +12955,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 17:09';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 17:39';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
