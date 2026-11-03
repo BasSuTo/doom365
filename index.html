@@ -10212,7 +10212,7 @@ function renderBoard(){
   const star=r=>svRank[r.id]?'<i class="tt sv g'+Math.min(4,svRank[r.id])+'" title="ติดท็อป 10 ผู้รอดครบ 365 วัน">'+(['🥇','🥈','🥉'][svRank[r.id]-1]||'🛡')+' ท็อป '+svRank[r.id]+' ผู้รอด 365 วัน</i>':'';
   const sv2=r=>'<small class="sv2">🛡 รอดครบ 365 วัน <b>'+r.survived+'</b> ครั้ง จากเล่น '+r.lives+' ชีวิต</small>';
   const tier=i=>i<3?' t'+(i+1):i<10?' t4':'';
-  const badge=r=>star(r)+(k==='ot'&&typeof otBadge==='function'?otBadge(r.ot):'')+((k==='gd'||k==='ev')&&typeof epiTotal==='function'?epiTotal(r[k],k==='gd'):'')+(r.tt?'<i class="tt">🏅 '+esc(r.tt)+'</i>':'');
+  const badge=r=>star(r)+(k==='ot'&&typeof otBadge==='function'?otBadge(r.ot):'')+((k==='gd'||k==='ev')&&typeof epiTotal==='function'?epiTotal(r[k],k==='gd'):'')+(r.tt?(r.tt==='ผู้ดูแลระบบ'?'<i class="tt" style="background:#4a2a9a;color:#fff;border-color:#2e1a66;font-weight:700">🛡️ ผู้ดูแลระบบ</i>':'<i class="tt">🏅 '+esc(r.tt)+'</i>'):'');
   const roleOf=r=>r.rr[k]||r.role;
   const gn=r=>r.gname?'<small class="gn">✔ ชื่อ Google: '+esc(r.gname)+'</small>':'';
   const pod=!q&&top.length>=1?'<div class="pod">'+[1,0,2].filter(i=>top[i]).map(i=>{const r=top[i];return '<div class="pbox p'+(i+1)+(r.id===LB.id?' me':'')+'"><div class="pm">'+['🥇','🥈','🥉'][i]+'</div><b>'+esc(r.nick)+'</b>'+badge(r)+'<small>อาชีพ: '+esc(roleOf(r))+'</small><small class="sv2">🛡 รอด <b>'+r.survived+'</b>/'+r.lives+' ชีวิต</small>'+gn(r)+'<em>'+esc(m[2](r[k]))+'</em></div>'}).join('')+'</div>':'';
@@ -10920,7 +10920,7 @@ function ttEquipped(){let id=lsGet(TTK,'');if(!id&&isAdmin())return 'adm';const 
 function ttReq(t){return t.src==='adm'?'เฉพาะเจ้าของเซิร์ฟเวอร์':t.src==='rank'?'ติดท็อป '+(t.top||10)+' ในอันดับ '+({survived:'“รอดครบ 365 วัน”',funny:'“ตายฮาหลายแบบที่สุด”',wk:'“ผ่านท้าทายสัปดาห์”',dc:'“ชีวิตประจำวัน (เล่นสะสม)”',te:'“เงินสะสมรวมตั้งแต่เล่น”'}[t.m])+' (หลุดท็อปฉายาจะถูกถอด)':t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
 function otBadge(v){
   let t=null;TITLES.forEach(x=>{if(x.src==='ot'&&v>=x.need)t=x});
-  return t?'<i class="tt" style="color:#8ec5ff;border-color:#8ec5ff">'+t.i+' '+esc(t.n)+'</i>':'';
+  return t?'<i class="tt" style="'+(t.id==='adm'?'background:#4a2a9a;color:#fff;border-color:#2e1a66;font-weight:700':'color:#8ec5ff;border-color:#8ec5ff')+'">'+t.i+' '+esc(t.n)+'</i>':'';
 }
 function ttChip(){
   const t=TT_BY[ttEquipped()];
@@ -12632,7 +12632,7 @@ function chatLineHtml(m){
   const mu=!m.me&&m.pid;
   const nm='<b class="cn'+(m.me?' me':'')+'"'+(mu?' data-mu="'+esc(m.pid)+'" title="แตะที่ชื่อเพื่อชวนแลกการ์ดหรือซ่อนข้อความ"':'')+'>'+esc(m.n)+(m.me?' (คุณ)':' <i>#'+esc(m.tag)+'</i>')+'</b>';
   const join=m.rc&&!MP.on&&!m.me?' <button class="mini" data-jrc="'+esc(m.rc)+'">เข้าห้อง '+esc(m.rc.toUpperCase())+'</button>':m.rc?' <span class="rcb">ห้อง '+esc(m.rc.toUpperCase())+'</span>':'';
-  const adb=(m.ad||(m.me&&typeof isAdmin==='function'&&isAdmin()))?' <i class="tt" style="color:#ffcf5a;border-color:#ffcf5a">🛡️ ผู้ดูแลระบบ</i>':'';
+  const adb=(m.ad||(m.me&&typeof isAdmin==='function'&&isAdmin()))?' <i class="tt" style="background:#4a2a9a;color:#fff;border-color:#2e1a66;font-weight:700">🛡️ ผู้ดูแลระบบ</i>':'';
   const dl=(typeof isAdmin==='function'&&isAdmin())?' <button class="mini" data-chdel="'+esc(m.id)+'" title="ลบข้อความนี้ (เฉพาะผู้ดูแลระบบ)" style="padding:0 5px;opacity:.7">🗑</button>':'';
   return '<div class="cm">'+nm+adb+chatTagsHtml(m.u)+' '+esc(m.t)+dl+'</div>';
 }
@@ -13163,5 +13163,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 23:39';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 04/11 00:51';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
