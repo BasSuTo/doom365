@@ -213,6 +213,20 @@ button:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 .lg{display:flex;gap:10px;align-items:flex-start;font-size:14px}
 .lg .ic{flex:none;margin-top:2px}
 .lg small{display:block;color:var(--muted);font-size:13px}
+#ovl .ovb{gap:6px;padding:0 16px 18px;border-top:3px solid var(--gold);background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 9%,var(--panel)) 0,var(--panel) 120px)}
+#ovl .ovh{position:sticky;top:0;z-index:2;margin:0 -16px;padding:12px 16px 10px;background:color-mix(in srgb,var(--panel) 94%,transparent);backdrop-filter:blur(4px);border-bottom:1px solid var(--line)}
+#ovl .lgsub{margin:8px 0 2px;font-size:13px;color:var(--muted);text-align:center}
+#ovl h4.lgh{display:flex;align-items:center;gap:8px;margin:14px 0 4px;padding:0;border:0;font-family:var(--f-d);font-size:15px;color:var(--a,var(--gold2))}
+#ovl h4.lgh::after{content:"";flex:1;height:2px;border-radius:2px;background:linear-gradient(90deg,var(--a,var(--gold)),transparent)}
+#ovl h4.lgh i{font-style:normal;font-size:17px;filter:drop-shadow(0 1px 0 #0006)}
+#ovl .lg{--a:var(--gold);align-items:center;gap:12px;padding:8px 10px 8px 8px;border-radius:12px;border:1px solid color-mix(in srgb,var(--a) 35%,var(--line));border-left:4px solid var(--a);background:linear-gradient(90deg,color-mix(in srgb,var(--a) 13%,var(--bg2)),var(--bg2) 70%);transition:transform .15s,box-shadow .15s}
+#ovl .lg:hover{transform:translateX(2px);box-shadow:0 3px 12px color-mix(in srgb,var(--a) 25%,transparent)}
+#ovl .lg .lgi{flex:none;width:40px;height:40px;display:grid;place-items:center;border-radius:10px;background:radial-gradient(circle at 35% 30%,color-mix(in srgb,var(--a) 38%,#fff2) 0,color-mix(in srgb,var(--a) 16%,var(--bg)) 70%);border:1px solid color-mix(in srgb,var(--a) 55%,transparent);box-shadow:inset 0 0 8px color-mix(in srgb,var(--a) 30%,transparent)}
+#ovl .lg .lgi .ic{margin:0;transform:scale(1.25)}
+#ovl .lg b{font-family:var(--f-d);font-weight:500;font-size:14.5px;color:var(--text)}
+#ovl .lg small{margin-top:1px;line-height:1.4}
+@keyframes lgin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+#ovl .lg{animation:lgin .28s both}
 .shop{display:grid;gap:6px}
 .shopi{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;background:var(--bg2);border:1px solid var(--line);padding:8px 12px}
 .shopi small{display:block;color:var(--muted);font-size:13px}
@@ -6744,9 +6758,9 @@ function cardOwned(id){return cardLoad().o[id]|0}
 function cardEq(){return cardLoad().eq}
 function cardIsEq(id){var c=CARD_BY[id];return !!c&&cardLoad().eq[c.slot]===id}
 function cardBonus(){var e=cardLoad().eq,b=0;for(var k in e){var c=CARD_BY[e[k]];if(c)b+=CARD_T[c.t].b}return Math.min(BONUS_CAP,b)}
-function cardFree(id){var d=cardLoad();return (d.o[id]|0)-(cardIsEq(id)?1:0)}
+function cardFree(id){var d=cardLoad();return d.o[id]|0}
 function cardAdd(id,n){var d=cardLoad();d.o[id]=Math.min(99,(d.o[id]|0)+(n||1));cardSave()}
-function cardTake(id){var d=cardLoad();if(cardFree(id)<1)return false;d.o[id]--;if(!d.o[id])delete d.o[id];cardSave();return true}
+function cardTake(id){var d=cardLoad();if(cardFree(id)<1)return false;if(d.o[id]===1&&cardIsEq(id)&&CARD_BY[id])delete d.eq[CARD_BY[id].slot];d.o[id]--;if(!d.o[id])delete d.o[id];cardSave();return true}
 function cardEquip(id,slot){var d=cardLoad(),c=CARD_BY[id];
   if(id&&c&&d.o[id]){if(d.eq[c.slot]===id)delete d.eq[c.slot];else d.eq[c.slot]=id}else if(slot)delete d.eq[slot];
   cardSave()}
@@ -10334,12 +10348,15 @@ const LEGEND=[
  ['เงินและของ',[['mo','เหรียญ = เงิน','ใช้จ่ายและเป็นตัวเลือกบางข้อ ติดลบจะเครียดหนัก'],['food','กระป๋อง = อาหารสำรอง','ระบบจะกินให้เองเมื่อหิว'],['water','หยดน้ำฟ้า = น้ำสะอาดสำรอง','ดื่มอัตโนมัติเมื่อกระหาย'],['med','เม็ดยา = ยา','รักษาแผลและการติดเชื้อ'],['mat','ไม้ = วัสดุ','ซ่อมที่พักให้ปลอดภัยขึ้น']]],
  ['ที่พักและกลุ่ม',[['df','โล่ = ป้องกัน','ลดโอกาสพลาดในเหตุอันตราย'],['hd','ตา = ซ่อนตัว','ยิ่งสูงยิ่งไม่มีใครมองหาเจอ'],['crew','คนตัวเล็ก = เพื่อนร่วมทาง','ช่วยให้ใจดีขึ้น แต่กินอาหารของกลุ่มด้วย'],['d','นาฬิกาทราย = จำนวนวัน','เวลาที่ใช้กับตัวเลือกนั้น']]]
 ];
+const LGACC=['--hp','--fd','--mo','--wt'],LGEMO=['❤️','🍞','💰','🏠'];
+const LGSTAT={hp:'--hp',md:'--md',lv:'--lv',ht:'--ht',fd:'--fd',wt:'--wt',en:'--en',wd:'--wd',inf:'--inf',mo:'--mo',food:'--fd',water:'--wt'};
 function showLegend(){
   if($('ovl'))return;
   const o=document.createElement('div');o.className='ov';o.id='ovl';
   o.innerHTML='<div class="ovb" role="dialog" aria-label="สัญลักษณ์"><div class="ovh"><b>สัญลักษณ์ในเกมหมายถึงอะไร</b><button class="mini" id="ovx">ปิด</button></div>'+
-   LEGEND.map(g=>'<h4>'+g[0]+'</h4>'+g[1].map(r=>'<div class="lg">'+ic(r[0])+'<span><b>'+r[1]+'</b><small>'+r[2]+'</small></span></div>').join('')).join('')+
-   '<h4>ตัวบอกบนปุ่มตัวเลือก</h4><div class="lg"><span><b>เสี่ยงพลาด ~30%</b><small>ถ้าพลาดจะได้ผลเสียแทน อุปกรณ์และที่พักลดโอกาสพลาดได้</small></span></div><div class="lg"><span><b>ทอยลูกเต๋า</b><small>ให้ชะตาตัดสินแทน อาจดีมากหรือเลวร้าย</small></span></div><div class="lg"><span><b>ชะตาเมตตา</b><small>จำนวนครั้งที่คุณเฉียดตายแล้วรอดได้</small></span></div></div>';
+   '<p class="lgsub">แต่ละไอคอนในเกมมีความหมายตามนี้ · แตะนอกกรอบหรือกด Esc เพื่อปิด</p>'+
+   LEGEND.map((g,gi)=>{const ac=LGACC[gi]||'--gold',ei=LGEMO[gi]||'📌';return '<h4 class="lgh" style="--a:var('+ac+')"><i>'+ei+'</i>'+g[0]+'</h4>'+g[1].map((r,ri)=>'<div class="lg" style="--a:var('+(LGSTAT[r[0]]||ac)+');animation-delay:'+(ri*35)+'ms"><span class="lgi">'+ic(r[0])+'</span><span><b>'+r[1]+'</b><small>'+r[2]+'</small></span></div>').join('')}).join('')+
+   '<h4 class="lgh" style="--a:var(--lv)"><i>🎲</i>ตัวบอกบนปุ่มตัวเลือก</h4><div class="lg"><span><b>เสี่ยงพลาด ~30%</b><small>ถ้าพลาดจะได้ผลเสียแทน อุปกรณ์และที่พักลดโอกาสพลาดได้</small></span></div><div class="lg"><span><b>ทอยลูกเต๋า</b><small>ให้ชะตาตัดสินแทน อาจดีมากหรือเลวร้าย</small></span></div><div class="lg"><span><b>ชะตาเมตตา</b><small>จำนวนครั้งที่คุณเฉียดตายแล้วรอดได้</small></span></div></div>';
   document.body.appendChild(o);
   const close=()=>{o.remove();document.removeEventListener('keydown',esck)};
   const esck=e=>{if(e.key==='Escape')close()};
@@ -10641,6 +10658,8 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-04k',date:'4 พ.ย. 2569',title:'หน้าสัญลักษณ์สวยขึ้น',items:['🎨 หน้า “สัญลักษณ์” ออกแบบใหม่: แยกหมวกด้วยสี ไอคอนอยู่ในกรอบเรืองแสงตามสีของค่านั้น หัวข้อติดอยู่บนสุดตอนเลื่อน']},
+ {id:'2026-11-04j',date:'4 พ.ย. 2569',title:'ปุ่มดูแลตัวเอง/ตลาดมืดห่างขึ้น + แลกการ์ดที่สวมอยู่ได้',items:['🛒 ปุ่ม “ดูแลตัวเอง / ตลาดมืด” โผล่ทุก 5–6 เหตุการณ์ (ถ้าหิว กระหาย ติดเชื้อ หรือบาดเจ็บ จะโผล่เร็วขึ้นหลัง 3 เหตุการณ์) เหตุการณ์จึงต่อเนื่องขึ้น ควรกักเสบียงและยาไว้เอง','🎴 แลกการ์ดกับเพื่อนได้ทุกใบ รวมถึงใบที่กำลังสวมอยู่ (ถ้าเป็นใบสุดท้ายระบบถอดให้เอง)']},
  {id:'2026-11-04i',date:'4 พ.ย. 2569',title:'แก้แสงหน้าต่างบังคน + สัตว์เลี้ยงเดินได้',items:['💡 แก้บั๊ก: แสงสีเหลืองจากหน้าต่าง/โคมไฟร้านเคยทาทับตัวละครที่ยืนอยู่ด้านหน้า ตอนนี้ตัวละครอยู่ด้านหน้าเสมอ','🐾 สัตว์เลี้ยงไม่ติดตัวละครแล้ว เดินเล่นรอบ ๆ เดินตามเมื่อเราเดินไกล วิ่งขาสลับ และหันหน้าตามทิศที่เดิน']},
  {id:'2026-11-04h',date:'4 พ.ย. 2569',title:'ปุ่ม “โบนัสรวม” ดูเปอร์เซ็นต์ทั้งหมด',items:['📊 ปุ่มใหม่ในหน้าเกม “โบนัสรวม” แสดงโบนัสแยกตามที่มา: การ์ดแต่ละช่อง (หมวก เสื้อ รองเท้า…) และฉายาที่สวม','สรุปรวมทุกค่า: เงินที่ได้ ความเสี่ยง หิว/กระหาย พลังชีวิต ความสุข พลังงาน']},
  {id:'2026-11-04g',date:'4 พ.ย. 2569',title:'แก้แสงเตาไฟบังตัวละคร',items:['🔥 แก้บั๊ก: หลังซื้อเตาไฟ แสงสีส้มเคยทาทับตัวละครจนมองไม่เห็น ตอนนี้เป็นแสงนวลอยู่ด้านหลังตัวละครแล้ว']},
@@ -11100,7 +11119,7 @@ function drawTrade(){
   }else{
     var d=cardLoad(),opts=CARD_LIST.filter(function(c){return cardFree(c[0])>0});
     var m=CARD_BY[TR.mine],t=CARD_BY[TR.them];
-    h+='<p class="hint">กำลังแลกกับ <b>'+esc(TR.nm)+'</b> · ใบที่สวมอยู่แลกไม่ได้ (ถอดก่อน) · ทั้งสองฝ่ายต้องกด “ยืนยัน” ด้วยข้อเสนอเดียวกัน</p>'+
+    h+='<p class="hint">กำลังแลกกับ <b>'+esc(TR.nm)+'</b> · แลกได้ทุกใบ แม้ใบที่สวมอยู่ (ถ้าเป็นใบสุดท้ายจะถอดให้อัตโนมัติ) · ทั้งสองฝ่ายต้องกด “ยืนยัน” ด้วยข้อเสนอเดียวกัน</p>'+
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div><small>คุณเสนอ</small>'+(m?cardHTML(m,{}):'<div class="cardx lock"><b>ยังไม่เลือก</b></div>')+(TR.cfMine?'<small>✅ คุณยืนยันแล้ว</small>':'')+'</div>'+
       '<div><small>'+esc(TR.nm)+' เสนอ</small>'+(t?cardHTML(t,{}):'<div class="cardx lock"><b>ยังไม่เลือก</b></div>')+(TR.cfThem?'<small>✅ เขายืนยันแล้ว</small>':'')+'</div></div>'+
       '<div style="margin:8px 0"><small>เลือกการ์ดของคุณที่จะแลก</small><div class="cardrow">'+(opts.length?opts.map(function(r){var c=CARD_BY[r[0]];return cardHTML(c,{sel:TR.mine===c.id,n:cardFree(c.id),attr:' data-o="'+c.id+'"'})}).join(''):'<small>ไม่มีใบที่แลกได้</small>')+'</div>'+
@@ -11486,7 +11505,7 @@ function renderWait(soft){
    '<p class="hint">✅ พร้อมแล้ว · ⏳ ยังอ่านผลหรือเตรียมตัวอยู่ · 💀 จากไป · 🏁 รอดครบปี</p>'+
    '<div class="row">'+(showSkip?'<button class="btn" id="pskip">เริ่มรอบถัดไปเลย ไม่รอที่เหลือ</button>':'')+'<button class="btn ghost" id="pcare">ดูแลตัวเอง / ตลาดมืด</button><button class="btn ghost" id="pleave">ออกจากปาร์ตี้</button></div>';
   if($('pskip'))$('pskip').onclick=()=>{PARTY.waitT=0;partyTryStart()};
-  if($('pcare'))$('pcare').onclick=()=>{S.sinceCare=0;PARTY.waiting=false;showMorning()};
+  if($('pcare'))$('pcare').onclick=()=>{S.sinceCare=0;S.careGap=5+(Math.random()<.5?1:0);PARTY.waiting=false;showMorning()};
   $('pleave').onclick=()=>{partyLeave();showStart()};
 }
 /* ===== UI v2 ===== */
@@ -12165,13 +12184,14 @@ function showOutcome(o){
   const m=outModel(o);
   if(!o.end&&!o.act)S.sinceCare=(S.sinceCare|0)+1;
   const hot=!o.end&&urgent();
-  const canCare=!o.end&&!o.act&&((S.sinceCare|0)>=3||(hot&&(S.sinceCare|0)>=2));
+  const careGap=S.careGap||5;
+  const canCare=!o.end&&!o.act&&((S.sinceCare|0)>=careGap||(hot&&(S.sinceCare|0)>=3));
   panel.innerHTML=outHTML(m,true).replace(/<div class="amb">/g,'<div class="amb">')+
    '<div class="row"><button class="btn" id="next">'+(o.end?'ดูตอนจบ':o.act?'กลับไปเลือกแผน':'ต่อไป')+'</button>'+
    (canCare?'<button class="btn ghost'+(hot?' urge':'')+'" id="care"'+(hot?' style="color:#2a0808"':'')+'>ดูแลตัวเอง / ตลาดมืด'+(hot?' (ควรทำ)':'')+'</button>':'')+
    (!o.end&&o.act?'<button class="btn ghost" id="skip">ไปต่อเหตุการณ์</button>':'')+'</div>';
   $('next').onclick=()=>{if(o.end)showEnding(o.end);else if(o.act)showMorning();else{saveGame(true);showEvent()}};
-  if($('care'))$('care').onclick=()=>{S.sinceCare=0;showMorning()};
+  if($('care'))$('care').onclick=()=>{S.sinceCare=0;S.careGap=5+(Math.random()<.5?1:0);showMorning()};
   if($('skip'))$('skip').onclick=()=>{saveGame(true);showEvent()};
   $('next').focus({preventScroll:true});
   if(PARTY.on)partyAfterOutcome(o);
@@ -12990,5 +13010,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 19:34';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 03/11 19:44';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
