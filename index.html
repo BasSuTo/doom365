@@ -7158,6 +7158,34 @@ var NEW_X=[
 
 NEW_FIT.forEach(function(c){if(CARD_BY[c[0]])return;CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:'fit',sh:c[4],pn:c[5],ht:c[6]};CARD_LIST.push([c[0],c[1],c[2],c[3],c[4],c[5],c[6]])});
 NEW_X.forEach(function(c){if(CARD_BY[c[0]])return;CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:c[4],c:c[5],st:c[6]};CARD_LIST.push([c[0],c[1],c[2],c[3]])});
+/* ===== ความคืบหน้าความฝัน ===== */
+function dreamProg(){
+  var d=dreamOf(),id=d.id,t=S.tag||{},c=S.c||{},n=0,m=0,unit='';
+  var CT={help:[c.help|0,8,'ครั้ง'],friends:[(S.crew||[]).length,3,'คน'],fun:[t.fun|0,10,'ครั้ง'],fam:[t.fam|0,6,'ครั้ง'],know:[t.know|0,6,'ครั้ง'],adv:[t.adv|0,8,'ครั้ง'],rich:[Math.floor(S.mo||0),300000,'บาท']};
+  var done=false;try{done=id!=='live'&&!!d.ok('alive')}catch(e){}
+  var txt;
+  if(CT[id]){n=CT[id][0];m=CT[id][1];unit=CT[id][2];txt=(id==='rich'?'เงินตอนนี้ '+fmt(n)+' / '+fmt(m):'ทำได้แล้ว '+Math.min(n,m)+' / '+m+' '+unit)}
+  else if(id==='live')txt='ยังรอดอยู่ — ต้องรอดไปถึงวันสุดท้าย';
+  else if(id==='love')txt=done?'ตอนนี้ยังอยู่กับคนรัก — ต้องอยู่ด้วยกันถึงวันสุดท้าย':'ตอนนี้ยังไม่มีคนรักอยู่ข้างๆ';
+  else if(id==='legend')txt=done?'ตอนนี้มีของวิเศษระดับตำนานแล้ว':'ยังไม่มีของวิเศษระดับตำนาน';
+  else txt=done?'ไปมาแล้ว':'ยังไม่ได้ไป';
+  var pct=CT[id]?Math.min(100,Math.round(n/m*100)):(done?100:0);
+  return {n:d.n,txt:txt,done:done,pct:pct,short:CT[id]?(id==='rich'?Math.min(100,pct)+'%':Math.min(n,m)+'/'+m):(done?'✅':'')};
+}
+function dreamTagHTML(){
+  var p;try{p=dreamProg()}catch(e){return ''}
+  if(id_ok(p)){if(!S.dnote){S.dnote=1;setTimeout(function(){try{toast('✨ ทำตามความฝันได้แล้ว: '+p.n)}catch(e){}},400)}}else S.dnote=0;
+  return '<span class="tag dtag" role="button" tabindex="0" style="cursor:pointer">ฝัน: '+esc(S.dream&&dreamOf().n||'')+(p.done?' ✅':(p.short?' · '+p.short:''))+'</span>';
+}
+function id_ok(p){return !!p.done}
+function dreamShow(){
+  var p=dreamProg(),o=document.getElementById('ovdrm');if(o)o.remove();
+  o=document.createElement('div');o.className='ov';o.id='ovdrm';o.style.zIndex=75;document.body.appendChild(o);
+  o.addEventListener('click',function(e){if(e.target===o)o.remove()});
+  o.innerHTML='<div class="ovb" style="max-width:380px"><div class="ovh"><b>🌠 ความฝันสุดท้าย</b><button class="mini" id="drx">ปิด</button></div><p><b>'+esc(p.n)+'</b></p><div style="height:10px;border-radius:6px;background:rgba(128,128,128,.25);overflow:hidden"><div style="height:100%;width:'+p.pct+'%;background:#e0a030"></div></div><p class="hint">'+esc(p.txt)+(p.done?' ✅':'')+'</p><p class="hint">ตอนจบจะตัดสินจากสถานะสุดท้าย ถ้าทำสำเร็จได้โบนัสคะแนน</p></div>';
+  o.querySelector('#drx').onclick=function(){o.remove()};
+}
+document.addEventListener('click',function(e){var t=e.target&&e.target.closest&&e.target.closest('.dtag');if(t&&S)dreamShow()});
 /* ===== v83: มหันตภัยใหม่ 2 ชุด (หุ่นยนต์ก่อกบฏ · มหาอุทกภัย) + เหตุการณ์ใหม่ 22 แบบ ===== */
 ARC_TYPES.push('robot','flood');
 Object.assign(ARC_N,{robot:'หุ่นยนต์ก่อกบฏ',flood:'มหาอุทกภัย'});
@@ -10770,6 +10798,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-05a',date:'5 พ.ย. 2569',title:'ดูความคืบหน้าความฝันระหว่างเล่น',items:['🌠 ป้าย “ฝัน” ด้านบนตอนนี้บอกความคืบหน้า เช่น ช่วยเหลือคน 3/8 หรือเงิน 120,000/300,000','👆 กดที่ป้ายเพื่อดูแถบความคืบหน้าแบบเต็ม','✅ เมื่อทำตามความฝันได้ จะขึ้นเครื่องหมายถูกและแจ้งเตือนครั้งเดียว (ตอนจบตัดสินจากสถานะสุดท้ายเหมือนเดิม)']},
  {id:'2026-11-04m',date:'4 พ.ย. 2569',title:'การ์ดใหม่ 44 ใบ',items:['🎴 เพิ่มการ์ดใหม่ 44 ใบ ครบทุกช่อง (ชุดเต็ม หมวก เสื้อ รองเท้า อาวุธ คาถา ปีก สัตว์เลี้ยง) ทุกระดับ B / A / S / S+ เช่น ชุดจักรพรรดิเมฆา · ชุดราชินีแห่งท้องทะเล · ปีกรุ้งอาทิตย์อุทัย · มังกรสายน้ำเรืองแสง · หมาป่าหิมะ · ดาบซามูไรเงา','📦 รวมการ์ดทั้งหมดเป็น 182 แบบ โบนัสและอัตราดรอปของแต่ละระดับยังเหมือนเดิม']},
  {id:'2026-11-04l',date:'4 พ.ย. 2569',title:'อาชีพเริ่มจนแต่รวยเร็ว 20 อาชีพใหม่',items:['💸 เพิ่มอาชีพใหม่ 20 อาชีพที่เริ่มจากแทบไม่มีเงิน แต่ถ้าเลือกถูกจังหวะจะรวยเร็วทัดเทียมอาชีพท็อป เช่น คนเร่ขายพวงมาลัยตามสี่แยก · เด็กส่งน้ำแข็งที่รู้ความลับทุกร้าน · คนเก็บเศษเหล็กที่เจอของมีค่าบ่อยผิดปกติ · คนรับจ้างต่อคิวหน้าร้านขนมดัง · นักร้องข้างถนนที่ร้องได้เพลงเดียว · ช่างทำกุญแจประจำซอย · คนปลูกกล้วยไม้พันธุ์หายาก · คนขายลูกชิ้นปิ้งที่รู้จักนักการเมืองทุกคน และอีกหลายอาชีพ','🎲 แต่ละอาชีพมีเหตุการณ์เฉพาะตัว 2 เรื่อง มีทางเสี่ยง (ฐานะขึ้นเร็วแต่พลาดได้) ทางกลาง และทางปลอดภัย ลองสุ่มเกิดดูว่าได้อาชีพไหน']},
  {id:'2026-11-04k',date:'4 พ.ย. 2569',title:'หน้าสัญลักษณ์สวยขึ้น',items:['🎨 หน้า “สัญลักษณ์” ออกแบบใหม่: แยกหมวกด้วยสี ไอคอนอยู่ในกรอบเรืองแสงตามสีของค่านั้น หัวข้อติดอยู่บนสุดตอนเลื่อน']},
@@ -12055,7 +12084,7 @@ function renderEvent(m,mode){
   // mode: 'host' | 'solo' | 'guest'
   const mood=MOODNAME[m.mood]||'';
   panel.innerHTML=
-   '<div class="kick"><span>'+esc(sceneName(m.scene))+'</span><span>'+esc(TOD_NAME[m.tod]||'')+'</span><span>วันที่ '+(Math.floor(m.day)+1)+(typeof calStr==='function'&&mode!=='guest'&&calStr(m.day)?' · '+calStr(m.day):'')+'</span>'+(mood?'<span class="tag mood">บรรยากาศ: '+mood+'</span>':'')+(S&&S.dream&&mode!=='guest'?'<span class="tag">ฝัน: '+esc(dreamOf().n)+'</span>':'')+(S&&S.proph>=0&&mode!=='guest'?'<span class="tag">ทำนาย: '+esc(prophOf().n)+'</span>':'')+((S&&S.shield|0)>0&&mode!=='guest'?'<span class="tag">โล่ ×'+S.shield+'</span>':'')+'</div>'+
+   '<div class="kick"><span>'+esc(sceneName(m.scene))+'</span><span>'+esc(TOD_NAME[m.tod]||'')+'</span><span>วันที่ '+(Math.floor(m.day)+1)+(typeof calStr==='function'&&mode!=='guest'&&calStr(m.day)?' · '+calStr(m.day):'')+'</span>'+(mood?'<span class="tag mood">บรรยากาศ: '+mood+'</span>':'')+(S&&S.dream&&mode!=='guest'?dreamTagHTML():'')+(S&&S.proph>=0&&mode!=='guest'?'<span class="tag">ทำนาย: '+esc(prophOf().n)+'</span>':'')+((S&&S.shield|0)>0&&mode!=='guest'?'<span class="tag">โล่ ×'+S.shield+'</span>':'')+'</div>'+
    '<div class="amb q">'+esc(m.quote)+'</div>'+
    (m.tag?'<div class="evtag '+esc(m.tag.c)+'" role="status"><i>'+m.tag.i+'</i><span><b>'+esc(m.tag.n)+'</b><small>'+esc(m.tag.s)+'</small></span></div>':'')+
    '<h2'+(m.tag?' class="et-'+esc(m.tag.c)+'"':'')+'>'+esc(m.head)+'</h2><p class="sub clamp">'+esc(m.txt)+'</p><button class="mini more" id="evmore" style="display:none">อ่านต่อ ▾</button>'+
@@ -13519,5 +13548,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 04/11 17:06';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 01:42';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
