@@ -11128,7 +11128,8 @@ function ovAdminCards(){
   var ov=document.getElementById('ovcadm');if(ov)ov.remove();
   ov=document.createElement('div');ov.className='ov';ov.id='ovcadm';ov.style.zIndex=75;document.body.appendChild(ov);
   ov.addEventListener('click',function(e){if(e.target===ov)ov.remove()});
-  var rows=null,sel=null,q='',err='';
+  var rows=null,sel=null,q='',err='',onlyOn=false;
+  function onl(){var m={},ex=[];try{(MP.api.peers()||[]).filter(function(p){return p.kind==='viewer'}).forEach(function(p){var pr=p.presence||{},u=clean(pr.u,40);if(u)m[u]=1;else ex.push(clean(pr.nm,16)||'ผู้เล่น')})}catch(e){}try{if(D365_FB&&D365_FB.user&&D365_FB.user.uid)m[D365_FB.user.uid]=1}catch(e){}return {m:m,ex:ex}}
   function bonus(r){var b=0;for(var k in (r.eq||{})){var c=CARD_BY[r.eq[k]];if(c)b+=CARD_T[c.t].b}return pct(Math.min(BONUS_CAP,b))}
   function cnt(r){var u=0,n=0;for(var k in (r.o||{})){if(CARD_BY[k]){u++;n+=r.o[k]|0}}return [u,n]}
   function nm(r){return (r.nick||'ผู้เล่น')+(r.name?' · '+r.name:'')}
@@ -11148,12 +11149,14 @@ function ovAdminCards(){
       });
       h+='</div>';
     }else{
-      var l=rows.filter(function(r){return !q||nm(r).toLowerCase().indexOf(q)>=0}).sort(function(a,b){return cnt(b)[0]-cnt(a)[0]});
-      h+='<p class="hint">มี '+rows.length+' คนที่ซิงก์การ์ดขึ้นระบบ (เฉพาะคนที่ล็อกอิน Google และใช้เวอร์ชันนี้)</p><input id="caq" placeholder="ค้นหาชื่อ" value="'+esc(q)+'" style="width:100%;box-sizing:border-box;margin-bottom:6px">';
-      h+='<div style="max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:4px">'+(l.length?l.map(function(r){var c=cnt(r);return '<button class="mini" style="text-align:left" data-u="'+esc(r.uid)+'">'+esc(nm(r))+' — '+c[0]+' แบบ / '+c[1]+' ใบ · +'+bonus(r)+'%</button>'}).join(''):'<p class="hint">ไม่พบ</p>')+'</div>';
+      var O=onl(),no=rows.filter(function(r){return O.m[r.uid]}).length;
+      var l=rows.filter(function(r){return (!q||nm(r).toLowerCase().indexOf(q)>=0)&&(!onlyOn||O.m[r.uid])}).sort(function(a,b){return (O.m[b.uid]?1:0)-(O.m[a.uid]?1:0)||cnt(b)[0]-cnt(a)[0]});
+      h+='<p class="hint">มี '+rows.length+' คนที่ซิงก์การ์ดขึ้นระบบ (เฉพาะคนที่ล็อกอิน Google และใช้เวอร์ชันนี้) · 🟢 ออนไลน์ตอนนี้ '+no+' คน'+(O.ex.length?' (+ '+O.ex.length+' คนออนไลน์แต่ไม่ได้ล็อกอิน/ใช้เวอร์ชันเก่า: '+esc(O.ex.join(', '))+')':'')+'</p><p><button class="mini" id="caon">'+(onlyOn?'แสดงทุกคน':'แสดงเฉพาะคนออนไลน์')+'</button></p><input id="caq" placeholder="ค้นหาชื่อ" value="'+esc(q)+'" style="width:100%;box-sizing:border-box;margin-bottom:6px">';
+      h+='<div style="max-height:52vh;overflow:auto;display:flex;flex-direction:column;gap:4px">'+(l.length?l.map(function(r){var c=cnt(r);return '<button class="mini" style="text-align:left" data-u="'+esc(r.uid)+'">'+(O.m[r.uid]?'🟢 ':'')+esc(nm(r))+' — '+c[0]+' แบบ / '+c[1]+' ใบ · +'+bonus(r)+'%</button>'}).join(''):'<p class="hint">ไม่พบ</p>')+'</div>';
     }
     ov.innerHTML=h+'</div>';
     ov.querySelector('#cax').onclick=function(){ov.remove()};
+    var ob=ov.querySelector('#caon');if(ob)ob.onclick=function(){onlyOn=!onlyOn;draw()};
     var b=ov.querySelector('#caback');if(b)b.onclick=function(){sel=null;draw()};
     var qi=ov.querySelector('#caq');if(qi)qi.oninput=function(){q=qi.value.trim().toLowerCase();var pos=qi.selectionStart;draw();var n=ov.querySelector('#caq');if(n){n.focus();n.setSelectionRange(pos,pos)}};
     ov.querySelectorAll('[data-u]').forEach(function(x){x.onclick=function(){sel=rows.find(function(r){return r.uid===x.dataset.u});draw()}});
@@ -13516,5 +13519,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 04/11 16:54';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 04/11 17:06';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
