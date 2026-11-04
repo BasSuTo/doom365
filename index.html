@@ -415,6 +415,7 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
 .trlog{max-height:96px;overflow:auto;font-size:12px;margin:6px 0;padding:4px 6px;border-radius:8px;background:rgba(0,0,0,.18);text-align:left}.trlog .sys{opacity:.7;font-style:italic}
 @keyframes cglow{50%{box-shadow:0 0 22px var(--cg),inset 0 0 20px var(--cg)}}
 @keyframes cpop{from{transform:scale(.3) rotate(-12deg);opacity:0}}
+body.early .kar,body.early .ptag,body.early .tag.mood{display:none!important}
 </style></head><body>
 
 <div class="app" id="app">
@@ -7222,6 +7223,13 @@ function msShow(){
     }catch(e){}
   };
 })();
+
+/* ===== โหมดมือใหม่: ซ่อนค่าเสริมช่วงวันที่ 1-3 ===== */
+function earlyOn(){try{return !!(S&&S.day<3.5&&!S.daily&&!localStorage.getItem('doom365-full')&&earlyNew())}catch(e){return false}}
+function earlyNew(){try{var l=JSON.parse(localStorage.getItem('doom365-lives')||'[]');return !Array.isArray(l)||l.length<2}catch(e){return true}}
+function earlyApply(){try{document.body.classList.toggle('early',earlyOn())}catch(e){}}
+(function(){var _r=renderHUD;renderHUD=function(){var r=_r.apply(this,arguments);earlyApply();return r}})();
+document.addEventListener('click',function(e){var t=e.target&&e.target.closest&&e.target.closest('.etag');if(t){try{localStorage.setItem('doom365-full','1')}catch(x){}document.body.classList.remove('early');t.remove();try{toast('แสดงทุกค่าแล้ว')}catch(x){}}});
 /* ===== v83: มหันตภัยใหม่ 2 ชุด (หุ่นยนต์ก่อกบฏ · มหาอุทกภัย) + เหตุการณ์ใหม่ 22 แบบ ===== */
 ARC_TYPES.push('robot','flood');
 Object.assign(ARC_N,{robot:'หุ่นยนต์ก่อกบฏ',flood:'มหาอุทกภัย'});
@@ -10321,6 +10329,19 @@ const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['surv
 const CORE_M=['richest','survived','gd','ev','ot','te'];
 function activeMetrics(){return METRICS.filter(m=>CORE_M.includes(m[0])||LB.rows.some(r=>!r.bad&&r[m[0]]>0))}
 function rankList(k){return LB.rows.filter(r=>!r.bad&&r[k]>0).sort((a,b)=>b[k]-a[k]||b.best-a.best)}
+const TOPN=20,TSHORT={richest:'เศรษฐี',survived:'ผู้รอด 365 วัน',wk:'ท้าทายสัปดาห์',funny:'ตายฮา',gd:'คนดี',ev:'คนชั่ว',ot:'ออนไลน์นาน',te:'เงินสะสม',dc:'ชีวิตประจำวัน'};
+function topMap(){/* id -> [{k,n,ic,r}] เรียงจากอันดับดีสุด · ท็อป 20 ทุกตาราง */
+  const key=(LB.rows||[]).length+':'+(LB.at||0);
+  if(window.__tm&&window.__tm.k===key)return window.__tm.m;
+  const m={};
+  try{activeMetrics().forEach(x=>{rankList(x[0]).slice(0,TOPN).forEach((r,i)=>{(m[r.id]=m[r.id]||[]).push({k:x[0],n:TSHORT[x[0]]||x[1],ic:x[3],r:i+1})})})}catch(e){}
+  Object.keys(m).forEach(id=>m[id].sort((p,q)=>p.r-q.r));
+  window.__tm={k:key,m:m};return m;
+}
+function topTagsHtml(id,max){
+  const l=(topMap()[id]||[]).slice(0,max||3);
+  return l.map(x=>'<i class="tt sv g'+Math.min(4,x.r)+'" title="ท็อป '+x.r+' ตาราง '+esc(x.n)+'">'+(['🥇','🥈','🥉'][x.r-1]||x.ic)+' ท็อป '+x.r+' '+esc(x.n)+'</i>').join('');
+}
 function myRank(k){const l=rankList(k);const i=l.findIndex(r=>r.id===LB.id);return i<0?0:i+1}
 let boardTab='richest',boardBack=null;
 function showBoard(back){
@@ -10368,8 +10389,7 @@ function renderBoard(){
   const q=boardQ.trim().toLowerCase();
   const shown=top.map((r,i)=>({r,i})).filter(x=>!q||x.r.nick.toLowerCase().includes(q)||x.r.role.toLowerCase().includes(q)||(x.r.rr[k]||'').toLowerCase().includes(q)||x.r.gname.toLowerCase().includes(q));
   const topV=top.length?top[0][k]:1;
-  const svRank=(()=>{const m={};rankList('survived').slice(0,10).forEach((r,i)=>{if(r.survived>0)m[r.id]=i+1});return m})();
-  const star=r=>svRank[r.id]?'<i class="tt sv g'+Math.min(4,svRank[r.id])+'" title="ติดท็อป 10 ผู้รอดครบ 365 วัน">'+(['🥇','🥈','🥉'][svRank[r.id]-1]||'🛡')+' ท็อป '+svRank[r.id]+' ผู้รอด 365 วัน</i>':'';
+  const star=r=>topTagsHtml(r.id,2);
   const sv2=r=>'<small class="sv2">🛡 รอดครบ 365 วัน <b>'+r.survived+'</b> ครั้ง จากเล่น '+r.lives+' ชีวิต</small>';
   const tier=i=>i<3?' t'+(i+1):i<10?' t4':'';
   const badge=r=>star(r)+(k==='ot'&&typeof otBadge==='function'?otBadge(r.ot):'')+((k==='gd'||k==='ev')&&typeof epiTotal==='function'?epiTotal(r[k],k==='gd'):'')+(r.tt?(r.tt==='ผู้ดูแลระบบ'?'<i class="tt" style="background:#4a2a9a;color:#fff;border-color:#2e1a66;font-weight:700">🛡️ ผู้ดูแลระบบ</i>':'<i class="tt">🏅 '+esc(r.tt)+'</i>'):'');
@@ -10461,15 +10481,13 @@ function renderOnline(){
   try{const cw=$('chat');if(cw&&cw.querySelector('input[disabled]')&&MP.api&&typeof MP.api.emit==='function')chatMount(cw)}catch(e){}
   const el=$('onl');if(!el||!MP.api||typeof MP.api.peers!=='function')return;
   const ps=MP.api.peers().filter(p=>p.kind==='viewer');
-  let tp={};try{rankList('survived').slice(0,10).forEach((r,i)=>{tp[r.id]=i+1});}catch(e){}
-  let tr={};try{rankList('richest').slice(0,10).forEach((r,i)=>{tr[r.id]=i+1})}catch(e){}
   const html='<h4>คนออนไลน์ตอนนี้ <span>'+ps.length+' คน</span></h4>'+(window.D365_SA&&MP.api.connected&&!MP.api.connected()?'<div class="op"><span><small>กำลังเชื่อมต่อเซิร์ฟเวอร์ออนไลน์… ถ้านานเกิน 20 วินาที ลองรีเฟรชหน้า</small></span></div>':'')+'<div class="olist">'+
    (ps.length?ps.map(p=>{
      const pr=p.presence||{};const rc=clean(pr.rc,4).toLowerCase().replace(/[^a-z0-9]/g,'');
      const canJoin=rc.length===4&&!p.sameTab&&!MP.on;
-     const u=clean(pr.u,40),rk=u&&tp[u]?tp[u]:0,rr2=u&&tr[u]?tr[u]:0;
-     const cls=rk?(rk<=3?' t'+rk:' t4'):rr2?(rr2<=3?' t'+rr2:' t4'):'';
-     const tag=(rk?'<i class="tt sv g'+Math.min(4,rk)+'">'+(['🥇','🥈','🥉'][rk-1]||'🛡')+' ท็อป '+rk+' ผู้รอด</i>':'')+(rr2?'<i class="tt sv g'+Math.min(4,rr2)+'">'+(['🥇','🥈','🥉'][rr2-1]||'👑')+' ท็อป '+rr2+' เศรษฐี</i>':'');
+     const u=clean(pr.u,40),tm=u?(topMap()[u]||[]):[],rk=tm.length?tm[0].r:0;
+     const cls=rk?(rk<=3?' t'+rk:' t4'):'';
+     const tag=u?topTagsHtml(u,3):'';
      const mo=typeof pr.mo==='number'&&isFinite(pr.mo)&&pr.mo>=0?Math.min(5e8,Math.round(pr.mo)):null;
      return '<div class="op'+cls+'"><span><b>'+esc(chatMask(clean(pr.nm,16))||'ผู้เล่น')+(p.sameTab?' (คุณ)':'')+'</b>'+tag+'<small>'+esc(clean(pr.st,50)||'')+'</small>'+(mo!==null?'<small class="om">💰 '+fmt(mo)+'</small>':/^กำลังเล่น/.test(clean(pr.st,50)||'')?'<small>💰 ไม่ทราบ (เขายังใช้เกมเวอร์ชันเก่า)</small>':'')+'</span>'+adGLine(u,p.sameTab)+(canJoin?'<button class="mini" data-rc="'+rc+'">เข้าห้อง</button>':'')+'</div>';
    }).join(''):'<div class="op"><span><small>ยังไม่มีใคร</small></span></div>')+'</div>';
@@ -10786,8 +10804,9 @@ loadTheme();
 const TUTK='doom365-tut';
 function showTut(){
   if(document.getElementById('ovtut'))return;
+  var firstT=false;try{firstT=!localStorage.getItem(TUTK)}catch(e){}
   const ov=document.createElement('div');ov.className='ov';ov.id='ovtut';
-  const tips=[
+  const tipsAll=[
    ['เลือกชะตา','ทุกวันจะมีเหตุการณ์ให้เลือก 3–6 ข้อ แต่ละข้อมีผลต่อเลือด กำลังใจ เงิน และความรัก'],
    ['ช่วงเช้า ทำมาหากิน','ในแต่ละเหตุการณ์ทำกิจกรรมได้ 3 ครั้ง (หาเงิน หาอาหาร น้ำ ซ่อมที่พัก) และพักฟรีได้อีก 1 ครั้ง'],
    ['ลุ้นโชค','ตอนเลือกข้อที่เสี่ยง ผลออกตามเปอร์เซ็นต์ที่เห็น ไม่มีมินิเกม ลุ้นด้วยกันได้เลย'],
@@ -10795,10 +10814,11 @@ function showTut(){
    ['เพื่อนร่วมทาง','แต่ละคนมีนิสัยต่างกัน ดูแลดีๆ จะผูกพันขึ้น ถ้าละเลย เขาอาจจากไป'],
    ['15 วันสุดท้าย','ทุกอย่างจะเปลี่ยนเป็นโทนไฟ ลูกไฟตกลงมา และทุกการตัดสินใจจะมีน้ำหนักมากขึ้น']
   ];
-  ov.innerHTML='<div class="ovb" role="dialog" aria-label="วิธีเล่น"><div class="ovh"><b>วิธีเล่นแบบย่อ</b><button class="mini" id="tutx">ปิด</button></div>'+tips.map((t,i)=>'<div class="ach"><i>'+(i+1)+'</i><div><b>'+esc(t[0])+'</b><small>'+esc(t[1])+'</small></div></div>').join('')+'<div class="row" style="margin-top:10px"><button class="btn" id="tutok">เข้าใจแล้ว เริ่มเลย</button></div></div>';
+  const tips=firstT?[tipsAll[0],tipsAll[1],tipsAll[3]]:tipsAll;
+  ov.innerHTML='<div class="ovb" role="dialog" aria-label="วิธีเล่น"><div class="ovh"><b>วิธีเล่นแบบย่อ</b><button class="mini" id="tutx">ปิด</button></div>'+tips.map((t,i)=>'<div class="ach"><i>'+(i+1)+'</i><div><b>'+esc(t[0])+'</b><small>'+esc(t[1])+'</small></div></div>').join('')+'<div class="row" style="margin-top:10px"><button class="btn" id="tutok">เข้าใจแล้ว เริ่มเลย</button>'+(firstT?'<button class="btn ghost" id="tutall">ดูวิธีเล่นทั้งหมด</button>':'')+'</div>'+(firstT?'<p class="hint">ระบบอื่นๆ จะค่อยๆ โผล่ขึ้นเองตอนเล่นไปถึงวันที่ 4 กดปุ่ม ? ดูวิธีเล่นเต็มได้ทุกเมื่อ</p>':'')+'</div>';
   document.body.appendChild(ov);
   const close=()=>{try{localStorage.setItem(TUTK,'1')}catch(e){}ov.remove()};
-  ov.querySelector('#tutx').onclick=close;ov.querySelector('#tutok').onclick=close;
+  ov.querySelector('#tutx').onclick=close;ov.querySelector('#tutok').onclick=close;{const ta=ov.querySelector('#tutall');if(ta)ta.onclick=()=>{ov.remove();try{localStorage.setItem(TUTK,'1')}catch(e){}showTut()}}
 }
 function tutOnce(){let s='';try{s=localStorage.getItem(TUTK)||''}catch(e){}if(!s)setTimeout(showTut,700)}
 
@@ -10834,6 +10854,8 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-05d',date:'5 พ.ย. 2569',title:'ท็อป 20 ทุกตารางอันดับ + ป้ายอันดับในแชท',items:['🏆 ตารางอันดับในหน้าแรกแสดงถึงท็อป 20 (จากเดิมท็อป 10)','🏷 คนที่ติดท็อป 20 ของตารางใดก็ได้ จะมีป้ายบอกว่าติดอันดับอะไร อันดับที่เท่าไร เช่น “ท็อป 5 เศรษฐี” แสดงข้างชื่อในแชท รายชื่อออนไลน์ และตารางอันดับ','ℹ️ ฉายาที่ให้โบนัสทองยังใช้เกณฑ์เดิมของแต่ละฉายา']},
+ {id:'2026-11-05c',date:'5 พ.ย. 2569',title:'โหมดมือใหม่: หน้าจอเรียบขึ้น',items:['🔰 ผู้เล่นใหม่ (เล่นจบไม่เกิน 1 ชีวิต) จะไม่เห็นค่าเสริม เช่น ป้ายคำทำนาย บรรยากาศ และป้ายนิสัย ในช่วงวันที่ 1–3 จะค่อยๆ ปรากฏเมื่อเล่นต่อ แตะที่ป้าย “โหมดมือใหม่” เพื่อแสดงทั้งหมดได้ทันที','📖 บทแนะนำครั้งแรกสั้นลงเหลือ 3 ข้อสำคัญ และกด “ดูวิธีเล่นทั้งหมด” ได้']},
  {id:'2026-11-05b',date:'5 พ.ย. 2569',title:'ภารกิจสะสมวัน: รับการ์ด S และ S+',items:['🎯 ภารกิจใหม่ในหน้าแรก (ปุ่ม “ภารกิจ”): รอดครบ 365 วัน ใน 7 วันจริงที่ต่างกัน ได้การ์ดระดับ S 1 ใบ','🌟 รอดครบ 365 วัน ใน 30 วันจริงที่ต่างกัน ได้การ์ดระดับ S+ 1 ใบ','📅 นับตามวันจริง (เวลาไทย) ไม่ต้องเล่นติดกัน วันหนึ่งเล่นกี่รอบก็นับเป็น 1 วัน ยอมแพ้และตายไม่นับ','☁️ ความคืบหน้าซิงก์กับบัญชี Google']},
  {id:'2026-11-05a',date:'5 พ.ย. 2569',title:'ดูความคืบหน้าความฝันระหว่างเล่น',items:['🌠 ป้าย “ฝัน” ด้านบนตอนนี้บอกความคืบหน้า เช่น ช่วยเหลือคน 3/8 หรือเงิน 120,000/300,000','👆 กดที่ป้ายเพื่อดูแถบความคืบหน้าแบบเต็ม','✅ เมื่อทำตามความฝันได้ จะขึ้นเครื่องหมายถูกและแจ้งเตือนครั้งเดียว (ตอนจบตัดสินจากสถานะสุดท้ายเหมือนเดิม)']},
  {id:'2026-11-04m',date:'4 พ.ย. 2569',title:'การ์ดใหม่ 44 ใบ',items:['🎴 เพิ่มการ์ดใหม่ 44 ใบ ครบทุกช่อง (ชุดเต็ม หมวก เสื้อ รองเท้า อาวุธ คาถา ปีก สัตว์เลี้ยง) ทุกระดับ B / A / S / S+ เช่น ชุดจักรพรรดิเมฆา · ชุดราชินีแห่งท้องทะเล · ปีกรุ้งอาทิตย์อุทัย · มังกรสายน้ำเรืองแสง · หมาป่าหิมะ · ดาบซามูไรเงา','📦 รวมการ์ดทั้งหมดเป็น 182 แบบ โบนัสและอัตราดรอปของแต่ละระดับยังเหมือนเดิม']},
@@ -10999,10 +11021,9 @@ async function ovBoard(tab){
   if(!ov){ov=document.createElement('div');ov.className='ov';ov.id='ovboard';document.body.appendChild(ov);ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()})}
   const draw=()=>{
     const AM=activeMetrics();const m=AM.find(x=>x[0]===ovTab)||AM[0],k=m[0];
-    const full=rankList(k),top=full.slice(0,10);
+    const full=rankList(k),top=full.slice(0,TOPN);
     const me=LB.rows.find(r=>r.id===LB.id),myI=full.findIndex(r=>r.id===LB.id);
-    const svr={};rankList('survived').slice(0,10).forEach((r,i)=>{if(r.survived>0)svr[r.id]=i+1});
-    const tag=r=>svr[r.id]?'<i class="tt sv g'+Math.min(4,svr[r.id])+'">'+(['🥇','🥈','🥉'][svr[r.id]-1]||'🛡')+' ท็อป '+svr[r.id]+'</i>':'';
+    const tag=r=>topTagsHtml(r.id,1);
     const tier=i=>i<3?' t'+(i+1):' t4';
     ov.innerHTML='<div class="ovb" role="dialog" aria-label="อันดับ"><div class="ovh"><b>🏆 ตารางอันดับ</b><button class="mini" id="ovbx">ปิด</button></div>'+
      (LB.rows.length?'':'<p class="hint">'+(LB.state==='load'||LB.state==='loading'?'กำลังโหลดอันดับ…':'ยังไม่มีข้อมูลอันดับ (ต้องต่ออินเทอร์เน็ตและมีผู้เล่นที่ล็อกอิน Google)')+'</p>')+
@@ -12121,7 +12142,7 @@ function renderEvent(m,mode){
   // mode: 'host' | 'solo' | 'guest'
   const mood=MOODNAME[m.mood]||'';
   panel.innerHTML=
-   '<div class="kick"><span>'+esc(sceneName(m.scene))+'</span><span>'+esc(TOD_NAME[m.tod]||'')+'</span><span>วันที่ '+(Math.floor(m.day)+1)+(typeof calStr==='function'&&mode!=='guest'&&calStr(m.day)?' · '+calStr(m.day):'')+'</span>'+(mood?'<span class="tag mood">บรรยากาศ: '+mood+'</span>':'')+(S&&S.dream&&mode!=='guest'?dreamTagHTML():'')+(S&&S.proph>=0&&mode!=='guest'?'<span class="tag">ทำนาย: '+esc(prophOf().n)+'</span>':'')+((S&&S.shield|0)>0&&mode!=='guest'?'<span class="tag">โล่ ×'+S.shield+'</span>':'')+'</div>'+
+   '<div class="kick"><span>'+esc(sceneName(m.scene))+'</span><span>'+esc(TOD_NAME[m.tod]||'')+'</span><span>วันที่ '+(Math.floor(m.day)+1)+(typeof calStr==='function'&&mode!=='guest'&&calStr(m.day)?' · '+calStr(m.day):'')+'</span>'+(mood?'<span class="tag mood">บรรยากาศ: '+mood+'</span>':'')+(S&&S.dream&&mode!=='guest'?dreamTagHTML():'')+(earlyOn()&&mode!=='guest'?'<span class="tag etag" role="button" style="cursor:pointer">🔰 โหมดมือใหม่: ซ่อนบางค่าไว้ก่อน (แตะเพื่อแสดงทั้งหมด)</span>':'')+(S&&S.proph>=0&&mode!=='guest'?'<span class="tag ptag">ทำนาย: '+esc(prophOf().n)+'</span>':'')+((S&&S.shield|0)>0&&mode!=='guest'?'<span class="tag">โล่ ×'+S.shield+'</span>':'')+'</div>'+
    '<div class="amb q">'+esc(m.quote)+'</div>'+
    (m.tag?'<div class="evtag '+esc(m.tag.c)+'" role="status"><i>'+m.tag.i+'</i><span><b>'+esc(m.tag.n)+'</b><small>'+esc(m.tag.s)+'</small></span></div>':'')+
    '<h2'+(m.tag?' class="et-'+esc(m.tag.c)+'"':'')+'>'+esc(m.head)+'</h2><p class="sub clamp">'+esc(m.txt)+'</p><button class="mini more" id="evmore" style="display:none">อ่านต่อ ▾</button>'+
@@ -13212,11 +13233,10 @@ function chatTagsHtml(u){
     if(!u)return '';
     const r=(LB.rows||[]).find(x=>x.id===u&&!x.bad);if(!r)return '';
     const rk=chatRanks(),out=[];
-    if(rk.sv[r.id])out.push('<i class="tt sv g'+Math.min(4,rk.sv[r.id])+'">'+(['🥇','🥈','🥉'][rk.sv[r.id]-1]||'🛡')+' ท็อป '+rk.sv[r.id]+' ผู้รอด</i>');
-    if(rk.rc[r.id])out.push('<i class="tt sv g'+Math.min(4,rk.rc[r.id])+'">'+(['🥇','🥈','🥉'][rk.rc[r.id]-1]||'👑')+' ท็อป '+rk.rc[r.id]+' เศรษฐี</i>');
+    const tt=topTagsHtml(r.id,2);if(tt)out.push(tt);
     const g=(r.gd||0)>=(r.ev||0)?epiTotal(r.gd||0,true):epiTotal(r.ev||0,false);
     if(g)out.push(g);
-    return out.slice(0,3).join('');
+    return out.join('');
   }catch(e){return ''}
 }
 const CHAT_LS='doom365-chat';
@@ -13585,5 +13605,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 02:06';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 02:17';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
