@@ -678,7 +678,7 @@ window.claude={use:async n=>{
 'use strict';
 const CFG={apiKey:"AIzaSyAZ1mveEDaA59spw_XRjX_gmV898g_otkA",authDomain:"doom365.firebaseapp.com",projectId:"doom365",storageBucket:"doom365.firebasestorage.app",messagingSenderId:"296220747122",appId:"1:296220747122:web:5a8015a8a7706962dbe9eb"};
 const BASE='https://www.gstatic.com/firebasejs/10.14.1/';
-const SYNC=['doom365-lives','doom365-ach','doom365-meta','doom365-codex','doom365-nick','doom365-wk','doom365-tut','doom365-theme','doom365-len','doom365-mg','doom365-epi','doom365-title','doom365-ot','doom365-cards','doom365-ms'];
+const SYNC=['doom365-lives','doom365-ach','doom365-meta','doom365-codex','doom365-nick','doom365-wk','doom365-tut','doom365-theme','doom365-len','doom365-mg','doom365-epi','doom365-title','doom365-ot','doom365-cards','doom365-ms','doom365-ctag'];
 const SYNCSET=new Set(SYNC);
 const SAVEK='doom365v2-save',SVAT='doom365-svat';
 const PUSH_MS=25000;
@@ -13049,7 +13049,7 @@ function chatRecv(ev){
     }
     const t=chatClean(d.t);if(!t)return;
     const rc='';
-    const m={id:++c.seq,pid,me,n:(clean(d.n,16)||'ผู้เล่น'),ad:d.ad===1,g:d.g===1,tag:pid.slice(-3),t,rc:rc.length===4?rc:'',at:Date.now(),inv:false};
+    const m={id:++c.seq,pid,me,n:(clean(d.n,16)||'ผู้เล่น'),ad:d.ad===1,g:d.g===1,k:clean(d.k,12).replace(/[^a-z]/g,'')||'a',tag:pid.slice(-3),t,rc:rc.length===4?rc:'',at:Date.now(),inv:false};
     c.msgs.push(m);if(c.msgs.length>80)c.msgs.shift();
     if(!me&&!chatOpenNow())c.unread++;
     chatRefresh();
@@ -13064,7 +13064,7 @@ function chatSend(text,inv){
   const now=Date.now();if(now-c.last<1800)return 'ส่งเร็วเกินไป รอสักครู่';
   const t=chatClean(text);if(!t&&!inv)return '';
   c.last=now;
-  const d={t:t||'ชวนเล่นด้วยกัน',n:NICK||'ผู้เล่น',inv:inv?1:0};if(typeof isAdmin==='function'&&isAdmin())d.ad=1;try{if(LB&&LB.signed)d.g=1}catch(e){}
+  const d={t:t||'ชวนเล่นด้วยกัน',n:NICK||'ผู้เล่น',inv:inv?1:0,k:chatPref()};if(typeof isAdmin==='function'&&isAdmin())d.ad=1;try{if(LB&&LB.signed)d.g=1}catch(e){}
   if(inv&&MP.on&&MP.host&&MP.code)d.rc=MP.code;
   try{MP.api.emit('chat',d).catch(()=>{})}catch(e){return 'ส่งไม่สำเร็จ'}
   return '';
@@ -13076,7 +13076,7 @@ function chatLineHtml(m){
   const adb=(m.ad||(m.me&&typeof isAdmin==='function'&&isAdmin()))?' <i class="tt" style="background:#4a2a9a;color:#fff;border-color:#2e1a66;font-weight:700">🛡️ ผู้ดูแลระบบ</i>':'';
   const gb=(!m.me&&typeof isAdmin==='function'&&isAdmin())?(m.g?' <i title="ล็อกอิน Google แล้ว" style="font-size:11px;color:#2e8b57">✔G</i>':' <i title="ยังไม่ได้ล็อกอิน Google" style="font-size:11px;color:#b33">✖G</i>'):'';
   const dl=(typeof isAdmin==='function'&&isAdmin())?' <button class="mini" data-chdel="'+esc(m.id)+'" title="ลบข้อความนี้ (เฉพาะผู้ดูแลระบบ)" style="padding:0 5px;opacity:.7">🗑</button>':'';
-  return '<div class="cm">'+nm+adb+chatTagsHtml(m.u)+' '+esc(m.t)+dl+'</div>';
+  return '<div class="cm">'+nm+adb+chatTagsHtml(m.u,m.k)+' '+esc(m.t)+dl+'</div>';
 }
 function chatAdminDel(id){
   if(!(typeof isAdmin==='function'&&isAdmin()))return;
@@ -13085,7 +13085,7 @@ function chatAdminDel(id){
   c.del=c.del||{};c.del[k]=1;
   try{if(c.db){c.db.doc('chatdel/d'+(m.at%97)).set({k,ts:Date.now()}).catch(()=>{});if(m.s&&c.slots&&c.slots[m.s]===m.at)c.db.doc('chat/'+m.s).del().catch(()=>{})}}catch(e){}
   c.msgs=c.msgs.filter(x=>x!==m);c.hist=(c.hist||[]).filter(x=>!(x.at===m.at&&(x.u||x.n)===(m.u||m.n)));
-  try{localStorage.setItem(CHAT_LS,JSON.stringify((c.hist||[]).map(x=>({at:x.at,n:x.n,t:x.t,u:x.u}))))}catch(e){}
+  try{localStorage.setItem(CHAT_LS,JSON.stringify((c.hist||[]).map(x=>({at:x.at,n:x.n,t:x.t,u:x.u,k:x.k}))))}catch(e){}
   chatRefresh();
 }
 document.addEventListener('click',e=>{
@@ -13125,12 +13125,13 @@ function chatMount(el){
   const c=chatSt();chatInit();
   const hasApi=!!(window.D365_MQDB||(MP.api&&typeof MP.api.emit==='function'));
   el.className='chatw';
-  el.innerHTML='<div class="chh"><b>💬 แชทโลก</b><span><button class="mini" data-ch="hide">'+(c.hide?'แสดงแชท':'ซ่อนแชท')+'</button></span></div>'+
+  el.innerHTML='<div class="chh"><b>💬 แชทโลก</b><span><button class="mini" data-ch="tag">🏷 ยศ</button> <button class="mini" data-ch="hide">'+(c.hide?'แสดงแชท':'ซ่อนแชท')+'</button></span></div>'+
    '<div class="cmsgs" aria-live="polite"></div>'+
    '<form class="cform"><input maxlength="140" placeholder="'+(hasApi?'พิมพ์ข้อความ (สูงสุด 140 ตัวอักษร)':'ยังไม่ได้เชื่อมต่อออนไลน์')+'" '+(hasApi?'':'disabled')+'><button class="btn" type="submit" '+(hasApi?'':'disabled')+'>ส่ง</button></form>'+
    '<p class="hint cnote">เก็บข้อความล่าสุดไว้ให้อ่านย้อนหลังได้ · ชื่อสวมรอยได้ จึงมีรหัส # ต่อท้าย · ป้ายท็อป/ฉายาตามตารางอันดับ · อย่าบอกข้อมูลส่วนตัว · แตะชื่อใครเพื่อซ่อนข้อความของคนนั้น</p><p class="cerr hint"></p>';
   const form=el.querySelector('.cform'),inp=form.querySelector('input'),err=el.querySelector('.cerr');
   form.onsubmit=e=>{e.preventDefault();const r=chatSend(inp.value,false);err.textContent=r;if(!r)inp.value=''};
+  el.querySelector('[data-ch=tag]').onclick=chatTagPick;
   el.querySelector('[data-ch=hide]').onclick=()=>{c.hide=!c.hide;chatMount(el)};
   c.unread=0;
   const box=el.querySelector('.cmsgs');box._h=null;chatRefresh();
@@ -13228,16 +13229,28 @@ function chatRanks(){
   try{rankList('survived').slice(0,10).forEach((r,i)=>{o.sv[r.id]=i+1});rankList('richest').slice(0,10).forEach((r,i)=>{o.rc[r.id]=i+1})}catch(e){}
   window.__cr=o;return o;
 }
-function chatTagsHtml(u){
+const CTK='doom365-ctag';
+function chatPref(){try{var v=localStorage.getItem(CTK)||'a';return /^[a-z]{1,10}$/.test(v)?v:'a'}catch(e){return 'a'}}
+function chatTagsHtml(u,k){
   try{
     if(!u)return '';
     const r=(LB.rows||[]).find(x=>x.id===u&&!x.bad);if(!r)return '';
-    const rk=chatRanks(),out=[];
-    const tt=topTagsHtml(r.id,2);if(tt)out.push(tt);
-    const g=(r.gd||0)>=(r.ev||0)?epiTotal(r.gd||0,true):epiTotal(r.ev||0,false);
-    if(g)out.push(g);
-    return out.join('');
+    k=k||'a';if(k==='n')return '';
+    let l=topMap()[u]||[];
+    if(k!=='a')l=l.filter(x=>x.k===k);
+    return topTagsHtml1(l.slice(0,1));
   }catch(e){return ''}
+}
+function topTagsHtml1(l){return l.map(x=>'<i class="tt sv g'+Math.min(4,x.r)+'" title="ท็อป '+x.r+' ตาราง '+esc(x.n)+'">'+(['🥇','🥈','🥉'][x.r-1]||x.ic)+' ท็อป '+x.r+' '+esc(x.n)+'</i>').join('')}
+function chatTagPick(){
+  var ov=document.getElementById('ovctag');if(ov)ov.remove();
+  ov=document.createElement('div');ov.className='ov';ov.id='ovctag';ov.style.zIndex=80;document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove()});
+  var cur=chatPref(),mine=(LB&&LB.id&&topMap()[LB.id])||[];
+  var opts=[['a','อัตโนมัติ (แสดงอันดับที่ดีที่สุดของคุณ)'],['n','ไม่แสดงยศในแชท']].concat(mine.map(function(x){return [x.k,'ท็อป '+x.r+' '+x.n]}));
+  ov.innerHTML='<div class="ovb" style="max-width:360px"><div class="ovh"><b>🏷 เลือกยศที่แสดงในแชท</b><button class="mini" id="ctx">ปิด</button></div>'+(mine.length?'':'<p class="hint">คุณยังไม่ติดท็อป 20 ของตารางไหน จึงยังไม่มียศให้เลือก</p>')+opts.map(function(o){return '<button class="btn ghost" style="width:100%;margin:4px 0;'+(o[0]===cur?'outline:2px solid #e0a030':'')+'" data-k="'+o[0]+'">'+(o[0]===cur?'✔ ':'')+esc(o[1])+'</button>'}).join('')+'<p class="hint">ฉายาจะไม่แสดงในแชท เพื่อไม่ให้รก · คนอื่นจะเห็นเฉพาะยศที่คุณเลือกในข้อความใหม่ๆ ของคุณ</p></div>';
+  ov.querySelector('#ctx').onclick=function(){ov.remove()};
+  ov.querySelectorAll('[data-k]').forEach(function(b){b.onclick=function(){try{localStorage.setItem(CTK,b.dataset.k)}catch(e){}ov.remove();try{toast('ตั้งค่ายศในแชทแล้ว')}catch(e){}}});
 }
 const CHAT_LS='doom365-chat';
 function chatMyId(){try{return (LB&&LB.id)||localStorage.getItem('doom365-uid')||''}catch(e){return ''}}
@@ -13258,7 +13271,7 @@ function chatSync(sn){
       const at=+d.at;if(!(at>now-3*864e5&&at<now+6e5))return;
       c.slots[x.id]=at;
       const f=chatFilter(chatClean(d.t),false);if(f.drop||!f.t)return;
-      const m={at,n:chatMask(clean(d.n,16))||'ผู้เล่น',t:f.t,u:clean(d.u,40),s:x.id};
+      const m={at,n:chatMask(clean(d.n,16))||'ผู้เล่น',t:f.t,u:clean(d.u,40),s:x.id,k:clean(d.k,12).replace(/[^a-z]/g,'')||'a'};
       map[at+'|'+(m.u||m.n)+'|'+m.t]=m;
     });
     let arr=Object.values(map).sort((a,b)=>a.at-b.at);
@@ -13266,8 +13279,8 @@ function chatSync(sn){
     const cnt={};arr=arr.filter(m=>{const k=m.t.toLowerCase().replace(/\s+/g,'');cnt[k]=(cnt[k]||0)+1;return cnt[k]<=2});
     arr=arr.filter(m=>!c.mut[m.u||m.n]&&!(c.del&&c.del[m.at+'|'+(m.u||m.n)]));
     arr=arr.slice(-60);c.hist=arr;
-    try{localStorage.setItem(CHAT_LS,JSON.stringify(arr.map(m=>({at:m.at,n:m.n,t:m.t,u:m.u}))))}catch(e){}
-    c.msgs=arr.map(m=>({id:m.at+'|'+(m.u||m.n),pid:m.u||m.n,me:!!mine&&m.u===mine,n:m.n,tag:(m.u||m.n).slice(-3),t:m.t,u:m.u,at:m.at,s:m.s}));
+    try{localStorage.setItem(CHAT_LS,JSON.stringify(arr.map(m=>({at:m.at,n:m.n,t:m.t,u:m.u,k:m.k}))))}catch(e){}
+    c.msgs=arr.map(m=>({id:m.at+'|'+(m.u||m.n),pid:m.u||m.n,me:!!mine&&m.u===mine,n:m.n,tag:(m.u||m.n).slice(-3),t:m.t,u:m.u,k:m.k,at:m.at,s:m.s}));
     let nu=0;c.msgs.forEach(m=>{const k=m.id+m.t;if(!c.seen[k]){c.seen[k]=1;if(!c.first&&!m.me)nu++}});
     c.first=false;
     if(nu&&!chatOpenNow())c.unread+=nu;
@@ -13284,10 +13297,10 @@ function chatRetSend(text){
   let best=-1,bt=Infinity;const free=[];
   for(let i=0;i<80;i++){const a=c.slots['s'+String(i).padStart(2,'0')]||0;if(!a)free.push(i);else if(a<bt){bt=a;best=i}}
   const slot=free.length?free[Math.floor(Math.random()*free.length)]:best;
-  const msg={t,n:NICK||'ผู้เล่น',u:chatMyId(),at:now};
+  const msg={t,n:NICK||'ผู้เล่น',u:chatMyId(),at:now,k:chatPref()};
   c.slots['s'+String(slot).padStart(2,'0')]=now;
   try{c.db.doc('chat/s'+String(slot).padStart(2,'0')).set(msg).catch(()=>{})}catch(e){return 'ส่งไม่สำเร็จ'}
-  try{c.hist.push({at:now,n:chatMask(clean(msg.n,16))||'ผู้เล่น',t,u:msg.u});chatSync({docs:[]})}catch(e){}
+  try{c.hist.push({at:now,n:chatMask(clean(msg.n,16))||'ผู้เล่น',t,u:msg.u,k:msg.k});chatSync({docs:[]})}catch(e){}
   return '';
 }
 {
@@ -13605,7 +13618,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 02:30';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 02:33';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
