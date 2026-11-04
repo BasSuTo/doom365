@@ -677,7 +677,7 @@ window.claude={use:async n=>{
 'use strict';
 const CFG={apiKey:"AIzaSyAZ1mveEDaA59spw_XRjX_gmV898g_otkA",authDomain:"doom365.firebaseapp.com",projectId:"doom365",storageBucket:"doom365.firebasestorage.app",messagingSenderId:"296220747122",appId:"1:296220747122:web:5a8015a8a7706962dbe9eb"};
 const BASE='https://www.gstatic.com/firebasejs/10.14.1/';
-const SYNC=['doom365-lives','doom365-ach','doom365-meta','doom365-codex','doom365-nick','doom365-wk','doom365-tut','doom365-theme','doom365-len','doom365-mg','doom365-epi','doom365-title','doom365-ot','doom365-cards'];
+const SYNC=['doom365-lives','doom365-ach','doom365-meta','doom365-codex','doom365-nick','doom365-wk','doom365-tut','doom365-theme','doom365-len','doom365-mg','doom365-epi','doom365-title','doom365-ot','doom365-cards','doom365-ms'];
 const SYNCSET=new Set(SYNC);
 const SAVEK='doom365v2-save',SVAT='doom365-svat';
 const PUSH_MS=25000;
@@ -7186,6 +7186,42 @@ function dreamShow(){
   o.querySelector('#drx').onclick=function(){o.remove()};
 }
 document.addEventListener('click',function(e){var t=e.target&&e.target.closest&&e.target.closest('.dtag');if(t&&S)dreamShow()});
+/* ===== ภารกิจสะสมวัน: รอดครบ 365 วันในวันจริงที่ต่างกัน 7 วัน = การ์ด S · 30 วัน = การ์ด S+ ===== */
+var MSK='doom365-ms';
+function msLoad(){var o={};try{var j=JSON.parse(localStorage.getItem(MSK)||'{}');if(j&&typeof j==='object'&&!Array.isArray(j))o=j}catch(e){}return o}
+function msDays(o){var n=0;for(var k in o)if(/^\d{4}-\d\d-\d\d$/.test(k))n++;return n}
+function msSave(o){var ks=Object.keys(o).filter(function(k){return /^\d{4}-/.test(k)}).sort();if(ks.length>400)ks.slice(0,ks.length-400).forEach(function(k){delete o[k]});try{localStorage.setItem(MSK,JSON.stringify(o))}catch(e){}}
+function msRecord(){/* เรียกเมื่อรอดครบ 365 วันจริง */
+  var o=msLoad(),k=dayKey(),res={new:false,days:0,got:[]};
+  if(!o[k]){o[k]=1;res.new=true}
+  res.days=msDays(o);
+  if(res.days>=7&&!o.g7){o.g7=1;res.got.push('S')}
+  if(res.days>=30&&!o.g30){o.g30=1;res.got.push('SP')}
+  msSave(o);return res}
+function msHTML(){
+  var o=msLoad(),n=msDays(o);
+  function row(t,need,tier,got){var p=Math.min(100,Math.round(n/need*100));return '<div class="amb" style="margin:6px 0"><b>'+t+'</b> '+(got?'✅ รับแล้ว':Math.min(n,need)+'/'+need)+'<div style="height:8px;border-radius:5px;background:rgba(128,128,128,.25);overflow:hidden;margin-top:4px"><div style="height:100%;width:'+p+'%;background:#e0a030"></div></div><small>รางวัล: การ์ด '+tier+' 1 ใบ</small></div>'}
+  return row('รอดครบ 365 วัน ใน 7 วันจริงที่ต่างกัน',7,'ระดับ S',!!o.g7)+row('รอดครบ 365 วัน ใน 30 วันจริงที่ต่างกัน',30,'ระดับ S+',!!o.g30)+'<p class="hint">วันที่นับคือ วันจริงตามปฏิทิน (เวลาไทย) ที่คุณเล่นจนรอดครบ 365 วันอย่างน้อย 1 ครั้ง ไม่ต้องติดกัน · ยอมแพ้และตายไม่นับ · วันนี้'+(o[dayKey()]?'นับแล้ว ✅':'ยังไม่นับ')+'</p>'}
+function msShow(){
+  var ov=document.getElementById('ovms');if(ov)ov.remove();
+  ov=document.createElement('div');ov.className='ov';ov.id='ovms';ov.style.zIndex=75;document.body.appendChild(ov);
+  ov.addEventListener('click',function(e){if(e.target===ov)ov.remove()});
+  ov.innerHTML='<div class="ovb" style="max-width:400px"><div class="ovh"><b>🎯 ภารกิจสะสมวัน</b><button class="mini" id="msx">ปิด</button></div>'+msHTML()+'</div>';
+  ov.querySelector('#msx').onclick=function(){ov.remove()};
+}
+(function(){
+  var _se=showEnding;
+  showEnding=function(kind){
+    _se.apply(this,arguments);
+    try{
+      if(kind!=='final'||S.cause==='giveup'||(typeof MP!=='undefined'&&MP.on&&MP.guest))return;
+      var r=msRecord();
+      var box=document.getElementById('albox');
+      if(box)box.insertAdjacentHTML('beforebegin','<div class="amb">🎯 ภารกิจสะสมวัน: รอดครบแล้ว '+r.days+' วันจริง'+(r.got.length?'<br><b>ได้รับรางวัล!</b>':'')+'</div>');
+      r.got.forEach(function(t,i){setTimeout(function(){cardGive(null,t)},900+i*2500)});
+    }catch(e){}
+  };
+})();
 /* ===== v83: มหันตภัยใหม่ 2 ชุด (หุ่นยนต์ก่อกบฏ · มหาอุทกภัย) + เหตุการณ์ใหม่ 22 แบบ ===== */
 ARC_TYPES.push('robot','flood');
 Object.assign(ARC_N,{robot:'หุ่นยนต์ก่อกบฏ',flood:'มหาอุทกภัย'});
@@ -10798,6 +10834,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-05b',date:'5 พ.ย. 2569',title:'ภารกิจสะสมวัน: รับการ์ด S และ S+',items:['🎯 ภารกิจใหม่ในหน้าแรก (ปุ่ม “ภารกิจ”): รอดครบ 365 วัน ใน 7 วันจริงที่ต่างกัน ได้การ์ดระดับ S 1 ใบ','🌟 รอดครบ 365 วัน ใน 30 วันจริงที่ต่างกัน ได้การ์ดระดับ S+ 1 ใบ','📅 นับตามวันจริง (เวลาไทย) ไม่ต้องเล่นติดกัน วันหนึ่งเล่นกี่รอบก็นับเป็น 1 วัน ยอมแพ้และตายไม่นับ','☁️ ความคืบหน้าซิงก์กับบัญชี Google']},
  {id:'2026-11-05a',date:'5 พ.ย. 2569',title:'ดูความคืบหน้าความฝันระหว่างเล่น',items:['🌠 ป้าย “ฝัน” ด้านบนตอนนี้บอกความคืบหน้า เช่น ช่วยเหลือคน 3/8 หรือเงิน 120,000/300,000','👆 กดที่ป้ายเพื่อดูแถบความคืบหน้าแบบเต็ม','✅ เมื่อทำตามความฝันได้ จะขึ้นเครื่องหมายถูกและแจ้งเตือนครั้งเดียว (ตอนจบตัดสินจากสถานะสุดท้ายเหมือนเดิม)']},
  {id:'2026-11-04m',date:'4 พ.ย. 2569',title:'การ์ดใหม่ 44 ใบ',items:['🎴 เพิ่มการ์ดใหม่ 44 ใบ ครบทุกช่อง (ชุดเต็ม หมวก เสื้อ รองเท้า อาวุธ คาถา ปีก สัตว์เลี้ยง) ทุกระดับ B / A / S / S+ เช่น ชุดจักรพรรดิเมฆา · ชุดราชินีแห่งท้องทะเล · ปีกรุ้งอาทิตย์อุทัย · มังกรสายน้ำเรืองแสง · หมาป่าหิมะ · ดาบซามูไรเงา','📦 รวมการ์ดทั้งหมดเป็น 182 แบบ โบนัสและอัตราดรอปของแต่ละระดับยังเหมือนเดิม']},
  {id:'2026-11-04l',date:'4 พ.ย. 2569',title:'อาชีพเริ่มจนแต่รวยเร็ว 20 อาชีพใหม่',items:['💸 เพิ่มอาชีพใหม่ 20 อาชีพที่เริ่มจากแทบไม่มีเงิน แต่ถ้าเลือกถูกจังหวะจะรวยเร็วทัดเทียมอาชีพท็อป เช่น คนเร่ขายพวงมาลัยตามสี่แยก · เด็กส่งน้ำแข็งที่รู้ความลับทุกร้าน · คนเก็บเศษเหล็กที่เจอของมีค่าบ่อยผิดปกติ · คนรับจ้างต่อคิวหน้าร้านขนมดัง · นักร้องข้างถนนที่ร้องได้เพลงเดียว · ช่างทำกุญแจประจำซอย · คนปลูกกล้วยไม้พันธุ์หายาก · คนขายลูกชิ้นปิ้งที่รู้จักนักการเมืองทุกคน และอีกหลายอาชีพ','🎲 แต่ละอาชีพมีเหตุการณ์เฉพาะตัว 2 เรื่อง มีทางเสี่ยง (ฐานะขึ้นเร็วแต่พลาดได้) ทางกลาง และทางปลอดภัย ลองสุ่มเกิดดูว่าได้อาชีพไหน']},
@@ -12164,7 +12201,7 @@ function showStart(){
    '<div class="row"><button class="btn" id="go">▶ เริ่มเกม · ลืมตาตื่นขึ้นมา</button>'+(hasSave()?'<button class="btn ghost" id="cont">เล่นต่อจากที่บันทึก</button>':'')+'<button class="btn ghost" id="wk">ท้าทายสัปดาห์: '+curWeekly().n+(wkPassedNow()?' ✓':'')+'</button><button class="btn ghost" id="daily">ชีวิตประจำวัน '+esc(dayKey())+'</button></div>'+mpHtml+
    '<div class="nick"><label for="nick">ชื่อของคุณในเกม</label><input id="nick" maxlength="16" placeholder="ตั้งชื่อเล่น" value="'+esc(NICK)+'"><span>'+(LB.signed?(window.D365_SA?'อันดับออนไลน์ใช้งานได้ · ผลของคุณจะถูกบันทึก':'ล็อกอินแล้วด้วยบัญชี claude.ai · อันดับถูกบันทึก'):LB.state==='anon'?(window.D365_FB&&D365_FB.ok?'ยังไม่ได้ล็อกอิน Google':'ยังไม่ได้ล็อกอิน claude.ai'):'อันดับใช้ได้เมื่อเปิดจาก claude.ai')+'</span>'+(FBon()&&LB.signed?'<label class="showg"><input type="checkbox" id="showg"'+(gShow()?' checked':'')+'> แสดงชื่อ Google ของฉันในตารางอันดับ (ให้คนรู้ว่าเป็นตัวจริง)</label>':'')+'</div>'+
    '<div id="acct"></div>'+
-   '<p class="hint"><button class="mini" id="newsbtn">📢 มีอะไรใหม่ในเกม</button></p>'+
+   '<p class="hint"><button class="mini" id="newsbtn">📢 มีอะไรใหม่ในเกม</button> <button class="mini" id="msbtn">🎯 ภารกิจ</button></p>'+
    '<p class="hint">🏅 '+esc(wkSummary())+'</p>'+
    epiBox()+(typeof ttChip==='function'?ttChip():'')+
    '<div id="onl"></div>'+
@@ -12172,7 +12209,7 @@ function showStart(){
    '<p class="hint">กดปุ่มเลข 1–6 เพื่อเลือก · กด “เพลง” เพื่อเปิดเสียง · “สัญลักษณ์” อธิบายไอคอนทั้งหมด · “อันดับ” ดูตารางผู้เล่น</p>';
   $('nick').onchange=e=>{setNick(e.target.value);if(LB.signed&&NICK)LB.db.doc('board/'+LB.id).update({nick:NICK}).catch(()=>{})};
   {const sg=$('showg');if(sg)sg.onchange=e=>{try{localStorage.setItem('doom365-showg',e.target.checked?'1':'0')}catch(x){}const g=gnameNow();if(LB.signed){if(g)LB.db.doc('board/'+LB.id).update({gname:g}).catch(()=>{});else LB.db.doc('board/'+LB.id).get().then(sn=>{if(sn.exists){const d=sn.data();delete d.gname;LB.db.doc('board/'+LB.id).set(d).catch(()=>{})}}).catch(()=>{})}}}
-  {const nb=$('newsbtn');if(nb)nb.onclick=showNews}
+  {const nb=$('newsbtn');if(nb)nb.onclick=showNews}{const mb=$('msbtn');if(mb)mb.onclick=msShow}
   {const rh=$('rankhot');if(rh)rh.onclick=()=>showBoard(showStart)}
   try{lobbyInit();renderOnline()}catch(e){}
   try{chatMount($('chat'))}catch(e){}
@@ -13548,5 +13585,5 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 01:42';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 02:06';document.body.appendChild(e)}catch(x){}})();
 </script></body></html>
