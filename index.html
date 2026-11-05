@@ -416,6 +416,10 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
 @keyframes cglow{50%{box-shadow:0 0 22px var(--cg),inset 0 0 20px var(--cg)}}
 @keyframes cpop{from{transform:scale(.3) rotate(-12deg);opacity:0}}
 body.early .kar,body.early .ptag,body.early .tag.mood{display:none!important}
+:root[data-theme=dawn] .cardx,:root[data-theme=dawn] .cardx b,:root[data-theme=dawn] .cardx small,:root[data-theme=dawn] .cardx em,:root[data-theme=dawn] .cardx span{color:#f2f2f6!important}
+:root[data-theme=dawn] .cardx .cdt{color:var(--cc)!important}
+:root[data-theme=dawn] .cardx .cdn{color:#ffd27a!important}
+:root[data-theme=dawn] .cardx.lock,:root[data-theme=dawn] .cardx.lock *{color:#c9c9d3!important}
 </style></head><body>
 
 <div class="app" id="app">
@@ -10854,6 +10858,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-05e',date:'5 พ.ย. 2569',title:'จับสลากอาชีพได้ 5 ครั้ง + แก้สีการ์ดธีมเช้าแสงนวล',items:['🎲 ตอนเริ่มเกม จับสลากอาชีพใหม่ฟรีได้เพิ่มเป็น 5 ครั้ง (จากเดิม 3 ครั้ง)','🎴 ธีมเช้าแสงนวล: แก้ตัวอักษรบนการ์ดสะสมที่มืดจนอ่านยาก ให้อ่านชัดขึ้น']},
  {id:'2026-11-05d',date:'5 พ.ย. 2569',title:'ท็อป 20 ทุกตารางอันดับ + ป้ายอันดับในแชท',items:['🏆 ตารางอันดับในหน้าแรกแสดงถึงท็อป 20 (จากเดิมท็อป 10)','🏷 คนที่ติดท็อป 20 ของตารางใดก็ได้ จะมีป้ายบอกว่าติดอันดับอะไร อันดับที่เท่าไร เช่น “ท็อป 5 เศรษฐี” แสดงข้างชื่อในแชท รายชื่อออนไลน์ และตารางอันดับ','ℹ️ ฉายาที่ให้โบนัสทองยังใช้เกณฑ์เดิมของแต่ละฉายา']},
  {id:'2026-11-05c',date:'5 พ.ย. 2569',title:'โหมดมือใหม่: หน้าจอเรียบขึ้น',items:['🔰 ผู้เล่นใหม่ (เล่นจบไม่เกิน 1 ชีวิต) จะไม่เห็นค่าเสริม เช่น ป้ายคำทำนาย บรรยากาศ และป้ายนิสัย ในช่วงวันที่ 1–3 จะค่อยๆ ปรากฏเมื่อเล่นต่อ แตะที่ป้าย “โหมดมือใหม่” เพื่อแสดงทั้งหมดได้ทันที','📖 บทแนะนำครั้งแรกสั้นลงเหลือ 3 ข้อสำคัญ และกด “ดูวิธีเล่นทั้งหมด” ได้']},
  {id:'2026-11-05b',date:'5 พ.ย. 2569',title:'ภารกิจสะสมวัน: รับการ์ด S และ S+',items:['🎯 ภารกิจใหม่ในหน้าแรก (ปุ่ม “ภารกิจ”): รอดครบ 365 วัน ใน 7 วันจริงที่ต่างกัน ได้การ์ดระดับ S 1 ใบ','🌟 รอดครบ 365 วัน ใน 30 วันจริงที่ต่างกัน ได้การ์ดระดับ S+ 1 ใบ','📅 นับตามวันจริง (เวลาไทย) ไม่ต้องเล่นติดกัน วันหนึ่งเล่นกี่รอบก็นับเป็น 1 วัน ยอมแพ้และตายไม่นับ','☁️ ความคืบหน้าซิงก์กับบัญชี Google']},
@@ -12193,7 +12198,7 @@ function guestVote(i){
 }
 
 /* ===== หน้าต่างๆ ===== */
-let rrLeft=2,KEPT=null;
+let rrLeft=4,KEPT=null;
 const RR_KEY='doom365-reroll',DW_KEY='doom365-deathwait',RR_MS=15*60000,DW_MS=5*60000;
 const tget=k=>{try{return +(localStorage.getItem(k)||0)}catch(e){return 0}},tset=(k,v)=>{try{localStorage.setItem(k,String(v))}catch(e){}};
 const mmss=ms=>{const s=Math.ceil(ms/1000);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -12235,7 +12240,7 @@ function showStart(){
   try{lobbyInit();renderOnline()}catch(e){}
   try{chatMount($('chat'))}catch(e){}
   try{renderAcct()}catch(e){}
-  $('go').onclick=()=>{if(tget(DW_KEY)>Date.now())return;mpClose();if(KEPT&&!KEPT.wk&&!KEPT.daily){cand=KEPT}else{rrLeft=2;cand=rollBirth()}showBirth()};
+  $('go').onclick=()=>{if(tget(DW_KEY)>Date.now())return;mpClose();if(KEPT&&!KEPT.wk&&!KEPT.daily){cand=KEPT}else{rrLeft=4;cand=rollBirth()}showBirth()};
   waitBtn('go',DW_KEY,'▶ เริ่มเกม · ลืมตาตื่นขึ้นมา');
   $('wk').onclick=()=>{if(tget(DW_KEY)>Date.now()){toast('ยังต้องรอหลังชีวิตที่แล้ว');return}mpClose();if(KEPT&&KEPT.wk){cand=KEPT;showBirth()}else startWeekly()};
   $('daily').onclick=()=>{if(tget(DW_KEY)>Date.now()){toast('ยังต้องรอหลังชีวิตที่แล้ว');return}mpClose();startDaily()};
@@ -12539,7 +12544,7 @@ function showEnding(kind){
   $('card').onclick=()=>saveShareCard(E,kind);
   {const rb=$('recapbtn');if(rb)rb.onclick=()=>startRecap(E,kind,ctx,m)}
   if(recapAvail()&&S.cause!=='giveup'&&!(MP.on&&MP.guest))setTimeout(()=>{if(stage==='ending')startRecap(E,kind,ctx,m)},900);
-  $('redo').onclick=()=>{if(tget(DW_KEY)>Date.now())return;rrLeft=2;cand=rollBirth();showBirth()};
+  $('redo').onclick=()=>{if(tget(DW_KEY)>Date.now())return;rrLeft=4;cand=rollBirth();showBirth()};
   waitBtn('redo',DW_KEY,'เกิดใหม่อีกครั้ง');
   $('copy').onclick=()=>{
     const txt='ถ้าโลกแตกอีก 365 วัน จะทำอะไรก่อนโลกแตก\n'+S.name+' ('+S.role.n+') จบแบบ “'+E.title+'” ได้ '+E.score+'/100\n'+(E.cause?'สาเหตุ: '+E.cause.t+'\n':'')+E.stats.map(s=>s[0]+': '+s[1]).join('\n');
@@ -13618,7 +13623,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 02:33';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 10:50';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
