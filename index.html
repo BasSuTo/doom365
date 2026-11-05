@@ -144,9 +144,9 @@ button:focus-visible{outline:2px solid var(--gold2);outline-offset:2px}
 .code{font-family:var(--f-n);font-size:34px;letter-spacing:.12em;color:var(--gold2);background:var(--bg2);border:1px dashed var(--gold);padding:8px 14px;text-align:center;user-select:all}
 .plist{display:flex;gap:6px;flex-wrap:wrap}
 .plist span{background:var(--bg2);border:1px solid var(--line);padding:2px 10px;font-size:14px}
-.tomb{border:2px solid #8a8f98;background:#1d1238;padding:14px 16px;text-align:center;display:grid;gap:4px}
+.tomb{border:2px solid #8a8f98;background:#1d1238;color:#f0eaff;padding:14px 16px;text-align:center;display:grid;gap:4px}.tomb small{color:#cfc8e6}.tomb b{color:#fff}
 .tomb b{font-family:var(--f-d);font-weight:500;font-size:20px}
-.tomb em{font-style:normal;color:var(--muted)}
+.tomb em{font-style:normal;color:#b9b3d0}
 .act3{display:grid;gap:6px}
 .act3 h4{margin:6px 0 0;font-family:var(--f-d);font-weight:500;font-size:14px;color:var(--gold)}
 .chk{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
@@ -421,6 +421,10 @@ body.early .kar,body.early .ptag,body.early .tag.mood{display:none!important}
 :root[data-theme=dawn] .cardx .cdn{color:#ffd27a!important}
 :root[data-theme=dawn] .cardx.lock,:root[data-theme=dawn] .cardx.lock *{color:#c9c9d3!important}
 .bcz{margin:4px 0 6px;padding:5px 9px;border-left:3px solid var(--gold2,#c8892a);background:rgba(200,137,42,.12);border-radius:6px;font-size:13px}
+:root[data-theme] .tomb,:root[data-theme] .tomb span,:root[data-theme] .tomb b{color:#fff!important}
+:root[data-theme] .tomb small{color:#cfc8e6!important}:root[data-theme] .tomb em{color:#b9b3d0!important}
+:root[data-theme=dawn] .count,:root[data-theme=light] .count{color:#ffb98a!important}
+:root[data-theme=dawn] .count b,:root[data-theme=light] .count b{color:#ffd9bd!important}
 </style></head><body>
 
 <div class="app" id="app">
@@ -13627,7 +13631,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 23:19';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 06/11 00:31';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
