@@ -420,8 +420,9 @@ body.dawn .kar,body[data-theme=light] .kar{background:rgba(255,255,255,.55)}
 .cardx.tA{background:linear-gradient(160deg,rgba(255,170,110,.18),rgba(0,0,0,.4)),#241a16;border-image:none}
 .cardx.tS{background:linear-gradient(160deg,rgba(210,225,255,.22),rgba(0,0,0,.4)),#1a2030}
 .cardx.tSP{background:linear-gradient(160deg,rgba(255,225,120,.28),rgba(60,20,90,.45)),#241c10;border-width:2px}
-.cardx .cdart{position:relative;width:100%;height:58px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,var(--b1,#3a3f66),var(--b2,#12142a));box-shadow:inset 0 0 0 1px var(--cc),inset 0 -10px 16px rgba(0,0,0,.35);overflow:hidden;margin-top:12px}
+.cardx .cdart{position:relative;width:100%;height:98px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 38%,var(--b1,#3a3f66),var(--b2,#12142a));box-shadow:inset 0 0 0 1px var(--cc),inset 0 -10px 16px rgba(0,0,0,.35);overflow:hidden;margin-top:12px}
 .cardx .cdart:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.05) 0 2px,transparent 2px 6px)}
+.cardx .cdimg{position:relative;width:100%;height:96px;object-fit:contain;image-rendering:pixelated;filter:drop-shadow(0 2px 3px #000a)}
 .cardx .cdi{position:relative;font-size:32px;filter:drop-shadow(0 2px 4px #000a) drop-shadow(0 0 7px var(--cg))}
 .cardx.tS .cdi,.cardx.tSP .cdi{animation:cfloat 2.6s ease-in-out infinite}
 .cardx .cdsp{position:absolute;width:4px;height:4px;border-radius:50%;background:#fff;left:18%;top:24%;box-shadow:0 0 6px 2px var(--cc);animation:ctw 2.2s ease-in-out infinite}
@@ -6845,12 +6846,12 @@ function cardRoll(o){if(!o||o.card)return;var t=cardRollTier();if(t)cardGive(o,t
 function cardDropHook(o,tier){/* ตอนจบมหันตภัย: ได้แน่ ๆ ตามระดับ · ระดับ S มีโอกาส 15% ได้ S+ */
   var t=tier==='S'?(Math.random()<.15?'SP':'S'):(tier==='SP'?'SP':'A');cardGive(o,t)}
 /* ใส่ชุดลงบนตัวละคร */
-function cardLook(L){
-  var e=cardLoad().eq;if(!L||!Object.keys(e).length)return L;
+function cardLook(L,eqOver){
+  var e=eqOver||cardLoad().eq;if(!L||!Object.keys(e).length)return L;
   var o=Object.assign({},L),fx={},f=CARD_BY[e.fit],tp=CARD_BY[e.top];
   if(f){o.shirt=f.sh;o.pants=f.pn;if(f.ht)o.hat=f.ht;fx.fit={t:f.t,id:f.id}}
   if(tp){o.shirt=tp.c;if(tp.st==='cape')fx.cape=tp.c;fx.top={id:tp.id,c:tp.c}}
-  ['hat','shoes','weapon','spell','wings','pet'].forEach(function(sl){var c=CARD_BY[e[sl]];if(c)fx[sl]={c:c.c,st:c.st,t:c.t}});
+  ['hat','shoes','weapon','spell','wings','pet'].forEach(function(sl){var c=CARD_BY[e[sl]];if(c)fx[sl]={c:c.c,st:c.st,t:c.t,id:c.id}});
   if(e.hat&&fx.hat)o.hat=null;
   o.fx=fx;return o;
 }
@@ -6938,7 +6939,7 @@ function cardLook(L){
     else if(k==='blanket'){R(x-4,y-14,8,1,'#e8c24a');R(x-3,y-11,2,2,'#c06a5a');R(x+1,y-9,2,2,'#6a9ac0');R(x-2,y-7,2,2,'#e8c24a')}
   }
   /* ===== สัตว์เลี้ยง: เดินตามหลังตัวละคร ===== */
-  var PS={x:null,tx:0,nt:0,cool:0,m:-1,last:0,mv:0};
+  var PS={x:null,tx:0,nt:0,cool:0,m:-1,last:0,mv:0};window.__PS=PS;
   function petState(P,x,t){
     var dt=Math.min(.1,Math.max(0,t-PS.last)),fl=(P.st==='owl'||P.st==='dragon'||P.st==='phoenix');PS.last=t;
     if(PS.x==null||Math.abs(PS.x-x)>90){PS.x=x+24;PS.tx=PS.x;PS.nt=t+1;PS.cool=0}
@@ -7003,7 +7004,7 @@ function cardLook(L){
     var F=L&&L.fx;
     if(!F||!Object.keys(F).length)return _p(x,y,L,fr,flip);
     x=Math.round(x);y=Math.round(y);var t=tm(),d=flip?1:-1,s=fr?1:0,tk=Math.floor(t*8);
-    if(F.pet)petDraw(F.pet,x,y,d,t);
+    if(F.pet){petDraw(F.pet,x,y,d,t);MOT('pet',F,x,y,d,s,t,tk,L)}
     if(F.cape){var cc=F.cape,cd=sh(cc,-.35),cl=sh(cc,.25),sw=Math.round(Math.sin(t*3)*1);
       R(x-4,y-13,8,12+s,cc);R(x-5,y-8,10,8,cc);R(x-6+sw,y-3,12,3,cc);
       R(x-4,y-13,1,12,cl);R(x+3,y-13,1,12,cd);R(x-1,y-9,1,8,cd);R(x-6+sw,y-1,12,1,cd);
@@ -7056,6 +7057,7 @@ function cardLook(L){
         }
         if(isP){spk(bx+sd*(9+(tk%3)),y-20+(tk%4)*2,'#fff',tk%2===0);spk(bx+sd*(6),y-9-(tk%3),'#ffe27a',tk%3===0);
           g.globalAlpha=.25;R(bx+(sd>0?2:-12),y-20,10,12,'#fff');g.globalAlpha=1}}}
+    if(F.wings)MOT('wings',F,x,y,d,s,t,tk,L);
     if(F.fit)fdrawBack(F.fit.id,x,y,d,t,L);
     _p(x,y,L,fr,flip);
     if(F.top)tdecor(F,x,y,d,s,t,tk,L);
@@ -7072,6 +7074,7 @@ function cardLook(L){
       if(tr==='SP'){var gl=(tk+Math.floor(x))%6;spk(x-5+gl,y-13+((gl*3)%7),'#fff',true);
         g.globalAlpha=.18+.1*Math.sin(t*4);R(x-5,y-22,10,22,'#ffe27a');g.globalAlpha=1}}
     if(F.fit)ffront(F.fit.id,x,y,d,s,t,L,tk);
+    if(F.top)MOT('top',F,x,y,d,s,t,tk,L);if(F.fit)MOT('fit',F,x,y,d,s,t,tk,L);
     if(F.shoes){var shc=F.shoes.c,shd=sh(shc,-.4),shl=sh(shc,.4),sstt=F.shoes.st;
       if(sstt==='boot'){R(x-4,y-7,4,7,shc);R(x+1,y-7,4,7,shc);R(x-4,y-7,4,1,shl);R(x+1,y-7,4,1,shl);R(x-4,y-8,4,1,shd);R(x+1,y-8,4,1,shd);R(x-4,y-1,5,1,shd);R(x+1,y-1,5,1,shd);R(x-4,y-5,4,1,shd);R(x+1,y-5,4,1,shd);R(x-3,y-3,1,1,shl);R(x+2,y-3,1,1,shl);R(x-3,y-6,2,1,'#e8c24a');R(x+2,y-6,2,1,'#e8c24a')}
       else if(sstt==='flip'){R(x-4,y-1,5,1,shc);R(x+1,y-1,5,1,shc);R(x-4,y-1,5,1,shd);R(x+1,y-1,5,1,shd);R(x-4,y-2,4,1,L.skin);R(x+1,y-2,4,1,L.skin);R(x-3,y-3,1,2,shl);R(x-1,y-3,1,2,shl);R(x+2,y-3,1,2,shl);R(x+4,y-3,1,2,shl);R(x-4,y-1,5,1,shc)}
@@ -7083,6 +7086,7 @@ function cardLook(L){
       R(x-3,y-2,1,1,'#fff');R(x+2,y-2,1,1,'#fff')}
       if(sstt==='trail'||sstt==='spark'){for(var q=1;q<=5;q++){g.globalAlpha=.7-q*.11;R(x-d*(q*3+3),y-1-((q+Math.floor(t*10))%3),3-(q>3?1:0),1+(q%2),q%2?shc:shl)}g.globalAlpha=1}
       if(sstt==='spark'){spk(x-6,y-5,'#fff',tk%2===0);spk(x+6,y-4,'#ffe27a',tk%3===0);spk(x-d*8,y-3,'#fff',tk%4===1)}}
+    if(F.shoes)MOT('shoes',F,x,y,d,s,t,tk,L);
     if(F.hat){var h=F.hat,c=h.c,st2=h.st,hd=sh(c,-.4),hl=sh(c,.45);
       if(st2==='knight'){R(x-5,y-25,10,8,c);R(x-5,y-25,10,1,hl);R(x-6,y-18,12,1,hd);R(x-4,y-21,8,2,'#1a1a22');R(x-1,y-24,2,6,hd);R(x-5,y-25,2,8,hl);R(x-1,y-28,2,3,'#e84a4a');R(x-2,y-27,4,1,'#e84a4a');R(x+(d>0?-6:5),y-27+Math.round(Math.sin(t*5)),1,4,'#e84a4a')}
       else if(st2==='straw'){R(x-4,y-26,8,4,c);R(x-3,y-27,6,1,hl);R(x-9,y-22,18,2,c);R(x-9,y-22,18,1,hl);R(x-9,y-21,18,1,hd);R(x-4,y-23,8,1,'#c05a2a');for(var sw2=0;sw2<4;sw2++)R(x-3+sw2*2,y-25,1,2,hd)}
@@ -7101,6 +7105,7 @@ function cardLook(L){
       else if(st2==='crown'){R(x-4,y-25,8,3,c);R(x-5,y-28,2,4,c);R(x-1,y-30,2,6,c);R(x+3,y-28,2,4,c);R(x-4,y-25,8,1,hl);R(x-4,y-23,8,1,hd);
         R(x-1,y-28,2,2,'#e8484a');R(x-4,y-24,1,1,'#4ac0f0');R(x+3,y-24,1,1,'#4ae88a');R(x-5,y-29,1,1,'#fff');R(x+4,y-29,1,1,'#fff');R(x-1,y-31,2,1,'#fff');spk(x+6,y-27,'#fff',tk%3===0)}
       else if(st2==='halo'){g.globalAlpha=.3+.2*Math.sin(t*3);R(x-7,y-30,14,6,'#fff3b0');g.globalAlpha=1;R(x-5,y-29,10,1,c);R(x-5,y-25,10,1,c);R(x-6,y-28,1,3,c);R(x+5,y-28,1,3,c);R(x-4,y-29,3,1,'#fff');R(x-4,y-28,8,2,'#fff8d0');R(x-5,y-27,1,1,hd);R(x+4,y-27,1,1,hd)}}
+    if(F.hat)MOT('hat',F,x,y,d,s,t,tk,L);
     if(F.weapon){var wp=F.weapon,hx=x+d*5,hy=y-8+s,c2=wp.c,wd2=sh(c2,-.4),wl2=sh(c2,.5);
       if(wp.st==='nailbat'){R(hx,hy-12,3,13,c2);R(hx+2,hy-12,1,13,wd2);R(hx,hy-12,1,11,wl2);R(hx-1,hy-14,5,3,c2);R(hx-1,hy-14,5,1,wl2);for(var nl=0;nl<5;nl++){R(hx-1+(nl%2)*4,hy-13+nl*2,1,1,'#d8dce4');R(hx+(nl%2?-2:4),hy-13+nl*2,1,1,'#aab')}R(hx,hy+1,3,1,'#222')}
       else if(wp.st==='watergun'){var gx=hx-(d<0?7:0);R(gx,hy-3,8,5,c2);R(gx,hy-3,8,1,wl2);R(gx,hy+1,8,1,wd2);R(gx+(d>0?2:3),hy-6,4,3,'#bfe8ff');R(gx+(d>0?2:3),hy-6,4,1,'#fff');R(gx+(d>0?2:4),hy+2,2,3,'#3a2f2a');R(gx+(d>0?8:-1),hy-2,1,2,'#222');
@@ -7119,6 +7124,7 @@ function cardLook(L){
       else if(wp.st==='sword'||wp.st==='swordf'){var bl=wp.st==='swordf'?'#ffd0a0':c2;R(hx,hy-18,2,17,bl);R(hx,hy-18,1,17,sh(bl,.55));R(hx+1,hy-18,1,17,sh(bl,-.3));R(hx,hy-20,2,2,sh(bl,.6));R(hx-3,hy-2,8,2,'#e8c24a');R(hx-3,hy-2,1,2,'#8a6a3a');R(hx+4,hy-2,1,2,'#8a6a3a');R(hx,hy,2,3,'#6a4a2a');R(hx,hy+1,2,1,'#3a2a1a');R(hx,hy+3,2,1,'#e8c24a');R(hx,hy-1,2,1,'#e84a4a');
         if(wp.st==='swordf'){g.globalAlpha=.75;for(var k5=0;k5<6;k5++)R(hx-1+(k5%2),hy-21-k5*2+Math.round(Math.sin(t*14+k5)*1.5),3,3,k5<3?'#ff6a2a':'#ffd24a');g.globalAlpha=.3;R(hx-2,hy-20,6,18,'#ff6a2a');g.globalAlpha=1}
         else if(wp.t==='SP'||wp.t==='S'){spk(hx+1,hy-22-(tk%3),'#fff',tk%2===0)}}}
+    if(F.weapon)MOT('weapon',F,x,y,d,s,t,tk,L);
     if(F.spell){var spl=F.spell,n=spl.t==='SP'?6:spl.t==='S'?5:4,rc=spl.c,rl=sh(rc,.5);
       var NSP={candle:1,wind:1,leaf:1,firefly:1,sand:1,meteor:1,ember:1,rain:1,smoke:1,spark:1};
       if(!NSP[spl.st])for(var o=0;o<n;o++){var a=t*2.2+o*(6.283/n),px3=x+Math.round(Math.cos(a)*11),py3=y-12+Math.round(Math.sin(a)*5),fr2=Math.sin(a)>0;
@@ -7139,6 +7145,7 @@ function cardLook(L){
       else if(spl.st==='bolt'&&Math.floor(t*6)%3===0){R(x-9,y-30,2,5,rc);R(x-8,y-26,3,2,rc);R(x-10,y-24,2,5,rc);R(x-9,y-20,1,3,'#fff');R(x+8,y-26,2,4,rc);R(x+7,y-22,2,3,rl)}
       else if(spl.st==='shadow'){g.globalAlpha=.35;R(x-9,y-5,18,4,rc);R(x-7,y-7,14,2,rc);g.globalAlpha=.5;for(var k8=0;k8<4;k8++)R(x-7+k8*4,y-9-((Math.floor(t*5)+k8*2)%9),2,3,rc);g.globalAlpha=1}
       else if(spl.st==='holy'){g.globalAlpha=.22+.13*Math.sin(t*3);R(x-9,y-26,18,26,rc);g.globalAlpha=.3;R(x-1,y-34,2,34,'#fff');g.globalAlpha=1;spk(x+7,y-20-(tk%4),'#fff',tk%2===0);spk(x-7,y-12-(tk%3),'#ffe27a',tk%3===0)}}
+    if(F.spell)MOT('spell',F,x,y,d,s,t,tk,L);
   };
 })();
 function cardRefreshView(){try{if(typeof view!=='undefined'&&view.look){/* ตัวละครรีเฟรชในฉากถัดไป */}}catch(e){}}
@@ -10907,6 +10914,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-06g',date:'6 พ.ย. 2569',title:'การ์ดวาดตรงชื่อ · ภาพการ์ดคือตัวละครใส่จริง',items:['🎨 ภาพบนการ์ดทุกใบเปลี่ยนเป็นตัวละครที่สวมไอเทมนั้นจริง แทนอีโมจิ','🖌 เติมลวดลายเฉพาะใบ เช่น หมวกดวงจันทร์ หมวกรุ้ง รองเท้าสายฟ้า ปีกกำมะลอ ชุดเต็มหลายแบบ ทั้งบนการ์ดและบนตัวละครในฉาก']},
  {id:'2026-11-06f',date:'6 พ.ย. 2569',title:'การ์ดใหม่ 71 ใบ + เอฟเฟกต์การ์ดสวยขึ้น',items:['🎴 เพิ่มการ์ดใหม่ 71 ใบ ทั้งชุดเต็ม หมวก รองเท้า อาวุธ คาถา ปีก สัตว์เลี้ยง และเสื้อ ครบทุกระดับ B/A/S/S+ (ตอนนี้มีทั้งหมด 261 แบบ)','✨ ออกแบบการ์ดใหม่ มีกรอบตามระดับ ภาพในกรอบ ลำแสงโฮโลแกรมบน S และ S+ และเอียงการ์ดตามนิ้วหรือเมาส์ได้','🎆 ตอนได้การ์ดใหม่มีแอนิเมชันพลิกเปิดการ์ด ลำแสง และพลุตามระดับความหายาก']},
  {id:'2026-11-06e',date:'6 พ.ย. 2569',title:'20 อาชีพเวอร์ๆ ระดับทายาทห้าง + ฉากใหม่',items:['👑 เพิ่ม 20 อาชีพเวอร์ๆ เงินเริ่มสูงระดับทายาทห้าง เช่น เจ้าของคาสิโนเรือลอยน้ำ, เจ้าของสนามแข่งช้างทองคำ, ราชาตลาดหุ้นกบเขียว, เจ้าของสวนสนุกที่เครื่องเล่นพังทุกวัน','📈 เงินขึ้นลงแรง มีทั้งจังหวะรวยเร็วและเสียเร็ว ขึ้นกับว่าคุณกล้าเสี่ยงแค่ไหน','🎬 ทุกอาชีพมีเหตุการณ์เฉพาะตัว 2 เรื่อง และมีฉากใหม่ 20 ฉากที่ตรงกับเหตุการณ์ เช่น เรือคาสิโน สนามช้าง ห้องค้าหุ้น ค่ายมวย ร้านนาฬิกา']},
  {id:'2026-11-06d',date:'6 พ.ย. 2569',title:'อาชีพรวยแนวตลกเพิ่ม 20 อาชีพ',items:['🤑 เพิ่มอาชีพเริ่มรวยแนวตลก 20 อาชีพ ระดับเงินเทียบเคียงกลุ่มท็อป เช่น ราชาร้านตั๋วหนังที่ไม่เคยฉายหนัง, เจ้าของแบรนด์ครีมกันแดดสำหรับดวงจันทร์, เจ้าของเครือร้านกาแฟที่ไม่มีกาแฟขาย','🎲 สุ่มเจอได้ตอนจับสลากอาชีพตอนเริ่มเกม']},
@@ -14152,7 +14160,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 06/11 03:11';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 06/11 03:38';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
@@ -14442,7 +14450,7 @@ function cardHTML(c,opt){
   var sp=(c.t==='SP'||c.t==='S')?'<i class="cdsp"></i><i class="cdsp b"></i>':'';
   return '<div class="cardx t'+c.t+(opt.sel?' sel':'')+'" style="--cc:'+T.c+';--cg:'+T.g+';--b1:'+bg[0]+';--b2:'+bg[1]+'"'+(opt.attr||'')+'>'+
    '<span class="cdt">'+T.n+'</span>'+(opt.n>1?'<span class="cdn">×'+opt.n+'</span>':'')+
-   '<div class="cdart">'+sp+'<span class="cdi">'+c.i+'</span></div>'+
+   '<div class="cdart">'+sp+cardArtImg(c)+'</div>'+
    '<b>'+esc(c.n)+'</b><div class="cdslot">'+slotName(c.slot)+'</div>'+
    '<small>+'+pct(T.b)+'% ทอง · ดรอป '+pct(T.p)+'%'+(opt.n>1?' · ×'+opt.n:'')+'</small>'+(opt.foot||'')+
    '<span class="cdsh"></span></div>';
@@ -14481,4 +14489,255 @@ function cardPopup(c,isNew){
   document.addEventListener('pointerleave',function(){if(cur){rs(cur);cur=null}},true);
   document.addEventListener('pointerup',function(){if(cur){rs(cur);cur=null}},true);
 })();
+/* ===== ลวดลายเฉพาะใบ + ภาพการ์ดจากตัวละครจริง (ภาพบนการ์ด = ภาพในฉากเดียวกัน) ===== */
+var MO={};
+var MSTAMP={
+ star:[[0,-1,0],[-1,0,0],[0,0,1],[1,0,0],[0,1,0]],
+ moon:[[1,0,0],[2,0,0],[0,1,0],[0,2,0],[1,3,0],[2,3,0]],
+ flower:[[0,-1,0],[-1,0,0],[1,0,0],[0,1,0],[0,0,1]],
+ gem:[[0,0,1],[1,0,0],[0,1,0],[1,1,0]],
+ heart:[[0,0,0],[2,0,0],[0,1,0],[1,1,0],[2,1,0],[1,2,0]],
+ bolt:[[2,0,0],[1,1,0],[2,1,0],[1,2,0],[0,3,0]],
+ snow:[[0,-1,0],[-1,0,0],[0,0,1],[1,0,0],[0,1,0],[-1,-1,1],[1,-1,1],[-1,1,1],[1,1,1]],
+ fish:[[0,1,0],[1,0,0],[1,1,0],[1,2,0],[2,0,0],[2,1,0],[2,2,0],[3,1,0],[4,0,0],[4,2,0],[1,1,1]],
+ flame:[[1,0,0],[0,1,0],[1,1,1],[2,1,0],[0,2,0],[1,2,1],[2,2,0]],
+ leaf:[[0,1,0],[1,0,0],[1,1,1],[2,0,0]],
+ dot:[[0,0,0]],
+ cross:[[0,-1,0],[0,0,1],[0,1,0],[-1,0,0],[1,0,0]],
+ paw:[[0,0,0],[2,0,0],[1,1,0],[0,2,0],[1,2,0],[2,2,0]],
+ skull:[[0,0,0],[1,0,0],[2,0,0],[0,1,1],[1,1,0],[2,1,1],[0,2,0],[1,2,1],[2,2,0]]
+};
+var _motC={};
+function motOps(id){
+  if(_motC[id]!==undefined)return _motC[id];
+  var s=MO[id],r=null;
+  if(s){r=[];s.split(';').forEach(function(tok){tok=tok.trim();if(!tok)return;var i=tok.indexOf(':'),k=i<0?tok:tok.slice(0,i),a=i<0?[]:tok.slice(i+1).split(',');r.push([k,a])})}
+  _motC[id]=r;return r;
+}
+function motRun(ops,ax,ay,slot,flip,L,tk){
+  var wing=slot==='wings',sides=wing?[1,-1]:[0];
+  function put(lx,ly,w,h,col,gun,sd){
+    var X;
+    if(wing)X=sd>0?ax+4+lx:ax-4-lx-w;
+    else if(slot==='pet')X=flip>0?ax+lx:ax-lx-w;
+    else if(slot==='weapon'&&gun)X=flip>0?ax+lx:ax-lx-w+1;
+    else X=ax+lx;
+    g.fillStyle=col==='skin'?(L&&L.skin||'#f1c9a5'):col;g.fillRect(Math.round(X),Math.round(ay+ly),w,h);
+  }
+  ops.forEach(function(o){
+    var k=o[0],a=o[1];
+    if(k==='a'){g.globalAlpha=+a[0];return}
+    sides.forEach(function(sd){
+      if(k==='r'||k==='mr')put(+a[0],+a[1],+a[2],+a[3],a[4],k==='mr',sd);
+      else if(k==='p'||k==='mp')put(+a[0],+a[1],1,1,a[2],k==='mp',sd);
+      else if(k==='tp'){if((tk+(Math.abs(+a[0]|0)))%4<2)put(+a[0],+a[1],1,1,a[2],false,sd)}
+      else if(k==='st'){var st=MSTAMP[a[0]];if(!st)return;var x0=+a[1],y0=+a[2];
+        st.forEach(function(q){put(x0+q[0],y0+q[1],1,1,q[2]?(a[4]||'#fff'):a[3],false,sd)})}
+    });
+  });
+  g.globalAlpha=1;
+}
+function MOT(slot,F,x,y,d,s,t,tk,L){
+  try{
+    var f=F[slot];if(!f||!f.id)return;var ops=motOps(f.id);if(!ops)return;
+    var ax,ay,flip=0;
+    if(slot==='hat'){ax=x;ay=y-21}
+    else if(slot==='shoes'){ax=x;ay=y}
+    else if(slot==='top'||slot==='fit'){ax=x;ay=y-14}
+    else if(slot==='spell'){ax=x;ay=y-12}
+    else if(slot==='weapon'){ax=x+d*5;ay=y-8+s;flip=d}
+    else if(slot==='wings'){ax=x;ay=y-12}
+    else if(slot==='pet'){var P=window.__PS;ax=Math.round(P.x);ay=y;flip=P.m>0?1:-1;
+      if(f.st==='owl'||f.st==='dragon'||f.st==='phoenix')ay+=Math.round(Math.sin(t*3)*2)-10}
+    else return;
+    motRun(ops,ax,ay,slot,flip,L,tk);
+  }catch(e){window.__me=e;g.globalAlpha=1}
+}
+/* ===== ภาพการ์ด: วาดตัวละครจริงที่สวมการ์ดใบนั้น แล้วตัดภาพมาขยาย ===== */
+var ART_CROP={hat:[-10,-37,20,20,4],top:[-12,-26,24,28,3],fit:[-12,-26,24,28,3],shoes:[-9,-7,18,9,8],weapon:[0,-30,20,32,3],wings:[-16,-28,32,29,3],pet:[16,-30,28,31,3],spell:[-14,-30,28,32,3]};
+var _artC={};
+function cardArtURL(id){
+  if(_artC[id]!==undefined)return _artC[id];
+  var url=null;
+  try{
+    var c=CARD_BY[id];if(!c||typeof person!=='function'||typeof cardLook!=='function')throw 0;
+    var cr=ART_CROP[c.slot];if(!cr)throw 0;
+    var px=60,py=74,eq={};eq[c.slot]=id;
+    var L=cardLook({skin:'#f1c9a5',hair:'#3b2a1e',shirt:'#6a7488',pants:'#3a3f52',hat:null},eq);
+    var bak=g.getImageData(0,0,W,H),pn=performance.now,PS=window.__PS,psb=PS?Object.assign({},PS):null;
+    performance.now=function(){return 1385};
+    g.clearRect(0,0,W,H);g.globalAlpha=1;
+    if(PS){PS.x=px+30;PS.tx=PS.x;PS.cool=1e9;PS.nt=1e9;PS.m=1;PS.mv=0;PS.last=1.385}
+    try{person(px,py,L,false,true)}finally{performance.now=pn}
+    var out=document.createElement('canvas');out.width=96;out.height=96;
+    var o=out.getContext('2d');o.imageSmoothingEnabled=false;
+    var k=cr[4],sx=px+cr[0],sy=py+cr[1],cw=cr[2],ch=cr[3];
+    o.drawImage(cv,sx,sy,cw,ch,Math.round((96-cw*k)/2),Math.round((96-ch*k)/2),cw*k,ch*k);
+    url=out.toDataURL();
+    g.putImageData(bak,0,0);g.globalAlpha=1;
+    if(PS&&psb)Object.assign(PS,psb);
+  }catch(e){url=null;try{performance.now=Object.getPrototypeOf(performance).now||performance.now}catch(x){}}
+  _artC[id]=url;return url;
+}
+function cardArtImg(c){var u=cardArtURL(c.id);return u?'<img class="cdimg" src="'+u+'" alt="">':'<span class="cdi">'+c.i+'</span>'}
+/* ลวดลายเฉพาะใบ: รูปแบบ  r:x,y,w,h,สี ; p:x,y,สี ; tp(ระยิบ) ; st:ชื่อ,x,y,สี,สีรอง ; a:ความโปร่ง */
+Object.assign(MO,{
+/* ---- หมวก (จุดอ้างอิง = ขอบหมวกเหนือหัว) ---- */
+h1:'r:-3,-3,2,2,#e8d8b0;p:-3,-3,#8a6a4a;p:-2,-2,#8a6a4a',
+nh1:'r:-1,-3,2,2,#ffd24a;r:-4,-1,8,1,#f4f4f8',
+qh1:'r:-4,-3,8,1,#f4f4f8;r:-4,-2,8,1,#3a5aa8;p:-3,-2,#fff',
+qh2:'r:-4,-3,8,1,#e8e8d0;r:-2,-5,1,4,#e8e8d0;r:1,-5,1,4,#e8e8d0',
+h2:'r:-1,-4,2,1,#fff8c0;r:-4,-1,8,1,#2a2a2a',
+h3:'r:-4,-1,8,1,#d8d8e0;p:-2,-3,#e0e0ea;p:1,-4,#e0e0ea',
+qh4:'r:-4,-1,8,1,#f2f2f6;r:0,-5,1,2,#2a3f78;p:-3,-4,#6a8ac8',
+h4:'tp:-3,-2,#e8c24a;tp:0,-2,#e8c24a;tp:2,-2,#e8c24a;r:-8,0,16,1,#4a2a10',
+nh3:'r:-4,-2,8,1,#8a1a2a;r:3,-6,1,4,#c83a3a;p:3,-7,#c83a3a;r:-7,0,14,1,#10101a',
+h5:'st:star,-1,-5,#d8d8f0,#ffffff;p:1,-9,#d8d8f0;p:0,-12,#d8d8f0',
+qh5:'st:moon,-2,-9,#ffe27a;p:1,-5,#e8e8ff;p:-2,-4,#e8e8ff',
+h6:'p:-4,-1,#f0f0f8;p:3,-1,#f0f0f8',
+qh6:'r:-6,-6,1,3,#e8e0c8;r:5,-6,1,3,#e8e0c8;p:-6,-7,#e8e0c8;p:5,-7,#e8e0c8;p:-3,0,#ff4a2a;p:2,0,#ff4a2a',
+h7:'tp:-5,-8,#fff;tp:4,-9,#fff',
+nh4:'st:star,-1,-6,#ffffff,#d8d0ff;tp:-6,-9,#fff;tp:5,-8,#ffe27a;r:-4,-2,8,1,#d8d0ff',
+qh7:'tp:-5,-10,#ffe84a;tp:4,-11,#ff5a5a;tp:0,-13,#fff;tp:-3,-12,#5ae8ff;tp:3,-9,#ffe84a',
+h8:'tp:-6,-7,#fff;tp:5,-5,#fff',
+qh8:'r:-5,-8,2,1,#ff4a4a;r:-3,-8,2,1,#ffa02a;r:-1,-8,2,1,#ffe84a;r:1,-8,2,1,#4ac86a;r:3,-8,2,1,#4a8fd0',
+h9:'tp:-3,-3,#c8a050;tp:1,-4,#c8a050',
+qh3:'st:flower,-3,-4,#ff7aa0,#ffe84a;st:flower,2,-3,#ffffff,#ffe84a;p:0,-5,#4ab868',
+nh2:'st:fish,-2,-4,#ff8a4a,#222222',
+h10:'st:star,-1,-5,#ffe27a,#ffffff;p:1,-9,#ffe27a;p:-2,-8,#c89aff',
+h11:'tp:-3,-7,#fff;tp:2,-9,#fff;st:snow,-1,-3,#bff0ff,#ffffff',
+hb1:'r:-4,-3,8,1,#a88a9a;r:-4,-2,8,1,#6a4a5a',
+hb2:'r:-3,-3,3,1,#9a9a9a;r:0,-5,2,1,#9a9a9a;r:-4,-1,4,1,#9a9a9a;r:1,-2,3,1,#9a9a9a',
+/* ---- รองเท้า (จุดอ้างอิง = พื้น) ---- */
+sh1:'r:-3,-3,2,1,#c8c8d0;r:2,-3,2,1,#c8c8d0;r:-4,-1,4,1,#d84a4a;r:1,-1,4,1,#d84a4a',
+sh2:'r:-4,-5,4,1,#3a2410;r:1,-5,4,1,#3a2410;p:-3,-6,#e8c24a;p:2,-6,#e8c24a',
+sh3:'r:-4,-1,5,1,#ffffff;r:1,-1,5,1,#ffffff;tp:-3,-4,#fff;tp:2,-4,#fff',
+sh4:'p:-3,-4,#f0f0f8;p:-1,-4,#f0f0f8;p:2,-4,#f0f0f8;p:4,-4,#f0f0f8;r:-4,-2,4,1,#4a5060;r:1,-2,4,1,#4a5060',
+sh5:'st:bolt,-3,-6,#ffffff;st:bolt,2,-6,#ffffff;tp:5,-3,#fff',
+sh6:'p:-4,-3,#ff3a3a;p:1,-3,#ff3a3a;tp:-3,-4,#fff3b0;p:-2,-3,#8a3a1a;p:3,-3,#8a3a1a',
+shb3:'p:-3,-2,#e8e0c8;p:2,-1,#e8e0c8;p:-2,-3,#5a5a62',
+ns2:'r:-4,-3,4,1,#c8b890;r:1,-3,4,1,#c8b890;p:-3,-4,#e8e0c8;p:2,-4,#e8e0c8',
+ns3:'r:-4,-2,4,1,#10101a;r:1,-2,4,1,#10101a;p:-1,-1,#10101a;p:4,-1,#10101a',
+ns4:'r:-5,0,6,1,#ffffff;r:1,0,6,1,#ffffff;tp:-6,1,#fff;tp:6,1,#e8f4ff',
+qs1:'r:-3,-2,2,1,#6a6a74;r:2,-2,2,1,#6a6a74',
+qs2:'r:-4,-6,4,1,#4a4a52;r:1,-6,4,1,#4a4a52',
+qs4:'r:-4,-6,2,2,#4a5a2a;r:-2,-4,2,2,#8a9a5a;r:1,-5,2,2,#4a5a2a;r:3,-3,2,2,#8a9a5a;r:-3,-3,1,1,#2a3a1a;r:2,-6,1,1,#2a3a1a',
+qs5:'tp:-3,-2,#fff;tp:2,-2,#fff;r:-4,-3,4,1,#f4f8ff;r:1,-3,4,1,#f4f8ff',
+qs6:'tp:-6,-4,#ffffff;tp:6,-4,#a0fff0;tp:-7,-2,#a0fff0;tp:7,-2,#fff',
+qs7:'r:-4,-1,4,1,#ff4a4a;r:1,-1,4,1,#ff4a4a;r:-4,-2,4,1,#ffe84a;r:1,-2,4,1,#ffe84a;tp:-5,-4,#ff6a2a;tp:5,-4,#ffd24a',
+qs8:'st:bolt,-3,-6,#ffe84a;st:bolt,2,-6,#ffe84a',
+/* ---- อาวุธ (จุดอ้างอิง = มือ) ---- */
+w3:'r:0,-4,2,1,#5a7a2a;r:0,2,2,1,#5a7a2a;r:0,-10,2,1,#5a7a2a',
+w10:'p:-1,-8,#ffffff;p:-1,-7,#ffffff;p:-1,-6,#e8f0ff;tp:-2,-10,#fff',
+nw2:'r:0,-3,2,1,#4a3a1a;r:0,0,2,1,#4a3a1a',
+qw4:'p:-1,-4,#8ad0f0;p:-1,-1,#8ad0f0;p:-1,3,#8ad0f0;tp:-1,-9,#9ad8ff;tp:-2,5,#9ad8ff',
+qw7:'mr:1,-1,10,1,#e8e8ff',
+nw3:'r:-2,-2,6,1,#2a2a30;r:0,0,2,3,#8a1a1a;p:0,1,#f0f0f0;p:1,3,#f0f0f0',
+qw6:'tp:2,-14,#ffffff;tp:-1,-10,#e8f8ff;tp:2,-6,#fff;r:-1,-17,1,3,#e8faff',
+qw10:'mr:1,-3,3,1,#8a4a1a;mp:5,-4,#ffd24a',
+nw4:'tp:3,-5,#fff3b0;tp:5,-4,#fff3b0;mp:3,-4,#ffffff',
+qw11:'r:-5,-3,3,1,#ff9a5a;r:-6,-4,2,1,#ffd24a;r:4,-3,3,1,#ff9a5a;r:6,-4,2,1,#ffd24a',
+qw9:'st:bolt,-3,-12,#ffffff;tp:3,-16,#ffffff;tp:-2,-8,#fff6a0',
+w11:'tp:3,-16,#ffffff;tp:-2,-8,#ffffff',
+qw1:'r:0,-4,2,1,#c05a5a',
+nw1:'r:0,-4,1,1,#4a5a1a;r:0,-8,1,1,#4a5a1a',
+qw2:'r:0,-4,1,1,#4a5a1a;r:0,-8,1,1,#4a5a1a',
+qw3:'r:-2,-8,6,1,#c8c8d8;p:-1,-4,#e8e8f0',
+qw5:'r:0,2,2,1,#2a6a2a;tp:0,-6,#ffffff',
+qw8:'p:2,-12,#ffffff;p:2,-14,#ffe27a;tp:-2,-16,#e8f0ff',
+/* ---- ปีก (จุดอ้างอิง = ไหล่ ด้านนอกเป็น +x) ---- */
+g1:'r:3,-2,2,2,#b8b0a0;p:6,0,#c8c0b0',
+g3:'r:2,-3,6,1,#6a4a2a;r:3,0,6,1,#6a4a2a;r:3,3,5,1,#6a4a2a',
+g4:'tp:3,-4,#ffffff;tp:6,-2,#ffffff;tp:5,2,#a0fff0',
+g5:'tp:4,-5,#ffffff;tp:9,-2,#ffffff',
+g6:'tp:4,-3,#ffd24a;tp:8,0,#ff6a2a;p:1,-4,#ffd24a',
+g8:'tp:5,-3,#e8d8ff',
+gb1:'r:3,-2,2,2,#b8b0a0;p:6,0,#c8c0b0',
+gb3:'r:3,-1,5,1,#a8a8b4;r:3,2,4,1,#a8a8b4',
+ng1:'r:2,0,8,1,#6a7a38;p:5,-2,#6a7a38;p:6,2,#6a7a38',
+ng2:'tp:3,-3,#d8fff0;tp:6,0,#d8fff0',
+ng3:'st:snow,5,-3,#ffffff,#bfe8ff;st:snow,8,2,#ffffff,#bfe8ff',
+qg1:'r:3,-2,2,2,#b8b0a0;p:6,0,#c8c0b0',
+qg2:'p:4,-1,#ff8ad8;p:6,0,#8ad8ff;p:8,-1,#ffe88a',
+qg3:'p:1,-4,#ff3a3a;tp:5,0,#ff6a6a;p:3,3,#8a0a1a',
+qg4:'r:8,-3,3,1,#2a2a3a;r:9,-1,2,1,#2a2a3a',
+qg5:'st:star,4,-2,#ffffff,#d8c8ff;tp:7,1,#fff',
+qg6:'tp:4,-5,#ffffff;tp:8,-1,#fff3b0',
+qg8:'r:2,-5,6,1,#1a1a1a;r:2,3,6,1,#1a1a1a;p:4,-3,#ffffff;p:6,-1,#ffffff;p:4,1,#ffffff',
+/* ---- สัตว์เลี้ยง (จุดอ้างอิง = เท้าสัตว์ หน้า = +x) ---- */
+pt1:'r:-4,-8,1,3,#b8641a;r:-1,-8,1,3,#b8641a;r:2,-8,1,3,#b8641a',
+qp1:'r:-5,-8,3,3,#e8e0d0;r:0,-7,3,3,#3a2a1a;r:4,-12,2,2,#e8e0d0',
+qp5:'p:6,-11,#ffd24a;p:8,-11,#ffd24a',
+np2:'r:-4,-9,6,1,#5a3a1a;r:-2,-10,3,1,#5a3a1a',
+qp2:'r:-6,-9,11,1,#c8b090;tp:-7,-8,#d8c8a8;tp:5,-9,#d8c8a8',
+qp3:'r:3,-10,3,1,#ffffff;p:4,-11,#ff6a9a',
+pt4:'r:5,-6,2,2,#ffd8a8',
+qp6:'p:9,-8,#4a6a8a;tp:-10,-10,#ffffff',
+qp7:'p:8,-8,#4ac8ff;p:9,-8,#4ac8ff',
+np3:'r:-9,-8,4,3,#ffffff',
+np4:'r:-3,-15,2,2,#c8c8d8;r:1,-15,2,2,#c8c8d8',
+qp8:'tp:-4,-14,#ffffff;tp:4,-12,#ffffff;r:-2,-8,4,5,#fff3b0',
+pt8:'tp:10,-12,#ffb02a;tp:11,-13,#ff6a2a',
+qp9:'st:snow,10,-14,#ffffff,#bff0ff;tp:-9,-6,#fff',
+qp10:'tp:-9,-12,#ffe84a;tp:-6,-6,#ff9aff',
+qp11:'tp:10,-18,#ffffff;st:star,-8,-14,#fff3b0,#ffffff',
+/* ---- คาถา (จุดอ้างอิง = กลางลำตัว) ---- */
+nc1:'st:flower,-8,-6,#ffb0d0,#ffe84a;st:heart,6,-10,#ff8ab8',
+nc2:'r:-9,10,5,1,#6ac8e8;r:2,11,5,1,#ffffff',
+nc3:'r:-6,-14,12,3,#5a5a78;r:-4,-16,8,2,#6a6a88;st:bolt,0,-11,#ffffff',
+nc4:'a:.35;r:-9,-14,18,2,#6ae8c8;r:-9,-12,18,2,#7a8aff;r:-9,-10,18,2,#c86aff',
+qc4:'r:-6,11,4,1,#ff4a1a;r:1,11,4,1,#ff8a2a;tp:-5,10,#ffd24a',
+qc5:'st:snow,-9,-4,#ffffff,#bfe8ff;st:snow,8,-8,#ffffff,#bfe8ff',
+qc7:'st:bolt,8,-8,#fff06a;st:bolt,-10,-6,#fff06a',
+/* ---- เสื้อ (จุดอ้างอิง = บนสุดของลำตัว) ---- */
+t3:'r:-4,0,8,1,#8a7a5a;p:-1,2,#e8c24a',
+t6:'st:star,-1,3,#ffe27a,#ffffff;r:-4,0,8,1,#e8f8ff;r:-4,6,8,1,#8ac8e8',
+t7:'r:-3,5,6,2,#7a808c;r:-1,0,1,5,#e8e8e8',
+t8:'tp:-3,3,#ffe27a;st:moon,-1,2,#ffe27a;r:-4,7,8,1,#e8c24a',
+tb2:'r:-5,1,1,5,skin;r:4,1,1,5,skin',
+nt1:'p:-1,2,#d8e8f0;p:-1,4,#d8e8f0;p:-1,6,#d8e8f0',
+nt2:'r:-4,0,8,1,#3a5a2a;st:leaf,-3,3,#8ad87a,#4a9a4a',
+nt3:'tp:-3,2,#ffffff;tp:2,5,#cfd8ff;tp:-1,7,#ffffff',
+nt4:'r:-4,3,8,1,#7a8aff;r:-4,5,8,1,#c86aff;tp:-2,2,#fff;tp:2,6,#fff',
+qt1:'r:-4,2,8,1,#e8eef4;r:-4,4,8,1,#e8eef4',
+qt2:'r:-5,1,1,5,skin;r:4,1,1,5,skin',
+qt3:'r:-4,-1,8,2,#c85a4a;r:-4,0,8,1,#e8d8c0;r:2,1,2,5,#c85a4a;r:2,3,2,1,#e8d8c0',
+qt4:'r:-4,0,8,1,#3a7a4a;r:-4,7,8,1,#3a7a4a;r:-1,3,2,2,#8ad8a0',
+qt5:'a:.4;r:-5,6,10,2,#c8b8ff;r:-6,8,12,2,#ffffff',
+qt6:'r:-4,0,8,1,#8ae0f0;r:-1,1,2,6,#2a8ab0;p:-3,3,#ffffff;p:2,3,#ffffff',
+qt7:'r:-4,0,8,1,#ffd24a;tp:-3,5,#ffd24a;tp:2,6,#ff9a2a;tp:0,8,#ffd24a',
+qt8:'tp:-3,2,#ffffff;tp:2,4,#ffe27a;tp:-2,6,#ffffff;st:star,0,3,#ffffff,#c8d0ff',
+/* ---- ชุดเต็ม (จุดอ้างอิง = บนสุดของลำตัว; หัวอยู่ y -8..-1) ---- */
+nf1:'r:-3,3,6,5,#fff0e0;r:-2,4,4,1,#e8a0a0;r:-5,6,2,3,#a8783a;r:-6,6,1,1,#d8b068',
+nf2:'r:-6,1,2,5,#d8a84a;r:-6,1,1,5,#a8782a;r:4,2,3,4,#c8a070;r:5,2,1,4,#e8d8b0',
+nf3:'r:-3,-8,6,1,#3a4a5a;r:-4,-7,8,1,#2a3a4a;r:-1,-8,2,1,#d8b84a;r:-3,2,1,1,#e8c24a;r:2,4,1,2,#e8e8e8',
+nf4:'r:-3,1,1,4,#3a3a3a;r:2,1,1,4,#3a3a3a;p:-3,5,#8a9aaa;r:-1,3,2,1,#d84a4a',
+nf5:'r:-4,3,8,3,#d8c890;r:-3,4,2,2,#6a5a3a;r:1,4,2,2,#6a5a3a;r:5,2,1,3,#2a2a2a;r:5,1,1,1,#d84a4a',
+nf6:'st:leaf,-2,3,#5ab84a,#3a8a3a;r:-5,5,1,2,#e8d8a0;r:4,5,1,2,#e8d8a0;r:5,3,1,3,#ff8a2a;p:5,2,#4ab84a',
+nf7:'r:-3,-7,6,1,#d8d8d8;r:-1,-8,2,1,#fff8a0;r:-4,2,8,1,#d8d8d8;r:-4,5,8,1,#d8d8d8;r:-4,7,8,1,#5a4a3a;r:3,8,2,3,#8a8a8a',
+nf8:'r:-4,-4,8,1,#ffe84a;r:-5,2,1,2,#ffe84a;r:4,2,1,2,#ffe84a;r:6,9,5,3,#3a3a3a;r:7,10,1,1,#ff5a8a;r:9,10,1,1,#5affd8;tp:7,6,#ff8ac8;tp:10,4,#8affd8',
+nf9:'r:5,2,1,4,#8a6a3a;r:5,1,2,1,#6ab84a;p:6,2,#4a9a3a;r:-1,1,2,6,#6a7a9a;r:-3,2,2,2,#4a8fd0',
+nf10:'r:5,1,3,5,#d8c890;r:6,2,1,1,#c83a3a;r:-6,1,2,6,#6a4a2a;r:-6,0,2,1,#4a3a1a;r:-4,7,8,1,#4a3a1a;r:-2,7,1,2,#e8c24a',
+nf11:'a:.4;r:-5,-9,10,9,#cfe8ff;a:1;r:-5,-10,10,1,#e8ecf4;r:-6,-9,1,9,#e8ecf4;r:5,-9,1,9,#e8ecf4;r:-5,0,10,1,#e8ecf4;r:-2,3,4,3,#8a94a8;p:-1,4,#4aff8a;p:1,4,#ff4a4a',
+nf12:'r:-6,4,3,3,#d83a3a;r:5,4,3,3,#d83a3a;r:-4,7,8,2,#ffd24a;r:-1,7,2,2,#fff3b0;r:-4,9,8,1,#ffffff',
+nf13:'r:-6,0,4,2,#ffffff;r:3,0,4,2,#ffffff;r:-5,-1,2,1,#ffffff;r:4,-1,2,1,#ffffff;r:-3,-9,6,2,#ffd870;p:-3,-10,#ffd870;p:0,-11,#ffd870;p:2,-10,#ffd870;r:-4,12,8,2,#ffffff',
+nf14:'r:-3,-9,6,1,#ffd870;p:-2,-9,#ffffff;p:1,-9,#ff9ac8;r:-5,0,2,2,#ff9ac8;r:4,0,2,2,#ff9ac8;r:6,0,1,12,#d8a838;p:6,-1,#d8a838;p:5,-2,#d8a838;p:7,-2,#d8a838',
+nf15:'a:.3;r:-6,0,2,12,#6a5aff;r:4,0,2,12,#6a5aff;a:1;r:-4,0,8,1,#9a8cff;st:star,0,3,#ffe27a,#ffffff;r:-3,-9,6,2,#9a8cff;p:0,-10,#ffffff',
+q1:'r:-4,-7,8,2,#d84a4a;r:3,-6,3,1,#a02a2a;r:-4,2,8,1,#d84a4a;r:-4,3,8,1,#ffffff;r:5,5,1,4,#2a2a2a;r:5,4,2,1,#d84a4a',
+q2:'r:-4,0,8,1,#ffffff;r:6,2,2,8,#f0f0f4;r:6,3,2,1,#d84a4a;r:6,5,2,1,#3a5aa8;r:6,7,2,1,#d84a4a;r:6,9,2,1,#3a5aa8;r:-2,2,4,1,#3a3a3a',
+q3:'r:-4,2,8,1,#ffb0d0;r:-4,4,1,5,#ffe84a;r:-3,4,1,5,#ffffff;r:3,4,1,5,#ff6a9a;r:2,4,1,5,#ffe84a;st:flower,-4,10,#ff9ac0,#ffe84a;st:flower,3,10,#ffffff,#ffe84a',
+q4:'r:-3,2,6,4,#ffffff;r:-2,3,1,2,#222222;r:0,3,1,2,#222222;r:1,3,1,1,#222222;r:-4,-5,8,1,#ffffff;r:-5,3,1,3,#4ab0e8;r:-1,1,2,1,#ffd24a',
+q5:'r:-3,3,6,7,#f4f0e8;r:-3,3,6,1,#d8d0c0;r:5,3,4,2,#d8a050;r:6,2,2,1,#e8c070;tp:-2,0,#ffffff;tp:3,5,#ffffff',
+q6:'r:-3,3,1,1,#d84a4a;r:0,5,1,1,#4ab0e8;r:2,3,1,1,#ffe84a;r:-2,7,1,1,#4ac86a;r:-6,5,3,3,#c8a070;r:-6,5,1,1,#d84a4a;r:-5,6,1,1,#4ab0e8;r:5,3,1,6,#8a5a2a;r:5,2,1,1,#d84a8a',
+q7:'r:-4,-5,8,2,#2a3a5a;r:-3,-5,6,2,#8ad8f0;r:5,-8,1,6,#ffd24a;r:5,-9,2,1,#ffd24a;r:-4,13,4,2,#ffd24a;r:1,13,4,2,#ffd24a;r:-3,3,6,3,#2a6a8a',
+q8:'r:-4,-4,8,2,#f4f4f8;r:-3,-4,2,1,#1a1a1a;r:1,-4,2,1,#1a1a1a;r:-1,-3,2,1,#d84a4a;r:-2,1,4,1,#ffd24a;p:0,3,#ffd24a;p:0,5,#ffd24a;r:-5,0,2,2,#ffd24a;r:4,0,2,2,#ffd24a',
+q9:'r:-3,2,2,2,#ffd24a;r:-3,2,1,1,#d84a4a;r:0,2,2,2,#c8c8d8;r:-4,1,8,1,#6a7a4a;r:-4,5,8,1,#3a2a1a;r:-1,5,2,1,#ffd24a;r:4,2,1,5,#8a1a1a',
+q10:'r:-3,-9,6,1,#ffd24a;p:-3,-10,#ffd24a;p:0,-11,#ffd24a;p:2,-10,#ffd24a;st:flower,6,3,#ff3a5a,#ff7a8a;r:6,5,1,4,#3a8a3a;r:-5,0,1,10,#8a1a2a',
+q11:'r:-4,2,2,2,#4a8fd0;p:-4,2,#ffffff;r:2,2,2,2,#d84a4a;r:-4,-5,1,3,#2a2a3a;r:3,-5,1,3,#2a2a3a;r:-4,-6,8,1,#2a2a3a;r:3,-3,2,1,#2a2a3a;r:5,4,1,4,#8a94a8',
+q12:'r:-4,-10,1,2,#bfe8ff;r:-2,-12,1,4,#e8f8ff;r:0,-11,1,3,#bfe8ff;r:2,-12,1,4,#e8f8ff;r:3,-10,1,2,#bfe8ff;r:-4,-9,8,1,#9ad0f0;r:-5,0,10,2,#f4fcff;tp:-3,4,#ffffff;tp:2,8,#d8f4ff',
+q13:'st:flower,0,-10,#ffd8e8,#ffd24a;st:flower,-3,-8,#ffe8f4,#ffd24a;st:flower,3,-8,#ffe8f4,#ffd24a;r:-5,0,2,3,#d8a838;r:4,0,2,3,#d8a838;r:-4,7,8,1,#ffd24a;tp:-3,4,#ffffff',
+q14:'r:-3,-11,6,1,#ffe8a0;r:-1,-13,2,2,#ffb85a;st:star,-5,3,#ffe8a0,#ffffff;tp:4,6,#ffe8a0',
+q15:'st:bolt,-7,0,#7ac8ff;st:bolt,6,2,#7ac8ff;r:-4,-9,8,1,#e8f0ff;r:-1,-11,2,2,#7ac8ff;tp:-3,5,#ffffff;tp:2,9,#7ac8ff',
+q16:'p:-3,-8,#ffffff;p:-1,-9,#ffffff;p:1,-9,#ffffff;p:3,-8,#ffffff;r:-4,1,3,3,#f4c8d8;r:1,1,3,3,#f4c8d8;st:dot,0,5,#ffffff;r:-3,0,6,1,#ffffff'
+});
 </script></body></html>
