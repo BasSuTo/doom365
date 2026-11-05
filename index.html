@@ -10860,6 +10860,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-06b',date:'6 พ.ย. 2569',title:'เพื่อนร่วมกลุ่มช่วยหาของและหารค่าห้อง',items:['🤝 เพื่อนที่เข้ากลุ่มมาแล้วจะช่วยหาของให้แบบสุ่มตามบุคลิก เช่น คนขี้กลัวพาไปเจอของทิ้งไว้ คนช่างคิดหายา คนซื่อสัตย์ไปต่อคิวรับของแจก คนร่าเริงได้ทิป คนขี้งกหาของถูก','🏠 วันจ่ายค่าเช่า ถ้ามีเพื่อนในกลุ่มจะช่วยหารให้ 25% ต่อคน (สูงสุด 60%)','⏱ ช่วยหาของแบบสุ่มไม่ถี่เกินไป เว้นอย่างน้อย 9 วัน และยังต้องเลี้ยงข้าวเพื่อนเหมือนเดิม']},
  {id:'2026-11-06a',date:'6 พ.ย. 2569',title:'เส้นทางชีวิต · เหตุผลย้อนกลับ',items:['🧭 เมื่อคุณเลือกแนวใดแนวหนึ่งบ่อยๆ (ช่วยเหลือ ผจญภัย หาเงิน ฯลฯ) จะได้ป้าย “เส้นทางชีวิต” และเหตุการณ์ที่มีตัวเลือกแนวนั้นจะโผล่ถี่ขึ้นเล็กน้อย แตะป้ายเพื่อดูสถิติ','🔗 เหตุการณ์ต่อเนื่องจะบอกที่มา เช่น “ผลต่อเนื่องจาก … ที่เริ่มเมื่อวันที่ …” หรือ “เพราะคุณเดินสายช่วยเหลือ · ครั้งล่าสุดคือ …”']},
  {id:'2026-11-05e',date:'5 พ.ย. 2569',title:'จับสลากอาชีพได้ 5 ครั้ง + แก้สีการ์ดธีมเช้าแสงนวล',items:['🎲 ตอนเริ่มเกม จับสลากอาชีพใหม่ฟรีได้เพิ่มเป็น 5 ครั้ง (จากเดิม 3 ครั้ง)','🎴 ธีมเช้าแสงนวล: แก้ตัวอักษรบนการ์ดสะสมที่มืดจนอ่านยาก ให้อ่านชัดขึ้น']},
  {id:'2026-11-05d',date:'5 พ.ย. 2569',title:'ท็อป 20 ทุกตารางอันดับ + ป้ายอันดับในแชท',items:['🏆 ตารางอันดับในหน้าแรกแสดงถึงท็อป 20 (จากเดิมท็อป 10)','🏷 คนที่ติดท็อป 20 ของตารางใดก็ได้ จะมีป้ายบอกว่าติดอันดับอะไร อันดับที่เท่าไร เช่น “ท็อป 5 เศรษฐี” แสดงข้างชื่อในแชท รายชื่อออนไลน์ และตารางอันดับ','ℹ️ ฉายาที่ให้โบนัสทองยังใช้เกณฑ์เดิมของแต่ละฉายา']},
@@ -13626,7 +13627,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 22:48';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 23:19';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
@@ -13785,4 +13786,43 @@ function pathShow(){
   o.innerHTML='<div class="ovb" style="max-width:380px"><div class="ovh"><b>🧭 เส้นทางชีวิตของคุณ</b><button class="mini" id="pax">ปิด</button></div>'+(p?'<p><b>'+PATHS[p][0]+' '+PATHS[p][1]+'</b></p><p class="hint">คุณเลือกแนวนี้บ่อยที่สุด เหตุการณ์ที่มีตัวเลือกแนวนี้จะโผล่ถี่ขึ้นเล็กน้อย</p>':'<p class="hint">ยังไม่มีเส้นทางชัดเจน เมื่อคุณเลือกแนวใดแนวหนึ่งนำอย่างชัดเจน เหตุการณ์แนวนั้นจะโผล่บ่อยขึ้น</p>')+rows.map(function(r){return '<div class="it"><span>'+PATHS[r[0]][0]+' '+PATHS[r[0]][1]+'</span><b>'+r[1]+' ครั้ง</b></div>'}).join('')+'</div>';
   o.querySelector('#pax').onclick=function(){o.remove()};
 }
+/* ===== เพื่อนร่วมกลุ่มช่วยเหลือ: หาของให้ และช่วยหารค่าห้อง ===== */
+var CREWH={
+ coward:[['พาไปทางลัดที่ไม่มีใครกล้าเดิน แล้วเจอของที่คนทิ้งไว้',{food:2,water:1}]],
+ hothead:[['ไปต่อรองกับพ่อค้าจนได้วัสดุมาแบบแทบไม่เสียเงิน',{mat:2}],['ไปงัดของเก่าที่ไม่มีใครเอาออกมาให้ใช้',{mat:2}]],
+ jolly:[['ไปเล่นมุกหน้าตลาดจนมีคนใจดีหยอดทิปให้',{mo:[500,1100],md:3}]],
+ greedy:[['แอบรู้ว่าที่ไหนขายของถูกกว่าเพื่อน เลยกวาดมาให้',{mo:[900,1700]}],['ไปต่อราคาจนประหยัดเงินให้ได้ก้อนหนึ่ง',{mo:[900,1700]}]],
+ wise:[['จำได้ว่าสมุนไพรกับยาพื้นฐานหาได้จากตรงไหน',{med:2,hp:2}]],
+ loyal:[['ตื่นแต่เช้าไปต่อคิวรับของแจกมาให้',{food:2,water:2}]]
+};
+(function(){
+  var _rs=resolve;
+  resolve=function(ev0,i){
+    var o=_rs.apply(this,arguments);
+    try{
+      if(!o||o.end||!S||!S.crew||!S.crew.length)return o;
+      if((typeof PARTY!=='undefined'&&PARTY.on)||(typeof MP!=='undefined'&&MP.on))return o;
+      /* หารค่าห้อง */
+      if(ev0&&ev0.k==='rent'&&o.ok&&o.deltas.mo<0){
+        var paid=-o.deltas.mo,share=Math.min(.6,.25*S.crew.length),back=Math.round(paid*share/10)*10;
+        if(back>0){S.mo+=back;S.c.spent=Math.max(0,S.c.spent-back);o.deltas.mo+=back;o.extra.push('<b>'+S.crew.map(function(m){return m.n}).join(' และ ')+'</b> ช่วยหารค่าห้องให้ '+Math.round(share*100)+'% (คืนให้คุณ '+fmt(back)+')')}
+        return o;
+      }
+      /* ช่วยหาของแบบสุ่ม (เว้นระยะอย่างน้อย 9 วัน) */
+      if(S.day-(S.crewHelpDay||-99)<9||ev0&&(ev0.cat==='danger'||ev0.ms))return o;
+      var p=Math.min(.45,.16*S.crew.length);
+      if(Math.random()>=p)return o;
+      var m=S.crew[Math.floor(Math.random()*S.crew.length)],pool=CREWH[m.tr]||CREWH.loyal,h=pool[Math.floor(Math.random()*pool.length)],bonus=(m.b|0)>=3?1:0,fx=h[1];
+      for(var k in fx){
+        var v=fx[k];
+        if(k==='mo'){var amt=scaleMoney(v[0]+Math.floor(Math.random()*(v[1]-v[0]+1)));if(bonus)amt=Math.round(amt*1.3);addStat('mo',amt,o)}
+        else if(INVK.indexOf(k)>=0)addStat(k,v+bonus,o);
+        else addStat(k,v,o);
+      }
+      S.crewHelpDay=S.day;normalize();
+      o.extra.push('<b>'+m.n+'</b> '+h[0]+(bonus?' (สนิทกันแล้ว ได้เพิ่ม)':''));
+    }catch(e){window.__ce=String(e)}
+    return o;
+  };
+})();
 </script></body></html>
