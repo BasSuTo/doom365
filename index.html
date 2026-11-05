@@ -421,8 +421,6 @@ body.early .kar,body.early .ptag,body.early .tag.mood{display:none!important}
 :root[data-theme=dawn] .cardx .cdn{color:#ffd27a!important}
 :root[data-theme=dawn] .cardx.lock,:root[data-theme=dawn] .cardx.lock *{color:#c9c9d3!important}
 .bcz{margin:4px 0 6px;padding:5px 9px;border-left:3px solid var(--gold2,#c8892a);background:rgba(200,137,42,.12);border-radius:6px;font-size:13px}
-.ffrow{display:flex;align-items:center;gap:8px;margin:4px 0}.ffrow small{opacity:.75;font-size:12px}
-.ffsum{margin:4px 0 8px;padding:6px 9px;border-radius:8px;background:rgba(80,160,100,.14);border:1px solid rgba(80,160,100,.4);font-size:13px}
 </style></head><body>
 
 <div class="app" id="app">
@@ -10862,7 +10860,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
- {id:'2026-11-06a',date:'6 พ.ย. 2569',title:'เส้นทางชีวิต · เหตุผลย้อนกลับ · โหมดเล่นเร็ว',items:['🧭 เมื่อคุณเลือกแนวใดแนวหนึ่งบ่อยๆ (ช่วยเหลือ ผจญภัย หาเงิน ฯลฯ) จะได้ป้าย “เส้นทางชีวิต” และเหตุการณ์ที่มีตัวเลือกแนวนั้นจะโผล่ถี่ขึ้นเล็กน้อย แตะป้ายเพื่อดูสถิติ','🔗 เหตุการณ์ต่อเนื่องจะบอกที่มา เช่น “ผลต่อเนื่องจาก … ที่เริ่มเมื่อวันที่ …” หรือ “เพราะคุณเดินสายช่วยเหลือ · ครั้งล่าสุดคือ …”','⏩ โหมดเล่นเร็ว (ปุ่มใต้ป้ายหัวข้อ เริ่มได้ตั้งแต่วันที่ 5): ข้ามเหตุการณ์ธรรมดาให้เอง เลือกตัวเลือกที่ปลอดภัยที่สุด หยุดเมื่อมีเรื่องสำคัญหรือสถานะแย่ แล้วสรุปให้ว่าข้ามอะไรไปบ้าง']},
+ {id:'2026-11-06a',date:'6 พ.ย. 2569',title:'เส้นทางชีวิต · เหตุผลย้อนกลับ',items:['🧭 เมื่อคุณเลือกแนวใดแนวหนึ่งบ่อยๆ (ช่วยเหลือ ผจญภัย หาเงิน ฯลฯ) จะได้ป้าย “เส้นทางชีวิต” และเหตุการณ์ที่มีตัวเลือกแนวนั้นจะโผล่ถี่ขึ้นเล็กน้อย แตะป้ายเพื่อดูสถิติ','🔗 เหตุการณ์ต่อเนื่องจะบอกที่มา เช่น “ผลต่อเนื่องจาก … ที่เริ่มเมื่อวันที่ …” หรือ “เพราะคุณเดินสายช่วยเหลือ · ครั้งล่าสุดคือ …”']},
  {id:'2026-11-05e',date:'5 พ.ย. 2569',title:'จับสลากอาชีพได้ 5 ครั้ง + แก้สีการ์ดธีมเช้าแสงนวล',items:['🎲 ตอนเริ่มเกม จับสลากอาชีพใหม่ฟรีได้เพิ่มเป็น 5 ครั้ง (จากเดิม 3 ครั้ง)','🎴 ธีมเช้าแสงนวล: แก้ตัวอักษรบนการ์ดสะสมที่มืดจนอ่านยาก ให้อ่านชัดขึ้น']},
  {id:'2026-11-05d',date:'5 พ.ย. 2569',title:'ท็อป 20 ทุกตารางอันดับ + ป้ายอันดับในแชท',items:['🏆 ตารางอันดับในหน้าแรกแสดงถึงท็อป 20 (จากเดิมท็อป 10)','🏷 คนที่ติดท็อป 20 ของตารางใดก็ได้ จะมีป้ายบอกว่าติดอันดับอะไร อันดับที่เท่าไร เช่น “ท็อป 5 เศรษฐี” แสดงข้างชื่อในแชท รายชื่อออนไลน์ และตารางอันดับ','ℹ️ ฉายาที่ให้โบนัสทองยังใช้เกณฑ์เดิมของแต่ละฉายา']},
  {id:'2026-11-05c',date:'5 พ.ย. 2569',title:'โหมดมือใหม่: หน้าจอเรียบขึ้น',items:['🔰 ผู้เล่นใหม่ (เล่นจบไม่เกิน 1 ชีวิต) จะไม่เห็นค่าเสริม เช่น ป้ายคำทำนาย บรรยากาศ และป้ายนิสัย ในช่วงวันที่ 1–3 จะค่อยๆ ปรากฏเมื่อเล่นต่อ แตะที่ป้าย “โหมดมือใหม่” เพื่อแสดงทั้งหมดได้ทันที','📖 บทแนะนำครั้งแรกสั้นลงเหลือ 3 ข้อสำคัญ และกด “ดูวิธีเล่นทั้งหมด” ได้']},
@@ -13628,7 +13626,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 22:40';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 05/11 22:48';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
@@ -13718,7 +13716,7 @@ Object.assign(MUSIC,{
     }catch(x){}
   },true);
 })();
-/* ===== เส้นทางชีวิต · เหตุผลย้อนกลับ "เพราะคุณเคย…" · โหมดเล่นเร็ว ===== */
+/* ===== เส้นทางชีวิต · เหตุผลย้อนกลับ "เพราะคุณเคย…" ===== */
 var PATHS={help:['🤝','สายช่วยเหลือ'],adv:['🧭','สายผจญภัย'],wealth:['💰','สายหาเงิน'],know:['📚','สายเรียนรู้'],crime:['🕶','สายมืดเทา'],fun:['🎉','สายสนุก'],faith:['🙏','สายศรัทธา'],fam:['🏠','สายครอบครัว'],love:['💗','สายหัวใจ']};
 function pathOf(){
   try{
@@ -13762,7 +13760,7 @@ function becauseOf(e){
   }
   return '';
 }
-/* แสดงเหตุผล + ป้ายเส้นทาง + ปุ่มเล่นเร็ว */
+/* แสดงเหตุผล + ป้ายเส้นทาง */
 (function(){
   var _re=renderEvent;
   renderEvent=function(m,mode){
@@ -13775,7 +13773,6 @@ function becauseOf(e){
       if(q&&h2&&!panel.querySelector('.bcz'))h2.insertAdjacentHTML('beforebegin','<div class="bcz">🔗 '+esc(q)+'</div>');
       var p=pathOf();
       if(p&&!panel.querySelector('.pathtag'))k.insertAdjacentHTML('beforeend','<span class="tag pathtag" role="button" style="cursor:pointer">'+PATHS[p][0]+' '+PATHS[p][1]+'</span>');
-      ffRenderUI(k);
     }catch(x){}
   };
 })();
@@ -13787,60 +13784,5 @@ function pathShow(){
   var p=pathOf(),rows=Object.keys(PATHS).map(function(k){return [k,S.tag[k]|0]}).sort(function(a,b){return b[1]-a[1]}).filter(function(r){return r[1]>0}).slice(0,6);
   o.innerHTML='<div class="ovb" style="max-width:380px"><div class="ovh"><b>🧭 เส้นทางชีวิตของคุณ</b><button class="mini" id="pax">ปิด</button></div>'+(p?'<p><b>'+PATHS[p][0]+' '+PATHS[p][1]+'</b></p><p class="hint">คุณเลือกแนวนี้บ่อยที่สุด เหตุการณ์ที่มีตัวเลือกแนวนี้จะโผล่ถี่ขึ้นเล็กน้อย</p>':'<p class="hint">ยังไม่มีเส้นทางชัดเจน เมื่อคุณเลือกแนวใดแนวหนึ่งนำอย่างชัดเจน เหตุการณ์แนวนั้นจะโผล่บ่อยขึ้น</p>')+rows.map(function(r){return '<div class="it"><span>'+PATHS[r[0]][0]+' '+PATHS[r[0]][1]+'</span><b>'+r[1]+' ครั้ง</b></div>'}).join('')+'</div>';
   o.querySelector('#pax').onclick=function(){o.remove()};
-}
-/* ===== โหมดเล่นเร็ว ===== */
-var FFK='doom365-ff',FF=null;
-function ffOn(){try{return localStorage.getItem(FFK)==='1'}catch(e){return false}}
-function ffRenderUI(k){
-  if(!S||S.day<5||S.daily||(typeof MP!=='undefined'&&MP.on))return;
-  var on=ffOn();
-  if(!panel.querySelector('#ffbtn'))k.insertAdjacentHTML('afterend','<div class="ffrow"><button class="mini" id="ffbtn">⏩ โหมดเล่นเร็ว: '+(on?'เปิดอยู่':'ปิดอยู่')+'</button><small>ข้ามวันธรรมดาให้เอง หยุดเมื่อมีเรื่องสำคัญ</small></div>');
-  var b=panel.querySelector('#ffbtn');
-  if(b)b.onclick=function(){try{localStorage.setItem(FFK,ffOn()?'0':'1')}catch(e){}FF=null;b.textContent='⏩ โหมดเล่นเร็ว: '+(ffOn()?'เปิดอยู่':'ปิดอยู่');if(ffOn())setTimeout(ffStep,250)};
-  if(FF&&FF.sum&&!panel.querySelector('.ffsum')){panel.querySelector('.ffrow').insertAdjacentHTML('afterend','<div class="ffsum">'+FF.sum+'</div>');FF=null}
-  if(on)setTimeout(ffStep,260);
-}
-function ffOrdinary(){
-  if(!ev||!S)return false;
-  if(ev.src||ev.ms||ev.cat==='danger')return false;
-  var t=(typeof LASTGEN!=='undefined'&&LASTGEN)?LASTGEN.t:null;
-  if(!t||LASTGEN.ms||t.dis||t.arc||t.rare||t.k==='job_board'||(typeof isThreat==='function'&&isThreat(t)))return false;
-  if(S.day>=338||urgent()||S.hp<45||S.md<20||S.wd>0)return false;
-  if((S.fd|0)<45||(S.wt|0)<45)return false;
-  return true;
-}
-function ffPick(){
-  var p=pathOf(),best=-1,bs=-1e9;
-  ev.ch.forEach(function(c,i){
-    if(!c||!c.ok||c.roll||c.risk)return;
-    var x=c.x||{},sc=(x.hp||0)*1.2+(x.md||0)*.7+(x.lv||0)*.5+(x.fd||0)*.2+(x.wt||0)*.2+(x.en||0)*.3+(x.mo||0)/((S.scale||1)*120)*1.5-(c.d||0)*.3;
-    if(c.g&&c.g===p)sc+=3;if(c.g==='crime')sc-=6;
-    if(sc>bs){bs=sc;best=i}
-  });
-  return best;
-}
-function ffStep(){
-  try{
-    if(!ffOn()||!S||stage!=='play'||busy||(typeof PARTY!=='undefined'&&PARTY.on)||(typeof MP!=='undefined'&&MP.on)||!ev)return;
-    if(document.querySelector('.ov'))return;
-    if(!ffOrdinary()){ffStop();return}
-    var i=ffPick();if(i<0){ffStop();return}
-    if(!FF)FF={n:0,d0:Math.floor(S.day),mo:S.mo,hp:S.hp,md:S.md,lv:S.lv,sum:''};
-    var o=resolve(ev,i);FF.n++;S.sinceCare=(S.sinceCare|0)+1;
-    if(o.end){FF=null;showOutcome(o);return}
-    if(FF.n>=40){ffStop();return}
-    showEvent();
-  }catch(e){ffStop()}
-}
-function ffStop(){
-  if(!FF||!FF.n){FF=null;return}
-  var f=FF,d1=Math.floor(S.day),best=null;
-  try{S.log.forEach(function(x){if(x.d>=f.d0&&(!best||x.imp>best.imp))best=x})}catch(e){}
-  function dl(a,b){var d=Math.round(b-a);return d>0?'+'+d:d===0?'เท่าเดิม':String(d)}
-  f.sum='⏩ ข้ามไป '+f.n+' เหตุการณ์ (วันที่ '+(f.d0+1)+' → '+(d1+1)+') · เงิน '+(S.mo-f.mo>=0?'+':'')+fmt(Math.round(S.mo-f.mo))+' · สุขภาพ '+dl(f.hp,S.hp)+' · กำลังใจ '+dl(f.md,S.md)+(best?'<br>เรื่องเด่น: “'+esc(String(best.t).slice(0,40))+'”':'');
-  FF={n:0,sum:f.sum,keep:1};
-  try{saveGame(true)}catch(e){}
-  var k=panel.querySelector('.kick'),row=panel.querySelector('.ffrow');
-  if(row&&!panel.querySelector('.ffsum')){row.insertAdjacentHTML('afterend','<div class="ffsum">'+f.sum+'</div>');FF=null}
 }
 </script></body></html>
