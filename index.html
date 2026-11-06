@@ -10480,11 +10480,13 @@ async function lbEnding(E,kind){
   if(!LB.signed&&FBon()){box.innerHTML='<div class="amb">ล็อกอินด้วย Google เพื่อบันทึกอันดับและเซฟของคุณ <button class="mini" id="rkin">ล็อกอิน Google</button></div>';const bb=$('rkin');if(bb)bb.onclick=acctSignIn;return}
   if(!LB.signed){box.innerHTML='<div class="amb">ล็อกอินบัญชี claude.ai และเปิดเกมจากหน้า artifact เพื่อบันทึกอันดับของคุณในเซิร์ฟเวอร์ (ตอนนี้ยังไม่ได้บันทึก)</div>';return}
   box.innerHTML='<p class="hint">กำลังบันทึกอันดับ…</p>';
+  const dlOld=!!(S.daily&&S.daily!==dayKey());
   const ok=await lbRecord(E,kind);
   if(ok&&LB.useGet)await lbLoad();
   const b2=$('rankbox');if(!b2)return;
   if(!ok){b2.innerHTML='<div class="amb">บันทึกอันดับไม่สำเร็จ (ผลชีวิตนี้ยังอยู่ในหน้านี้ ลองใหม่ภายหลังได้)</div>';return}
-  b2.innerHTML='<div class="tomb"><small>อันดับของคุณในเซิร์ฟเวอร์ · '+esc(NICK||'ผู้เล่น')+'</small>'+
+  const dlNote=dlOld?'<p class="hint">ชีวิตประจำวันนี้เริ่มของวันที่ '+esc(S.daily)+' และจบหลังข้ามวันแล้ว จึงไม่นับในอันดับประจำวัน (นับเป็นชีวิตปกติ)</p>':'';
+  b2.innerHTML=dlNote+'<div class="tomb"><small>อันดับของคุณในเซิร์ฟเวอร์ · '+esc(NICK||'ผู้เล่น')+'</small>'+
    activeMetrics().map(m=>{const r=myRank(m[0]);return '<span>'+esc(m[1])+': <b style="font-size:16px">'+(r?'อันดับ '+r:'-')+'</b></span>'}).join('')+
    '<em>รอดครบ 365 วัน '+((LB.rows.find(r=>r.id===LB.id)||{}).survived||0)+' ครั้ง · เล่นแล้ว '+((LB.rows.find(r=>r.id===LB.id)||{}).lives||0)+' ชีวิต</em></div>';
 }
@@ -12389,7 +12391,7 @@ function showBirth(){
    '<div class="amb">ความฝันสุดท้ายที่สุ่มมา: <b>'+DREAMS[cand.dr%DREAMS.length].n+'</b>'+(cand.wk?'<br>ท้าทายสัปดาห์นี้: <b>'+WEEKLY.find(w=>w.id===cand.wk).n+'</b> · '+WEEKLY.find(w=>w.id===cand.wk).d:'')+'</div><div class="amb">สิ่งที่กำลังพุ่งเข้าหาโลก: '+doom.n+(cand.lover?'<br>คุณมีคนรักอยู่ข้างๆ เขาจะเป็นเพื่อนร่วมทางคนแรกของคุณ':'<br>คุณยังไม่มีคนรัก')+'</div>'+
    '<div class="row"><button class="btn" id="start">เริ่มนับถอยหลัง 365 วัน</button><button class="btn ghost" id="back">← ย้อนกลับ เลือกโหมดใหม่</button>'+(cand.daily?'':'<button class="btn ghost" id="again">'+(rrLeft>0&&tget(RR_KEY)<=Date.now()?'จับสลากใหม่ฟรี (เหลือ '+rrLeft+' ครั้ง)':'จับสลากเกิดใหม่')+'</button>')+'</div>'+(cand.daily?'<p class="hint">ชีวิตประจำวัน: ทุกคนเริ่มจากชาติกำเนิดเดียวกันและเจอเหตุการณ์ชุดเดียวกัน จนกว่าการเลือกของแต่ละคนจะเริ่มต่างกัน</p>':'');
   $('back').onclick=()=>{KEPT=cand;mpClose();showStart()};
-  $('start').onclick=()=>{if(PARTY.on){partyBegin();return}KEPT=null;albumReset();newGame(cand);if(!cand.daily)applyLegacy();if(S.giftNote)setTimeout(()=>toast('🎁 '+S.giftNote),600);saveGame(true);stage='play';showEvent();tutOnce()};
+  $('start').onclick=()=>{if(PARTY.on){partyBegin();return}KEPT=null;albumReset();newGame(cand);if(!cand.daily)applyLegacy();if(S.giftNote)setTimeout(()=>toast('🎁 '+S.giftNote),600);stage='play';saveGame(true);showEvent();tutOnce()};
   if(PARTY.on){const a0=$('again');if(a0)a0.remove();$('start').textContent='พร้อมแล้ว · เข้าปาร์ตี้'}
   if($('again'))$('again').onclick=()=>{if(tget(RR_KEY)>Date.now())return;if(rrLeft>0)rrLeft--;if(rrLeft<=0)tset(RR_KEY,Date.now()+RR_MS);const w0=cand.wk;cand=rollBirth();if(w0)cand.wk=w0;showBirth()};
   if($('again')&&tget(RR_KEY)>Date.now())waitBtn('again',RR_KEY,'จับสลากเกิดใหม่');
@@ -14162,7 +14164,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 06/11 04:02';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 06/11 09:35';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
