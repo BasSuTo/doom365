@@ -517,6 +517,9 @@ body.early .kar,body.early .ptag,body.early .tag.mood{display:none!important}
   .chatdock .cnote{display:none}
   body.hasdock .cwrap{width:min(100%,calc((100vh - 500px)*1.7778))}
 }
+.stats.hasacct #acct{margin:0 0 0 auto}
+@media (max-width:900px){.stats.hasacct #acct{margin:4px 0 0}}
+@media (max-width:900px){.hud-main:has(.stats.hasacct){flex-wrap:wrap}.stats.hasacct{flex:1 1 100%}}
 </style></head><body>
 
 <div class="app" id="app">
@@ -12376,7 +12379,7 @@ function showStart(){
    '<div class="mstart">'+(INVITE?'<div class="invb"><b>👋 เพื่อนชวนเข้า'+(INVITE.k==='party'?'ปาร์ตี้':'ห้อง')+' '+esc(INVITE.code.toUpperCase())+'</b><button class="btn" id="invgo">เข้าห้องเลย</button></div>':'')+(hasSave()?'<button class="bigbtn cont" id="cont"><b>▶ เล่นต่อจากที่บันทึก</b><small>กลับไปเล่นชีวิตเดิมต่อ</small></button>':'')+'<button class="bigbtn'+(hasSave()?' alt':'')+'" id="go">▶ เริ่มเกม · ลืมตาตื่นขึ้นมา</button>'+(hasSave()?'':'<p class="mtip">👆 เล่นครั้งแรก? กดปุ่มนี้เลย เกมจะสุ่มชาติกำเนิดให้ แล้วสู้ไปทีละวัน</p>')+'</div>'+
    '<div class="mgrp"><div class="mh"><b>🎮 โหมดพิเศษ</b><small>เล่นคนเดียว · มีอันดับ</small></div><div class="mgrid"><button class="mcard" id="wk"><b>ท้าทายสัปดาห์</b><small>'+esc(curWeekly().n)+(wkPassedNow()?' ✓ ผ่านแล้ว':'')+'</small></button><button class="mcard" id="daily"><b>ชีวิตประจำวัน</b><small>'+esc(dayKey())+' · ชุดเดียวกันทุกคน</small></button></div></div>'+mpHtml+
    '<div class="facts"><div class="fact"><small>เหตุการณ์ทั้งหมด</small><b>≈ '+pool.cards.toLocaleString('en-US')+'</b></div><div class="fact"><small>ชาติกำเนิดสุ่ม</small><b>'+ROLES.length+' แบบ</b></div><div class="fact"><small>สาเหตุการตาย</small><b>'+Object.keys(DEATHS).length+' แบบ</b></div><div class="fact"><small>เสียงตามอารมณ์</small><b>8 ธีม</b></div><button class="rankhot" id="rankhot">🏆 ดูอันดับผู้รอด · ใครรวยที่สุด · ใครรอดมากที่สุด <i>›</i></button></div>'+
-   '<div class="nick"><label for="nick">ชื่อของคุณในเกม</label><input id="nick" maxlength="16" placeholder="ตั้งชื่อเล่น" value="'+esc(NICK)+'"><small class="hint" style="display:block;margin:4px 0">ชื่อนี้จะเป็นชื่อตัวละครของคุณในเกม ไม่ว่าสุ่มได้อาชีพอะไร</small><span>'+(LB.signed?(window.D365_SA?'อันดับออนไลน์ใช้งานได้ · ผลของคุณจะถูกบันทึก':'ล็อกอินแล้วด้วยบัญชี claude.ai · อันดับถูกบันทึก'):LB.state==='anon'?(window.D365_FB&&D365_FB.ok?'ยังไม่ได้ล็อกอิน Google':'ยังไม่ได้ล็อกอิน claude.ai'):'อันดับใช้ได้เมื่อเปิดจาก claude.ai')+'</span>'+(FBon()&&LB.signed?'<label class="showg"><input type="checkbox" id="showg"'+(gShow()?' checked':'')+'> แสดงชื่อ Google ของฉันในตารางอันดับ (ให้คนรู้ว่าเป็นตัวจริง)</label>':'')+'</div>'+
+   '<div class="nick"><label for="nick">ชื่อของคุณในเกม</label><input id="nick" maxlength="16" placeholder="ตั้งชื่อเล่น" value="'+esc(NICK)+'"><small class="hint" style="display:block;margin:4px 0">ชื่อนี้จะเป็นชื่อตัวละครของคุณในเกม ไม่ว่าสุ่มได้อาชีพอะไร</small><span>'+(LB.signed?(window.D365_SA?'อันดับออนไลน์ใช้งานได้ · ผลของคุณจะถูกบันทึก':'ล็อกอินแล้วด้วยบัญชี claude.ai · อันดับถูกบันทึก'):LB.state==='anon'?(window.D365_FB&&D365_FB.ok?'ยังไม่ได้ล็อกอิน Google':'ยังไม่ได้ล็อกอิน claude.ai'):'อันดับใช้ได้เมื่อเปิดจาก claude.ai')+'</span></div>'+
    '<div id="acct"></div>'+
    '<p class="hint"><button class="mini" id="newsbtn">📢 มีอะไรใหม่ในเกม</button> <button class="mini" id="msbtn">🎯 ภารกิจ</button></p>'+
    '<p class="hint">🏅 '+esc(wkSummary())+'</p>'+
@@ -12384,7 +12387,7 @@ function showStart(){
    '<div id="onl"></div>'+
    '<div id="chat"></div>'+
    '<p class="hint">กดปุ่มเลข 1–6 เพื่อเลือก · กด “เพลง” เพื่อเปิดเสียง · “สัญลักษณ์” อธิบายไอคอนทั้งหมด · “อันดับ” ดูตารางผู้เล่น</p>';
-  try{const sp=document.querySelector('#panel .nick>span'),st=$('stats');if(sp&&st){st.innerHTML='';sp.className='lgst';st.appendChild(sp);const ac=$('acct');if(ac){st.classList.add('hasacct');st.insertBefore(ac,sp)}}}catch(e){}
+  try{const sp=document.querySelector('#panel .nick>span'),st=$('stats');if(st){st.innerHTML='';if(sp)sp.remove();const ac=$('acct');if(ac){st.classList.add('hasacct');st.appendChild(ac)}}}catch(e){}
   $('nick').onchange=e=>{setNick(e.target.value);if(LB.signed&&NICK)LB.db.doc('board/'+LB.id).update({nick:NICK}).catch(()=>{})};
   {const sg=$('showg');if(sg)sg.onchange=e=>{try{localStorage.setItem('doom365-showg',e.target.checked?'1':'0')}catch(x){}const g=gnameNow();if(LB.signed){if(g)LB.db.doc('board/'+LB.id).update({gname:g}).catch(()=>{});else LB.db.doc('board/'+LB.id).get().then(sn=>{if(sn.exists){const d=sn.data();delete d.gname;LB.db.doc('board/'+LB.id).set(d).catch(()=>{})}}).catch(()=>{})}}}
   {const nb=$('newsbtn');if(nb)nb.onclick=showNews}{const mb=$('msbtn');if(mb)mb.onclick=msShow}
@@ -14255,7 +14258,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 03:21';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 03:41';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
