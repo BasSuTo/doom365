@@ -510,6 +510,13 @@ body.early .kar,body.early .ptag,body.early .tag.mood{display:none!important}
 .stats.hasacct #acct p.hint{margin:0;font-size:12px}
 .stats.hasacct .lgst{white-space:nowrap}
 @media (max-width:900px){.stats.hasacct{flex-wrap:wrap}.stats.hasacct #acct{flex:1 1 100%;max-width:none;order:2;margin:4px 0 0}}
+@media (min-width:901px) and (min-height:640px){
+  .chatdock{flex:1 1 0;min-height:150px;display:flex;margin-top:0;overflow:hidden}
+  .chatdock .chatw{flex:1;min-height:0;margin-top:0;grid-template-rows:auto minmax(0,1fr) auto;padding:8px 12px}
+  .chatdock .cmsgs{max-height:none;min-height:0}
+  .chatdock .cnote{display:none}
+  body.hasdock .cwrap{width:min(100%,calc((100vh - 500px)*1.7778))}
+}
 </style></head><body>
 
 <div class="app" id="app">
@@ -12347,13 +12354,13 @@ function dockChat(){
   const el=$('chat'),scr=document.querySelector('.stage .screen');
   if(!el||!scr||!window.matchMedia('(min-width:901px)').matches)return;
   const box=document.createElement('div');box.className='chatdock';
-  scr.appendChild(box);box.appendChild(el);
+  scr.appendChild(box);box.appendChild(el);document.body.classList.add('hasdock');
   if(DOCK_OBS)DOCK_OBS.disconnect();
-  DOCK_OBS=new MutationObserver(()=>{if(!panel.querySelector('.hero')){document.querySelectorAll('.chatdock').forEach(d=>d.remove());DOCK_OBS.disconnect()}});
+  DOCK_OBS=new MutationObserver(()=>{if(!panel.querySelector('.hero')){document.querySelectorAll('.chatdock').forEach(d=>d.remove());document.body.classList.remove('hasdock');DOCK_OBS.disconnect()}});
   DOCK_OBS.observe(panel,{childList:true});
 }
 function showStart(){
-  document.querySelectorAll('.chatdock').forEach(d=>d.remove());
+  document.querySelectorAll('.chatdock').forEach(d=>d.remove());document.body.classList.remove('hasdock');
   if(PARTY.on)partyLeave();
   stage='start';S=null;busy=false;
   setView({scene:pick(['farm','bridge','wall','rift','station','park']),tod:pick(['dusk','night']),seed:'title'+rnd(99),npc:2,look:pick(ROLES).look,doomId:pick(DOOMS).id,day:150,mood:null});
@@ -14248,7 +14255,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 03:18';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 03:21';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
