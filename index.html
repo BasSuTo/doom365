@@ -469,6 +469,38 @@ body.early .kar,body.early .ptag,body.early .tag.mood{display:none!important}
 :root[data-theme] .tomb small{color:#cfc8e6!important}:root[data-theme] .tomb em{color:#b9b3d0!important}
 :root[data-theme=dawn] .count,:root[data-theme=light] .count{color:#ffb98a!important}
 :root[data-theme=dawn] .count b,:root[data-theme=light] .count b{color:#ffd9bd!important}
+/* เมนูหน้าแรกแบบจัดกลุ่ม */
+.mstart{margin:12px 0 6px}
+.bigbtn{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;margin:0 0 6px;padding:11px 14px;border-radius:10px;border:0;border-bottom:3px solid var(--bbd);background:linear-gradient(180deg,var(--gold2),var(--gold));color:var(--bink);font:700 17px/1.3 var(--f-d,inherit);cursor:pointer;box-shadow:0 0 22px var(--bsh);animation:bgpulse 2.4s infinite}
+.bigbtn small{font:400 12px/1.3 inherit;color:#fff3d6!important;opacity:.95}.bigbtn.alt small{color:var(--gold2)!important}
+.bigbtn.alt{background:transparent;color:var(--gold2);border:1px solid var(--line);border-bottom:3px solid var(--line);box-shadow:none;animation:none;font-size:15px;padding:9px}
+.bigbtn:disabled{opacity:.6;animation:none}
+.mtip{margin:2px 0 0;text-align:center;font-size:12px;opacity:.85}
+.mgrp{margin:10px 0 0;padding:8px 10px 10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03)}
+.mh{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.mh b{font-size:15px}.mh small{font-size:12px;opacity:.7}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mcard{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:10px 12px;border-radius:10px;border:1px solid var(--line);border-bottom:3px solid var(--line);background:transparent;color:var(--gold2);cursor:pointer;font:inherit}
+.mcard b{font-size:14px}.mcard small{font-size:12px;opacity:.75;line-height:1.35}
+.mcard:hover{background:var(--panel2)}
+.mcard.wide{grid-column:1/-1}
+@keyframes bgpulse{0%,100%{box-shadow:0 0 12px var(--bsh)}50%{box-shadow:0 0 30px var(--bsh)}}
+@media (max-width:340px){.mgrid{grid-template-columns:1fr}}
+@media (max-width:420px){.bigbtn{font-size:16px}.mcard{padding:8px 10px}.mcard small{font-size:11.5px}}
+@media (prefers-reduced-motion:reduce){.bigbtn{animation:none}}
+.chatdock{margin-top:12px}
+.facts{display:flex;flex-wrap:wrap}
+.facts .fact{flex:1 1 120px}
+.facts .rankhot{flex:2 1 200px;width:auto;margin:0;padding:9px 12px;font-size:14px;border-radius:6px}
+.facts .rankhot i{font-size:20px}
+.stats .lgst{font-size:12px;color:var(--muted);margin-left:auto;text-align:right}
+.mgrp{margin:8px 0 0;padding:0;border:0;background:none}
+.mh{margin-bottom:4px}.mh b{font-size:13px}.mh small{font-size:11px}
+.mgrid{gap:6px}.mgrid.g3{grid-template-columns:repeat(3,1fr)}
+.mcard{padding:6px 8px;gap:0;border-radius:8px}.mcard b{font-size:13px}.mcard small{font-size:11px;line-height:1.3}
+@media (max-width:340px){.mgrid.g3{grid-template-columns:1fr 1fr}}
+.invb{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 8px;padding:8px 12px;border:2px solid var(--gold);border-radius:10px;background:rgba(255,200,80,.12)}
+.invb .btn{padding:7px 16px;font-size:15px}
 </style></head><body>
 
 <div class="app" id="app">
@@ -4988,6 +5020,8 @@ function fill(s,p){
   return f(f(s));
 }
 
+/* ชื่อตัวละคร = ชื่อในเกมที่ผู้เล่นตั้งไว้ (ถ้าไม่ได้ตั้ง/เป็นค่าเริ่มต้น ใช้ชื่อสุ่ม) */
+function myName(def){try{const n=(typeof NICK==='string'?NICK:'').trim();return n&&n!=='ผู้เล่น'?n:def}catch(e){return def}}
 function rollBirth(){
   const ri=rnd(ROLES.length),r=ROLES[ri];
   return {ri,age:rr(r.a[0],r.a[1]),mo:rrMoney(r.mo[0],r.mo[1]),hp:rr(62,98),md:rr(40,80),lv:rr(20,70),name:pick(NAMES),lover:RND()<.25,di:rnd(DOOMS.length),dr:rnd(DREAMS.length)};
@@ -4997,7 +5031,7 @@ function newCrew(){return {n:pick(NAMES),look:pick(CREW_LOOKS),tr:pick(Object.ke
 function newGame(c){
   if(!c.daily)DAILY=null;
   const r=ROLES[c.ri],sh=shelterFor(r);
-  S={v:2,daily:c.daily||'',ri:c.ri,di:c.di,role:r,doom:DOOMS[c.di],name:c.name,age:c.age,day:0,mo:c.mo,mo0:c.mo,hp:c.hp,md:c.md,lv:c.lv,ht:r.ht||0,scale:r.t,
+  S={v:2,daily:c.daily||'',ri:c.ri,di:c.di,role:r,doom:DOOMS[c.di],name:myName(c.name),age:c.age,day:0,mo:c.mo,mo0:c.mo,hp:c.hp,md:c.md,lv:c.lv,ht:r.ht||0,scale:r.t,
      fd:85,wt:85,en:90,wd:0,inf:0,inv:startInv(r.t),sh:{n:sh[0],df:sh[1],hd:sh[2],cond:80},up:{},sk:{},crew:c.lover?[newCrew()]:[],gear:Object.fromEntries(Object.entries(r.gear||{}).filter(x=>x[1])),nextDis:rr(DIFF.disMin,DIFF.disMax),lastDis:'',save:DIFF.save,nd:0,cause:null,cf:0,cs:0,gift:0,
      flags:Object.assign({lover:c.lover?1:0},r.flags||{}),tag:{},c:{steal:0,help:0,spent:0,earned:0,dec:0,jail:0,live:0,acts:0,near:0,eaten:0},
      log:[],seen:{},cool:{},done:{},nextRent:30,finalText:'',finalTag:null,jailed:0,turns:0,mood:'calm'};
@@ -10917,6 +10951,8 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-11b',date:'11 พ.ย. 2569',title:'แชร์ลิงก์เกมและลิงก์ห้องให้เพื่อน',items:['🔗 ปุ่ม “แชร์ลิงก์เกมให้เพื่อน” ในหน้าแรก กดแล้วเปิดเมนูแชร์ของมือถือ หรือคัดลอกลิงก์ให้อัตโนมัติ','🔗 ในห้องรอ (เล่นกับเพื่อน/ปาร์ตี้) มีปุ่ม “ส่งลิงก์ห้อง” เพื่อนกดลิงก์แล้วเข้าห้องด้วยรหัสที่กรอกให้แล้ว']},
+ {id:'2026-11-11a',date:'11 พ.ย. 2569',title:'จัดเมนูหน้าแรกใหม่ให้เริ่มเล่นง่ายขึ้น',items:['▶ ปุ่ม “เริ่มเกม” ใหญ่และเด่นที่สุด คนเล่นครั้งแรกกดตรงนี้ได้เลย','🎮 โหมดพิเศษ (ท้าทายสัปดาห์ / ชีวิตประจำวัน) และ 👫 เล่นกับเพื่อน แยกเป็นกลุ่ม มีคำอธิบายใต้ปุ่ม','มีเซฟอยู่แล้ว ปุ่ม “เล่นต่อจากที่บันทึก” จะขึ้นเป็นปุ่มหลักแทน']},
  {id:'2026-11-10b',date:'10 พ.ย. 2569',title:'การ์ดใหม่ 65 ใบ + เอฟเฟกต์ของสวมใส่เคลื่อนไหว',items:['🃏 การ์ดใหม่ 65 ใบ ครบทุกหมวด (หมวก รองเท้า อาวุธ คาถา ปีก สัตว์เลี้ยง เสื้อ ชุดเต็ม) เช่น หมวกแม่มดแมวดำ, รองเท้าดาวหาง, ดาบสุริยะรุ่งอรุณ, ชุดจักรพรรดิกาแล็กซี่','✨ ของสวมใส่ระดับ S และ S+ ทุกใบมีเอฟเฟกต์เคลื่อนไหวบนตัวละคร เช่น ประกายวนรอบตัว, ออร่าเรืองแสง, ประกายไฟลอยขึ้น, หิมะ/ใบไม้ร่วง, รอยเท้าเรืองแสง, วงแหวนรอบเอว','🖼 ภาพบนการ์ดมีเอฟเฟกต์ตามไปด้วย และมีป้าย ✨เอฟเฟกต์ บอกในอัลบั้ม']},
  {id:'2026-11-10a',date:'10 พ.ย. 2569',title:'50 อาชีพชื่อแปลกๆ ระดับเศรษฐี + เหตุการณ์เฉพาะอาชีพ',items:['🤪 อาชีพใหม่ 50 อาชีพ เช่น เจ้าของฟาร์มไก่ไข่ทองที่ไก่ขี้เกียจ, นายหน้าขายที่ดินบนดวงจันทร์, ราชาก๋วยเตี๋ยวเรือที่เรือจมไปแล้ว, พ่อค้าขายเงา, เจ้าของโรงแรมสำหรับผี, นักประมูลของที่ไม่มีอยู่จริง','💰 เริ่มต้นรวยระดับเดียวกับอาชีพท็อป แต่เงินขึ้นลงตามจังหวะการตัดสินใจ','🎬 แต่ละอาชีพมี 2 เหตุการณ์เฉพาะตัว เหตุการณ์ละ 3 ตัวเลือก']},
  {id:'2026-11-06h',date:'6 พ.ย. 2569',title:'ภัยพิบัติแปลกๆ 14 เรื่อง + ฉากใหม่ 14 ฉาก',items:['🌀 มหันตภัยใหม่สุดพิลึก 14 เรื่อง เช่น ฝนตะเกียบ, น้ำปลาท่วมโลก, แมวทั้งเมืองจ้องฟ้า, เสาไฟเดินกลับบ้าน, เงาแยกตัว, ทุเรียนหล่นจากฟ้า, ดวงจันทร์ลดราคา, วันอังคารไม่จบ','💸 “เงินบาทกลายเป็นขนมปัง” ทำให้เงินขึ้นราหายไปเรื่อยๆ 10 วัน ส่วน “เงาแยกตัว” ให้เงาไปหาเงินแทนแต่ใจคุณเริ่มเหนื่อย','🎬 ทุกเรื่องมี 5 ตัวเลือก ฉากใหม่ตรงเหตุการณ์ และฉากจบแบบตลกร้ายถ้าพลาด']},
@@ -11576,6 +11612,7 @@ function showPartySetup(){
     const nick=clean($('nk').value,16)||'หัวหน้า';lsSet('doom365-nick',nick);$('pmk').disabled=true;
     if(await partyOpen(rndCode(),nick,true))showPartyLobby();else $('pmk').disabled=false;
   };
+  try{if(INVITE&&INVITE.k==='party'&&$('rc'))$('rc').value=INVITE.code.toUpperCase()}catch(e){}
   $('pjn').onclick=async()=>{
     const code=clean($('rc').value,4).toLowerCase().replace(/[^a-z0-9]/g,'');
     if(code.length<4){toast('รหัสต้องมี 4 ตัว');return}
@@ -11604,10 +11641,11 @@ function showPartyLobby(){
    '<div class="kick"><span>ปาร์ตี้</span><span>'+(PARTY.host?'คุณเป็นหัวหน้าห้อง':'รอหัวหน้ากดเริ่ม')+'</span></div>'+
    '<p class="sub" style="margin:0">รหัสห้อง ส่งให้เพื่อนได้เลย</p><div class="code">'+esc(PARTY.code.toUpperCase())+'</div>'+
    '<div><p class="hint" style="margin-bottom:6px">คนในห้อง (สูงสุด 4)</p><div class="plist" id="plist"></div></div>'+
-   '<div class="row">'+(PARTY.host?'<button class="btn" id="pgo" disabled>เริ่มสุ่มชะตา</button>':'')+'<button class="btn ghost" id="leave">ออกจากห้อง</button></div>'+
+   '<div class="row">'+(PARTY.host?'<button class="btn" id="pgo" disabled>เริ่มสุ่มชะตา</button>':'')+'<button class="btn ghost" id="shr">🔗 ส่งลิงก์ห้อง</button><button class="btn ghost" id="leave">ออกจากห้อง</button></div>'+
    '<p class="hint" id="pstat"></p><p class="hint">'+(PARTY.host?'ต้องมีเพื่อนอย่างน้อย 1 คน ใครเข้าทีหลังเริ่มเล่นแล้วเข้าไม่ได้':'เมื่อหัวหน้ากดเริ่ม ทุกคนจะได้อาชีพของตัวเองพร้อมกัน')+'</p>';
   renderPlayers();
   const g=$('pgo');if(g){g.disabled=guests().length<1;g.onclick=()=>{if(guests().length<1)return;partyEmit({ty:'go'});partyStartGame()}}
+  $('shr').onclick=()=>shareGo('party',PARTY.code);
   $('leave').onclick=()=>{partyLeave();showStart()};
 }
 function partyStartGame(){
@@ -11870,6 +11908,22 @@ let ev=null,stage='start',cand=null,busy=false,lastOut=null;
 const SAVEKEY='doom365v2-save',HISTKEY='doom365-lives';
 function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+/* ===== แชร์ลิงก์ชวนเพื่อน ===== */
+const SHARE_HOME='https://bassuto.github.io/doom365/';
+const INVITE=(function(){try{const q=new URLSearchParams(location.search);const c=(v)=>String(v||'').toLowerCase().replace(/[^a-z0-9]/g,'').slice(0,4);
+  if(q.get('party')&&c(q.get('party')).length===4)return {k:'party',code:c(q.get('party'))};
+  if(q.get('room')&&c(q.get('room')).length===4)return {k:'room',code:c(q.get('room'))};}catch(e){}return null})();
+function shareBase(){try{if(/github\.io$/.test(location.hostname))return location.origin+location.pathname}catch(e){}return SHARE_HOME}
+function shareUrl(kind,code){return shareBase()+(kind&&code?'?'+kind+'='+encodeURIComponent(String(code).toLowerCase()):'')}
+async function shareGo(kind,code){
+  const url=shareUrl(kind,code);
+  const text=kind==='party'?'มาเล่นปาร์ตี้ "ถ้าโลกแตกอีก 365 วัน" ด้วยกัน รหัสห้อง '+String(code).toUpperCase():kind==='room'?'มาดูและโหวตเกม "ถ้าโลกแตกอีก 365 วัน" ของฉัน รหัสห้อง '+String(code).toUpperCase():'มาเล่นเกม "ถ้าโลกแตกอีก 365 วัน จะทำอะไรก่อนโลกแตก" ด้วยกัน';
+  try{if(navigator.share){await navigator.share({title:'ถ้าโลกแตกอีก 365 วัน',text,url});return}}catch(e){if(e&&e.name==='AbortError')return}
+  let ok=false;
+  try{await navigator.clipboard.writeText(text+'\n'+url);ok=true}catch(e){}
+  if(!ok){try{const t=document.createElement('textarea');t.value=text+'\n'+url;t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();ok=document.execCommand('copy');t.remove()}catch(e){}}
+  toast(ok?'คัดลอกลิงก์แล้ว ส่งให้เพื่อนได้เลย':'คัดลอกไม่ได้ ลิงก์คือ '+url);
+}
 function toast(m){
   const d=document.createElement('div');d.className='toast';d.textContent=m;document.body.appendChild(d);setTimeout(()=>d.remove(),1900);
 }
@@ -12277,23 +12331,35 @@ function waitBtn(id,key,base,msg){
     if(left>0){b.disabled=true;b.textContent=base+' (รอ '+mmss(left)+')'}else{b.disabled=false;b.textContent=base;clearInterval(iv)}};
   const iv=setInterval(tick,1000);tick();
 }
+/* คอมพิวเตอร์: ย้ายคนออนไลน์+ช่องแชทโลกไปไว้ใต้ปุ่มเครื่องมือฝั่งซ้าย (หน้าแรกเท่านั้น) */
+let DOCK_OBS=null;
+function dockChat(){
+  const el=$('chat'),scr=document.querySelector('.stage .screen');
+  if(!el||!scr||!window.matchMedia('(min-width:901px)').matches)return;
+  const box=document.createElement('div');box.className='chatdock';
+  scr.appendChild(box);{const ol=$('onl');if(ol)box.appendChild(ol)}box.appendChild(el);
+  if(DOCK_OBS)DOCK_OBS.disconnect();
+  DOCK_OBS=new MutationObserver(()=>{if(!panel.querySelector('.hero')){document.querySelectorAll('.chatdock').forEach(d=>d.remove());DOCK_OBS.disconnect()}});
+  DOCK_OBS.observe(panel,{childList:true});
+}
 function showStart(){
+  document.querySelectorAll('.chatdock').forEach(d=>d.remove());
   if(PARTY.on)partyLeave();
   stage='start';S=null;busy=false;
   setView({scene:pick(['farm','bridge','wall','rift','station','park']),tod:pick(['dusk','night']),seed:'title'+rnd(99),npc:2,look:pick(ROLES).look,doomId:pick(DOOMS).id,day:150,mood:null});
   renderHUD(null);
   const pool=poolSize();
   const mpHtml=MP.ready?
-    '<div class="row"><button class="btn ghost" id="mph">เปิดห้องเล่นกับเพื่อน</button><button class="btn ghost" id="mpj">เข้าร่วมห้องของเพื่อน</button></div><div class="row"><button class="btn" id="ppy">👥 ปาร์ตี้ 2–4 คน · ตัวละครคนละตัว</button></div>':
-    '<p class="hint">'+(MP.tried?(window.D365_SA?'โหมดออนไลน์ใช้ได้เมื่อต่ออินเทอร์เน็ต เปิดห้องแล้วส่งรหัสให้เพื่อนได้เลย':'โหมดออนไลน์เล่นกับเพื่อนใช้ได้เมื่อเปิดหน้านี้จาก claude.ai (ต้องล็อกอิน)'):'กำลังตรวจสอบโหมดออนไลน์…')+'</p>';
+    '<div class="mgrp"><div class="mh"><b>👫 เล่นกับเพื่อน</b><small>ออนไลน์</small></div><div class="mgrid g3"><button class="mcard" id="mph"><b>เปิดห้อง</b><small>ส่งรหัสให้เพื่อน</small></button><button class="mcard" id="mpj"><b>เข้าร่วมห้อง</b><small>ใส่รหัสห้อง</small></button><button class="mcard" id="ppy"><b>👥 ปาร์ตี้ 2–4</b><small>ตัวละครคนละตัว</small></button><button class="mcard wide" id="shg"><b>🔗 แชร์ลิงก์เกมให้เพื่อน</b><small>ส่งลิงก์ให้เพื่อนเปิดเล่นได้เลย</small></button></div></div>':
+    '<div class="mgrp"><div class="mgrid"><button class="mcard wide" id="shg"><b>🔗 แชร์ลิงก์เกมให้เพื่อน</b><small>ส่งลิงก์ให้เพื่อนเปิดเล่นได้เลย</small></button></div></div><p class="hint">'+(MP.tried?(window.D365_SA?'โหมดออนไลน์ใช้ได้เมื่อต่ออินเทอร์เน็ต เปิดห้องแล้วส่งรหัสให้เพื่อนได้เลย':'โหมดออนไลน์เล่นกับเพื่อนใช้ได้เมื่อเปิดหน้านี้จาก claude.ai (ต้องล็อกอิน)'):'กำลังตรวจสอบโหมดออนไลน์…')+'</p>';
   panel.innerHTML=
    '<div class="kick"><span>เกมเลือกชะตา</span><span>จบในหนึ่งปี</span></div>'+
    '<h2 class="hero" style="font-size:32px">ถ้าโลกแตกอีก 365 วัน จะทำอะไรก่อนโลกแตก</h2>'+
    '<p class="sub">มีบางอย่างกำลังพุ่งเข้าหาโลก คุณจะเกิดมาเป็นใคร มีเงินเท่าไหร่ ชะตาสุ่มให้ทั้งหมด จากนั้นต้องกิน ดื่ม ซ่อมที่พัก ดูแลแผล หาเพื่อนร่วมทาง และตัดสินใจทีละวัน ความตายมาได้หลายแบบ ทั้งหิว ป่วย ทั้งเรื่องแปลกๆ แม้แต่คนมีเงินก็ไม่รอด</p>'+
-   '<div class="facts"><div class="fact"><small>เหตุการณ์ทั้งหมด</small><b>≈ '+pool.cards.toLocaleString('en-US')+'</b></div><div class="fact"><small>ชาติกำเนิดสุ่ม</small><b>'+ROLES.length+' แบบ</b></div><div class="fact"><small>สาเหตุการตาย</small><b>'+Object.keys(DEATHS).length+' แบบ</b></div><div class="fact"><small>เสียงตามอารมณ์</small><b>8 ธีม</b></div></div>'+
-   '<button class="rankhot" id="rankhot">🏆 ดูอันดับผู้รอด · ใครรวยที่สุด · ใครรอดมากที่สุด <i>›</i></button>'+
-   '<div class="row"><button class="btn" id="go">▶ เริ่มเกม · ลืมตาตื่นขึ้นมา</button>'+(hasSave()?'<button class="btn ghost" id="cont">เล่นต่อจากที่บันทึก</button>':'')+'<button class="btn ghost" id="wk">ท้าทายสัปดาห์: '+curWeekly().n+(wkPassedNow()?' ✓':'')+'</button><button class="btn ghost" id="daily">ชีวิตประจำวัน '+esc(dayKey())+'</button></div>'+mpHtml+
-   '<div class="nick"><label for="nick">ชื่อของคุณในเกม</label><input id="nick" maxlength="16" placeholder="ตั้งชื่อเล่น" value="'+esc(NICK)+'"><span>'+(LB.signed?(window.D365_SA?'อันดับออนไลน์ใช้งานได้ · ผลของคุณจะถูกบันทึก':'ล็อกอินแล้วด้วยบัญชี claude.ai · อันดับถูกบันทึก'):LB.state==='anon'?(window.D365_FB&&D365_FB.ok?'ยังไม่ได้ล็อกอิน Google':'ยังไม่ได้ล็อกอิน claude.ai'):'อันดับใช้ได้เมื่อเปิดจาก claude.ai')+'</span>'+(FBon()&&LB.signed?'<label class="showg"><input type="checkbox" id="showg"'+(gShow()?' checked':'')+'> แสดงชื่อ Google ของฉันในตารางอันดับ (ให้คนรู้ว่าเป็นตัวจริง)</label>':'')+'</div>'+
+   '<div class="mstart">'+(INVITE?'<div class="invb"><b>👋 เพื่อนชวนเข้า'+(INVITE.k==='party'?'ปาร์ตี้':'ห้อง')+' '+esc(INVITE.code.toUpperCase())+'</b><button class="btn" id="invgo">เข้าห้องเลย</button></div>':'')+(hasSave()?'<button class="bigbtn cont" id="cont"><b>▶ เล่นต่อจากที่บันทึก</b><small>กลับไปเล่นชีวิตเดิมต่อ</small></button>':'')+'<button class="bigbtn'+(hasSave()?' alt':'')+'" id="go">▶ เริ่มเกม · ลืมตาตื่นขึ้นมา</button>'+(hasSave()?'':'<p class="mtip">👆 เล่นครั้งแรก? กดปุ่มนี้เลย เกมจะสุ่มชาติกำเนิดให้ แล้วสู้ไปทีละวัน</p>')+'</div>'+
+   '<div class="mgrp"><div class="mh"><b>🎮 โหมดพิเศษ</b><small>เล่นคนเดียว · มีอันดับ</small></div><div class="mgrid"><button class="mcard" id="wk"><b>ท้าทายสัปดาห์</b><small>'+esc(curWeekly().n)+(wkPassedNow()?' ✓ ผ่านแล้ว':'')+'</small></button><button class="mcard" id="daily"><b>ชีวิตประจำวัน</b><small>'+esc(dayKey())+' · ชุดเดียวกันทุกคน</small></button></div></div>'+mpHtml+
+   '<div class="facts"><div class="fact"><small>เหตุการณ์ทั้งหมด</small><b>≈ '+pool.cards.toLocaleString('en-US')+'</b></div><div class="fact"><small>ชาติกำเนิดสุ่ม</small><b>'+ROLES.length+' แบบ</b></div><div class="fact"><small>สาเหตุการตาย</small><b>'+Object.keys(DEATHS).length+' แบบ</b></div><div class="fact"><small>เสียงตามอารมณ์</small><b>8 ธีม</b></div><button class="rankhot" id="rankhot">🏆 ดูอันดับผู้รอด · ใครรวยที่สุด · ใครรอดมากที่สุด <i>›</i></button></div>'+
+   '<div class="nick"><label for="nick">ชื่อของคุณในเกม</label><input id="nick" maxlength="16" placeholder="ตั้งชื่อเล่น" value="'+esc(NICK)+'"><small class="hint" style="display:block;margin:4px 0">ชื่อนี้จะเป็นชื่อตัวละครของคุณในเกม ไม่ว่าสุ่มได้อาชีพอะไร</small><span>'+(LB.signed?(window.D365_SA?'อันดับออนไลน์ใช้งานได้ · ผลของคุณจะถูกบันทึก':'ล็อกอินแล้วด้วยบัญชี claude.ai · อันดับถูกบันทึก'):LB.state==='anon'?(window.D365_FB&&D365_FB.ok?'ยังไม่ได้ล็อกอิน Google':'ยังไม่ได้ล็อกอิน claude.ai'):'อันดับใช้ได้เมื่อเปิดจาก claude.ai')+'</span>'+(FBon()&&LB.signed?'<label class="showg"><input type="checkbox" id="showg"'+(gShow()?' checked':'')+'> แสดงชื่อ Google ของฉันในตารางอันดับ (ให้คนรู้ว่าเป็นตัวจริง)</label>':'')+'</div>'+
    '<div id="acct"></div>'+
    '<p class="hint"><button class="mini" id="newsbtn">📢 มีอะไรใหม่ในเกม</button> <button class="mini" id="msbtn">🎯 ภารกิจ</button></p>'+
    '<p class="hint">🏅 '+esc(wkSummary())+'</p>'+
@@ -12301,18 +12367,22 @@ function showStart(){
    '<div id="onl"></div>'+
    '<div id="chat"></div>'+
    '<p class="hint">กดปุ่มเลข 1–6 เพื่อเลือก · กด “เพลง” เพื่อเปิดเสียง · “สัญลักษณ์” อธิบายไอคอนทั้งหมด · “อันดับ” ดูตารางผู้เล่น</p>';
+  try{const sp=document.querySelector('#panel .nick>span'),st=$('stats');if(sp&&st){st.innerHTML='';sp.className='lgst';st.appendChild(sp)}}catch(e){}
   $('nick').onchange=e=>{setNick(e.target.value);if(LB.signed&&NICK)LB.db.doc('board/'+LB.id).update({nick:NICK}).catch(()=>{})};
   {const sg=$('showg');if(sg)sg.onchange=e=>{try{localStorage.setItem('doom365-showg',e.target.checked?'1':'0')}catch(x){}const g=gnameNow();if(LB.signed){if(g)LB.db.doc('board/'+LB.id).update({gname:g}).catch(()=>{});else LB.db.doc('board/'+LB.id).get().then(sn=>{if(sn.exists){const d=sn.data();delete d.gname;LB.db.doc('board/'+LB.id).set(d).catch(()=>{})}}).catch(()=>{})}}}
   {const nb=$('newsbtn');if(nb)nb.onclick=showNews}{const mb=$('msbtn');if(mb)mb.onclick=msShow}
   {const rh=$('rankhot');if(rh)rh.onclick=()=>showBoard(showStart)}
   try{lobbyInit();renderOnline()}catch(e){}
   try{chatMount($('chat'))}catch(e){}
+  try{dockChat()}catch(e){}
   try{renderAcct()}catch(e){}
   $('go').onclick=()=>{if(tget(DW_KEY)>Date.now())return;mpClose();if(KEPT&&!KEPT.wk&&!KEPT.daily){cand=KEPT}else{rrLeft=4;cand=rollBirth()}showBirth()};
   waitBtn('go',DW_KEY,'▶ เริ่มเกม · ลืมตาตื่นขึ้นมา');
   $('wk').onclick=()=>{if(tget(DW_KEY)>Date.now()){toast('ยังต้องรอหลังชีวิตที่แล้ว');return}mpClose();if(KEPT&&KEPT.wk){cand=KEPT;showBirth()}else startWeekly()};
   $('daily').onclick=()=>{if(tget(DW_KEY)>Date.now()){toast('ยังต้องรอหลังชีวิตที่แล้ว');return}mpClose();startDaily()};
   if($('cont'))$('cont').onclick=()=>{mpClose();if(loadGame()){stage='play';showEvent()}};
+  if($('shg'))$('shg').onclick=()=>shareGo();
+  if($('invgo'))$('invgo').onclick=()=>{if(INVITE.k==='party')showPartySetup();else showJoinSetup()};
   if($('mph'))$('mph').onclick=showHostSetup;
   if($('mpj'))$('mpj').onclick=showJoinSetup;
   if($('ppy'))$('ppy').onclick=showPartySetup;
@@ -12342,11 +12412,12 @@ function showHostLobby(){
    '<div class="kick"><span>ห้องเล่นกับเพื่อน</span><span>รอเพื่อนเข้าร่วม</span></div>'+
    '<p class="sub" style="margin:0">ส่งรหัสห้องนี้ให้เพื่อน</p><div class="code">'+esc(MP.code.toUpperCase())+'</div>'+
    '<div><p class="hint" style="margin-bottom:6px">คนในห้อง</p><div class="plist" id="plist"></div></div>'+
-   '<div class="row"><button class="btn" id="go2">เริ่มสุ่มชะตา</button><button class="btn ghost" id="leave">ปิดห้อง</button></div>'+
+   '<div class="row"><button class="btn" id="go2">เริ่มสุ่มชะตา</button><button class="btn ghost" id="shr">🔗 ส่งลิงก์ห้อง</button><button class="btn ghost" id="leave">ปิดห้อง</button></div>'+
    '<p class="hint">เพื่อนเข้าทีหลังเริ่มเกมแล้วก็ยังตามดูได้ตลอด</p>';
   renderPlayers();
   mpSend({k:'idle',msg:'หัวหน้าห้องกำลังเตรียมเริ่มเกม รอสักครู่',hud:null,mood:'fun'});
   $('go2').onclick=()=>{cand=rollBirth();showBirth()};
+  $('shr').onclick=()=>shareGo('room',MP.code);
   $('leave').onclick=()=>{mpClose();showStart()};
 }
 function showJoinSetup(){
@@ -12359,6 +12430,7 @@ function showJoinSetup(){
    '<div class="row"><button class="btn" id="join">เข้าห้อง</button><button class="btn ghost" id="back">กลับ</button></div>'+
    '<p class="hint">'+(window.D365_SA?'ต้องต่ออินเทอร์เน็ตอยู่ ถ้าแชทหรือโหวตไม่ผ่าน ลองรีเฟรชหน้าแล้วเข้าห้องใหม่':'ต้องเปิดจาก claude.ai และมีสิทธิ์ Contributor ขึ้นไปจึงจะโหวต/แชทได้ ถ้าส่งไม่ออกให้ขอสิทธิ์จากเพื่อน')+'</p>';
   $('back').onclick=showStart;
+  if(INVITE&&INVITE.k==='room'&&$('rc'))$('rc').value=INVITE.code.toUpperCase();
   $('join').onclick=async()=>{
     const code=clean($('rc').value,4).toLowerCase().replace(/[^a-z0-9]/g,'');
     if(code.length<4){toast('รหัสต้องมี 4 ตัว');return}
@@ -12385,7 +12457,7 @@ function showBirth(){
   renderHUD(null);
   const sh=shelterFor(r);
   panel.innerHTML=
-   '<div class="kick"><span>ชะตาสุ่มให้</span><span>ชื่อเล่น '+esc(cand.name)+'</span></div>'+
+   '<div class="kick"><span>ชะตาสุ่มให้</span><span>ชื่อเล่น '+esc(myName(cand.name))+'</span></div>'+
    '<p class="sub" style="margin:0">คุณเกิดมาเป็น</p>'+
    '<h2 class="big">'+r.n+'</h2>'+
    '<div class="facts"><div class="fact"><small>อายุ</small><b>'+cand.age+' ปี</b></div><div class="fact"><small>เงินในกระเป๋า</small><b>'+fmt(cand.mo)+'</b></div><div class="fact"><small>ฐานะ</small><b>'+tierText(r.t)+'</b></div><div class="fact"><small>ที่พัก</small><b style="font-size:15px">'+sh[0]+'</b></div><div class="fact"><small>จุดแข็ง</small><b style="font-size:15px">'+r.perk+'</b></div></div>'+
@@ -14166,7 +14238,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 10/11 22:47';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 03:12';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
