@@ -14533,7 +14533,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 05:09';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 05:13';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
@@ -16563,13 +16563,7 @@ Object.assign(MUSIC,{
   const _s=sfx;
   sfx=function(k){
     if(!musicOn||!ac)return _s.apply(this,arguments);
-    if(SOFT[k]){
-      chan='s';const n=ac.currentTime;
-      if(k==='pop'){note(150,.06,'sine',.06,n,{slide:85,dry:true});noise(.04,.035,n,1200,4000)}
-      else if(k==='tick'){noise(.015,.02,n,3500,8000)}
-      else noise(.025,.035,n,2500,7000);
-      return;
-    }
+    if(SOFT[k])return; /* ไม่มีเสียงตอนกด/เลือกปุ่ม */
     const now=Date.now();
     if(!BIG[k]&&!VERD[k]){
       /* เสียงผลของตัวเลือก (ได้เงิน เสียใจ ฯลฯ) ให้ออกทีละเสียงเท่านั้น ไม่ซ้อนกัน */
