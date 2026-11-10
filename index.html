@@ -10917,6 +10917,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-10b',date:'10 พ.ย. 2569',title:'การ์ดใหม่ 65 ใบ + เอฟเฟกต์ของสวมใส่เคลื่อนไหว',items:['🃏 การ์ดใหม่ 65 ใบ ครบทุกหมวด (หมวก รองเท้า อาวุธ คาถา ปีก สัตว์เลี้ยง เสื้อ ชุดเต็ม) เช่น หมวกแม่มดแมวดำ, รองเท้าดาวหาง, ดาบสุริยะรุ่งอรุณ, ชุดจักรพรรดิกาแล็กซี่','✨ ของสวมใส่ระดับ S และ S+ ทุกใบมีเอฟเฟกต์เคลื่อนไหวบนตัวละคร เช่น ประกายวนรอบตัว, ออร่าเรืองแสง, ประกายไฟลอยขึ้น, หิมะ/ใบไม้ร่วง, รอยเท้าเรืองแสง, วงแหวนรอบเอว','🖼 ภาพบนการ์ดมีเอฟเฟกต์ตามไปด้วย และมีป้าย ✨เอฟเฟกต์ บอกในอัลบั้ม']},
  {id:'2026-11-10a',date:'10 พ.ย. 2569',title:'50 อาชีพชื่อแปลกๆ ระดับเศรษฐี + เหตุการณ์เฉพาะอาชีพ',items:['🤪 อาชีพใหม่ 50 อาชีพ เช่น เจ้าของฟาร์มไก่ไข่ทองที่ไก่ขี้เกียจ, นายหน้าขายที่ดินบนดวงจันทร์, ราชาก๋วยเตี๋ยวเรือที่เรือจมไปแล้ว, พ่อค้าขายเงา, เจ้าของโรงแรมสำหรับผี, นักประมูลของที่ไม่มีอยู่จริง','💰 เริ่มต้นรวยระดับเดียวกับอาชีพท็อป แต่เงินขึ้นลงตามจังหวะการตัดสินใจ','🎬 แต่ละอาชีพมี 2 เหตุการณ์เฉพาะตัว เหตุการณ์ละ 3 ตัวเลือก']},
  {id:'2026-11-06h',date:'6 พ.ย. 2569',title:'ภัยพิบัติแปลกๆ 14 เรื่อง + ฉากใหม่ 14 ฉาก',items:['🌀 มหันตภัยใหม่สุดพิลึก 14 เรื่อง เช่น ฝนตะเกียบ, น้ำปลาท่วมโลก, แมวทั้งเมืองจ้องฟ้า, เสาไฟเดินกลับบ้าน, เงาแยกตัว, ทุเรียนหล่นจากฟ้า, ดวงจันทร์ลดราคา, วันอังคารไม่จบ','💸 “เงินบาทกลายเป็นขนมปัง” ทำให้เงินขึ้นราหายไปเรื่อยๆ 10 วัน ส่วน “เงาแยกตัว” ให้เงาไปหาเงินแทนแต่ใจคุณเริ่มเหนื่อย','🎬 ทุกเรื่องมี 5 ตัวเลือก ฉากใหม่ตรงเหตุการณ์ และฉากจบแบบตลกร้ายถ้าพลาด']},
  {id:'2026-11-06g',date:'6 พ.ย. 2569',title:'การ์ดวาดตรงชื่อ · ภาพการ์ดคือตัวละครใส่จริง',items:['🎨 ภาพบนการ์ดทุกใบเปลี่ยนเป็นตัวละครที่สวมไอเทมนั้นจริง แทนอีโมจิ','🖌 เติมลวดลายเฉพาะใบ เช่น หมวกดวงจันทร์ หมวกรุ้ง รองเท้าสายฟ้า ปีกกำมะลอ ชุดเต็มหลายแบบ ทั้งบนการ์ดและบนตัวละครในฉาก']},
@@ -14165,7 +14166,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 10/11 22:28';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 10/11 22:47';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
@@ -14456,7 +14457,7 @@ function cardHTML(c,opt){
   return '<div class="cardx t'+c.t+(opt.sel?' sel':'')+'" style="--cc:'+T.c+';--cg:'+T.g+';--b1:'+bg[0]+';--b2:'+bg[1]+'"'+(opt.attr||'')+'>'+
    '<span class="cdt">'+T.n+'</span>'+(opt.n>1?'<span class="cdn">×'+opt.n+'</span>':'')+
    '<div class="cdart">'+sp+cardArtImg(c)+'</div>'+
-   '<b>'+esc(c.n)+'</b><div class="cdslot">'+slotName(c.slot)+'</div>'+
+   '<b>'+esc(c.n)+'</b><div class="cdslot">'+slotName(c.slot)+(typeof wfxFor==="function"&&wfxFor(c.id)?' · ✨เอฟเฟกต์':'')+'</div>'+
    '<small>+'+pct(T.b)+'% ทอง · ดรอป '+pct(T.p)+'%'+(opt.n>1?' · ×'+opt.n:'')+'</small>'+(opt.foot||'')+
    '<span class="cdsh"></span></div>';
 }
@@ -14745,6 +14746,221 @@ q14:'r:-3,-11,6,1,#ffe8a0;r:-1,-13,2,2,#ffb85a;st:star,-5,3,#ffe8a0,#ffffff;tp:4
 q15:'st:bolt,-7,0,#7ac8ff;st:bolt,6,2,#7ac8ff;r:-4,-9,8,1,#e8f0ff;r:-1,-11,2,2,#7ac8ff;tp:-3,5,#ffffff;tp:2,9,#7ac8ff',
 q16:'p:-3,-8,#ffffff;p:-1,-9,#ffffff;p:1,-9,#ffffff;p:3,-8,#ffffff;r:-4,1,3,3,#f4c8d8;r:1,1,3,3,#f4c8d8;st:dot,0,5,#ffffff;r:-3,0,6,1,#ffffff'
 });
+/* ===== การ์ดชุดที่ 4 (65 ใบ) + เอฟเฟกต์เคลื่อนไหวของของสวมใส่ ===== */
+var X4=[
+/* หมวก */
+['xh1','B','🧢','หมวกแก๊ปร้านก๋วยเตี๋ยว','hat','#e8e0c8','cap'],
+['xh2','B','🪢','ผ้าโพกหัวลายจุด','hat','#d8504a','bandana'],
+['xh3','A','🤠','หมวกคาวบอยทุ่งฝัน','hat','#c8964a','cowboy'],
+['xh4','A','🌞','หมวกปีกกว้างพระอาทิตย์','hat','#ffd24a','sunhat'],
+['xh5','S','🐈‍⬛','หมวกแม่มดแมวดำ','hat','#3a2a4a','witch'],
+['xh6','S','🦌','หมวกอัศวินกวางป่า','hat','#6a8a4a','knight'],
+['xh7','SP','🌌','มงกุฎราชาแสงเหนือ','hat','#6affc8','crown'],
+['xh8','SP','🪐','ห่วงดาวเสาร์ลอยหัว','hat','#e8c878','halo'],
+/* รองเท้า */
+['xs1','B','🩴','แตะหูหนีบสีฟ้า','shoes','#4ab0e8','flip'],
+['xs2','B','🥿','รองเท้านักเรียนขัดมัน','shoes','#2a2a34','school'],
+['xs3','A','🛼','รองเท้าสเก็ตนีออน','shoes','#ff5ad8','skate'],
+['xs4','A','🥾','บูทเดินป่าหิมะ','shoes','#c8d8e8','boot'],
+['xs5','S','🚀','รองเท้าจรวดจิ๋ว','shoes','#ff7a5a','trail'],
+['xs6','SP','🌠','รองเท้าดาวหางพุ่งทะลุฟ้า','shoes','#7ae8ff','winged'],
+['xs7','SP','🌋','รองเท้าลาวาเดือด','shoes','#ff5a2a','spark'],
+/* อาวุธ */
+['xw1','B','🏏','ไม้ตียุงยักษ์','weapon','#c8b090','bat'],
+['xw2','B','💦','ปืนฉีดน้ำสงกรานต์','weapon','#4ab8e8','watergun'],
+['xw3','A','🔪','มีดหั่นผักเทพเจ้า','weapon','#c8d0dc','knife'],
+['xw4','A','🏹','ธนูไม้ไผ่ลายทอง','weapon','#d8a838','bow'],
+['xw5','S','🗡️','ดาบมรกตป่าลึก','weapon','#4ad888','sword'],
+['xw6','S','🔫','ปืนพกนักสืบเงา','weapon','#6a6a8a','pistol'],
+['xw7','SP','☀️','ดาบสุริยะรุ่งอรุณ','weapon','#ffd24a','swordf'],
+['xw8','SP','🌙','ปืนยาวเงาจันทรา','weapon','#a8b8ff','rifle'],
+/* คาถา */
+['xc1','B','🍃','คาถาลมพัดใบไม้','spell','#8ad87a','leaf'],
+['xc2','B','🕯️','คาถาเทียนวูบ','spell','#ffd8a0','candle'],
+['xc3','A','🏜️','คาถาพายุทราย','spell','#e8c888','sand'],
+['xc4','A','🪲','คาถาหิ่งห้อยกลางคืน','spell','#e8ff7a','firefly'],
+['xc5','S','🔥','คาถาไฟพิโรธ','spell','#ff5a2a','fire'],
+['xc6','S','💨','คาถาลมกรดฟ้า','spell','#bfe8ff','wind'],
+['xc7','SP','🌠','คาถาฝนดาวตกทอง','spell','#ffd24a','meteor'],
+['xc8','SP','⚡','คาถาอสนีบาตม่วง','spell','#c86aff','bolt'],
+/* ปีก */
+['xg1','B','🪽','ปีกกระดาษสีรุ้ง','wings','#ffb0e0','paper'],
+['xg2','A','🦟','ปีกแมลงเม่าแสงจันทร์','wings','#e8e0f0','moth'],
+['xg3','A','🦇','ปีกค้างคาวเหล็ก','wings','#6a6a7a','bat'],
+['xg4','S','🦚','ปีกนกยูงสีฟ้า','wings','#4ab8e8','feather'],
+['xg5','SP','🐲','ปีกมังกรทองแดง','wings','#e8883a','bat'],
+['xg6','SP','🌈','ปีกรุ้งประกายหยก','wings','#7affc8','rainbow'],
+/* สัตว์เลี้ยง */
+['xp1','B','🐶','ลูกหมาปุกปุย','pet','#e8c8a0','dog'],
+['xp2','B','🐹','แฮมสเตอร์ล้อวิ่ง','pet','#e8b878','hamster'],
+['xp3','A','🐱','แมวส้มขี้เซา','pet','#ff9a4a','cat'],
+['xp4','A','🐰','กระต่ายฟ้าหูตก','pet','#9ac8ff','rabbit'],
+['xp5','S','🦊','จิ้งจอกไฟเก้าหาง','pet','#ff7a3a','fox'],
+['xp6','S','🐺','หมาป่าน้ำแข็งพิทักษ์','pet','#a8e0ff','wolf'],
+['xp7','SP','🐉','มังกรหยกสายฟ้า','pet','#7affc8','dragon'],
+['xp8','SP','🦄','ยูนิคอร์นดาราจักร','pet','#c8a8ff','unicorn'],
+/* เสื้อ */
+['xt1','B','👔','เสื้อเชิ้ตออฟฟิศยับ','top','#d8e0f0',''],
+['xt2','B','🧥','เสื้อฮู้ดสีเทา','top','#8a8a96',''],
+['xt3','A','🧶','เสื้อไหมพรมลายหิมะ','top','#e8f0ff',''],
+['xt4','A','🥋','ชุดฝึกยูโดเข็มขัดดำ','top','#f2f2f6',''],
+['xt5','S','🦸','ผ้าคลุมฮีโร่แดง','top','#d83a3a','cape'],
+['xt6','SP','🌌','ผ้าคลุมจักรวาลสีทอง','top','#ffd24a','cape']];
+var X4F=[
+['xf1','B','🥢','ชุดแม่ค้าก๋วยเตี๋ยว','#f4f0e8','#3a4a6a','#f4f0e8'],
+['xf2','B','🚕','ชุดคนขับแท็กซี่','#ffd24a','#2a2f44',null],
+['xf3','B','📚','ชุดบรรณารักษ์','#8a6a9a','#4a3a4a',null],
+['xf4','A','🧑‍🚒','ชุดนักดับเพลิง','#d84a3a','#2a2f44','#ffd24a'],
+['xf5','A','🏄','ชุดนักโต้คลื่น','#4ab8e8','#2a3a5a',null],
+['xf6','A','🎤','ชุดนักร้องเวทีกลางแจ้ง','#c86aff','#1a1a2a',null],
+['xf7','S','🥷','ชุดนินจาราตรี','#2a2a36','#1a1a22','#2a2a36'],
+['xf8','S','🧑‍🚀','ชุดนักบินอวกาศส้ม','#ff8a3a','#e8ecf4','#e8ecf4'],
+['xf9','S','🎓','ชุดศาสตราจารย์ผู้ทรงภูมิ','#3a3a5a','#2a2a3a','#1a1a2a'],
+['xf10','SP','🐉','ชุดราชามังกรหยก','#2aa86a','#1a4a3a','#ffd24a'],
+['xf11','SP','🌸','ชุดเจ้าหญิงซากุระ','#ffc8d8','#c85a8a','#ffe8f0'],
+['xf12','SP','⚙️','ชุดจอมช่างกลไกสตีม','#b88a4a','#4a3a2a','#8a6a3a'],
+['xf13','SP','🪐','ชุดจักรพรรดิกาแล็กซี่','#5a3a9a','#1a1a3a','#ffd24a'],
+['xf14','SP','🌋','ชุดเจ้าภูเขาไฟ','#ff5a2a','#3a1a1a','#ffb02a']];
+X4F.forEach(function(c){if(CARD_BY[c[0]])return;CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:'fit',sh:c[4],pn:c[5],ht:c[6]};CARD_LIST.push([c[0],c[1],c[2],c[3],c[4],c[5],c[6]])});
+X4.forEach(function(c){if(CARD_BY[c[0]])return;CARD_BY[c[0]]={id:c[0],t:c[1],i:c[2],n:c[3],slot:c[4],c:c[5],st:c[6]};CARD_LIST.push([c[0],c[1],c[2],c[3]])});
+
+/* ลวดลายเฉพาะใบของชุดใหม่ */
+Object.assign(MO,{
+xh1:'r:-4,-3,8,1,#d84a4a;r:3,-2,3,1,#b83a3a',
+xh2:'p:-3,-2,#ffffff;p:0,-3,#ffffff;p:3,-2,#ffffff;p:-1,-1,#ffffff',
+xh3:'st:star,-1,-4,#ffe27a;r:-5,0,10,1,#8a5a2a',
+xh4:'r:-6,0,12,1,#ffb02a;tp:-4,-3,#fff3b0;tp:3,-4,#fff3b0',
+xh5:'st:paw,-1,-5,#ffb0e0;p:2,-9,#c86aff;tp:-3,-8,#ffe27a',
+xh6:'r:-5,-7,1,3,#c8a868;r:4,-7,1,3,#c8a868;p:-6,-8,#c8a868;p:5,-8,#c8a868;r:-2,-2,4,1,#c8d8a8',
+xh7:'r:-4,-3,8,1,#7a8aff;r:-4,-2,8,1,#6affc8;tp:-3,-7,#fff;tp:2,-8,#c86aff;tp:0,-10,#6affc8',
+xh8:'r:-6,-9,12,1,#e8c878;r:-4,-10,8,1,#c8a858;tp:-7,-9,#fff;tp:6,-9,#fff',
+xs1:'p:-3,-2,#ffffff;p:2,-2,#ffffff',
+xs2:'p:-3,-2,#ffffff;p:2,-2,#ffffff;r:-4,0,4,1,#6a6a74;r:1,0,4,1,#6a6a74',
+xs3:'r:-4,-1,2,2,#ffe84a;r:3,-1,2,2,#ffe84a;tp:-5,-3,#ff5ad8;tp:5,-3,#5ae8ff',
+xs4:'r:-4,-6,4,1,#ffffff;r:1,-6,4,1,#ffffff;tp:-3,-3,#ffffff',
+xs5:'r:-4,-1,4,1,#ffd24a;r:1,-1,4,1,#ffd24a;st:flame,-6,0,#ff9a2a;st:flame,6,0,#ff9a2a',
+xs6:'tp:-6,-3,#ffffff;tp:6,-3,#a0fff0;tp:-7,-1,#a0fff0;tp:7,-1,#fff;r:-4,-2,4,1,#fff;r:1,-2,4,1,#fff',
+xs7:'r:-4,-1,4,1,#ffb02a;r:1,-1,4,1,#ffb02a;tp:-4,-4,#ff5a2a;tp:4,-4,#ffd24a',
+xw1:'r:0,-3,2,1,#8a6a3a',
+xw2:'r:1,-3,2,1,#ffffff;tp:4,-4,#bfe8ff',
+xw3:'r:0,-2,1,3,#ffd24a',
+xw4:'tp:-2,-6,#ffe27a;r:-1,-4,1,1,#d8a838',
+xw5:'p:0,-8,#c8ffe0;p:0,-12,#c8ffe0;tp:2,-14,#fff',
+xw6:'r:-2,-2,5,1,#2a2a30;tp:3,-4,#ffffff',
+xw7:'tp:2,-16,#fff3b0;tp:-1,-12,#ffffff;p:0,-8,#fff3b0',
+xw8:'mr:1,-1,10,1,#a8b8ff;tp:8,-3,#ffffff',
+xc1:'st:leaf,-8,-8,#8ad87a,#4a9a4a;st:leaf,7,-4,#a8e898,#4a9a4a',
+xc2:'p:-8,-6,#ffd8a0;p:8,-9,#ffd8a0;tp:-7,-8,#fff6d8',
+xc3:'r:-9,8,5,1,#e8c888;r:3,9,5,1,#c8a868',
+xc4:'tp:-8,-6,#e8ff7a;tp:7,-9,#e8ff7a;tp:-4,-12,#d8ff6a;tp:5,-2,#e8ff7a',
+xc5:'r:-8,10,4,1,#ff5a2a;r:3,10,5,1,#ffb02a;tp:-6,8,#ffd24a',
+xc6:'r:-9,-4,6,1,#bfe8ff;r:4,-8,6,1,#bfe8ff;r:-8,4,5,1,#ffffff',
+xc7:'st:star,-8,-10,#ffd24a,#ffffff;st:star,8,-6,#ffd24a,#ffffff;tp:0,-14,#fff',
+xc8:'st:bolt,8,-8,#c86aff;st:bolt,-10,-6,#c86aff;tp:0,-14,#ffffff',
+xg1:'p:5,-1,#ff8ad8;p:7,0,#8ad8ff;p:9,-1,#ffe88a',
+xg2:'tp:4,-2,#ffffff;tp:7,1,#e8e0f0',
+xg3:'r:3,-1,6,1,#3a3a46;r:3,2,5,1,#3a3a46',
+xg4:'st:dot,7,-1,#4a2a8a;st:dot,6,2,#4a2a8a;tp:9,-3,#a8ffff',
+xg5:'r:3,-1,7,1,#a8582a;r:3,2,6,1,#a8582a;tp:7,-3,#ffd24a',
+xg6:'p:4,-1,#ff8ad8;p:6,0,#8ad8ff;p:8,-1,#7affc8;tp:6,-4,#fff',
+xp1:'r:-3,-8,2,3,#c8905a',
+xp2:'r:-2,-8,4,1,#fff3d8',
+xp3:'r:-4,-8,1,3,#ffd8a8;r:-1,-8,1,3,#ffd8a8;r:2,-8,1,3,#ffd8a8',
+xp4:'r:-2,-11,2,3,#7aa8e8;r:1,-11,2,3,#7aa8e8',
+xp5:'r:-12,-10,3,2,#ffffff;r:-12,-8,3,2,#ff7a3a;tp:-9,-12,#ffd24a',
+xp6:'tp:-2,-14,#ffffff;tp:3,-12,#bfe8ff;r:-3,-10,6,1,#e8faff',
+xp7:'r:-10,-9,10,2,#2aa86a;tp:8,-14,#ffffff;tp:-4,-16,#7affc8',
+xp8:'r:4,-18,1,4,#fff3b0;tp:-7,-14,#ffffff;tp:6,-12,#ffa0e8',
+xt1:'r:-4,0,8,1,#c8d0e0;p:-1,2,#ffffff;p:-1,4,#ffffff',
+xt2:'r:-4,0,8,2,#6a6a76;p:-1,3,#ffffff',
+xt3:'st:snow,-2,3,#ffffff,#bfe8ff;st:snow,2,6,#ffffff,#bfe8ff',
+xt4:'r:-4,5,8,1,#1a1a22;r:-1,0,2,5,#e0e0e8',
+xt5:'r:-5,1,1,7,#a02a2a;r:4,1,1,7,#a02a2a;st:star,-1,3,#ffe27a,#ffffff',
+xt6:'r:-5,0,1,9,#ffb02a;r:4,0,1,9,#ffb02a;tp:-3,3,#ffffff;tp:2,6,#fff3b0;tp:-1,8,#ffffff',
+xf1:'r:-4,3,8,3,#f4f0e8;r:-3,4,6,1,#d8d0c0;r:5,3,2,5,#e8e0d0;tp:6,2,#ffffff',
+xf2:'r:-4,2,8,1,#2a2a2a;r:-3,3,1,1,#2a2a2a;r:-1,3,1,1,#2a2a2a;r:1,3,1,1,#2a2a2a;r:3,3,1,1,#2a2a2a',
+xf3:'r:-5,3,2,3,#c8a070;r:4,3,2,3,#c8a070;r:-4,1,8,1,#e8d8b0',
+xf4:'r:-4,2,8,1,#ffd24a;r:-4,5,8,1,#ffd24a;r:-3,-9,6,1,#ffd24a',
+xf5:'r:-4,1,8,1,#ffffff;r:-4,4,8,1,#ffffff;r:5,-2,1,12,#ffd24a',
+xf6:'tp:-5,1,#ffffff;tp:5,3,#ffe84a;r:6,4,2,5,#2a2a2a;r:6,3,2,1,#c0c0c8',
+xf7:'r:-4,-4,8,2,#d83a3a;r:-3,-4,6,1,#ffffff;r:5,1,1,5,#c0c0c8;r:-4,5,8,1,#d83a3a',
+xf8:'r:-4,-8,8,6,#2a3a5a;r:-3,-7,6,4,#8ad8f0;r:-4,2,8,1,#ffffff;r:3,3,2,2,#d84a4a;r:-5,6,2,2,#ffffff',
+xf9:'r:-5,-9,10,1,#1a1a2a;r:-3,-10,6,1,#1a1a2a;r:4,-9,1,4,#ffd24a;r:-4,2,8,1,#e8e8f0;r:5,3,3,5,#c8a070',
+xf10:'r:-5,-9,10,1,#ffd24a;r:-4,-10,2,1,#ffd24a;r:2,-10,2,1,#ffd24a;r:-4,2,8,1,#ffd24a;st:flame,-1,4,#ffd24a;r:-6,1,2,6,#1a7a4a;r:4,1,2,6,#1a7a4a',
+xf11:'st:flower,-3,3,#ffffff,#ffe27a;st:flower,2,6,#ff9ac0,#ffe27a;r:-6,-9,3,2,#ff9ac0;r:3,-9,3,2,#ff9ac0;tp:-5,-6,#ffffff;tp:5,-5,#ffd8e8',
+xf12:'r:-3,3,3,3,#8a6a3a;r:1,3,3,3,#6a4a2a;r:-1,4,1,1,#ffd24a;r:-4,-10,8,2,#6a4a2a;r:5,1,2,8,#6a6a74;tp:6,-1,#ffffff',
+xf13:'st:star,-2,3,#ffe27a,#ffffff;tp:3,6,#ffffff;tp:-4,8,#c8a8ff;r:-5,1,1,10,#9a6aff;r:4,1,1,10,#9a6aff;r:-4,-10,8,1,#ffd24a',
+xf14:'r:-4,3,8,1,#ffb02a;st:flame,-1,4,#ffd24a;r:-3,7,6,1,#ffb02a;tp:-3,2,#ffd24a;tp:3,5,#ff9a2a'
+});
+
+/* ===== เอฟเฟกต์เคลื่อนไหวของของสวมใส่ (ระดับ S และ S+ ทุกใบ) ===== */
+var _wf={};
+function wfxFor(id){
+  if(_wf[id]!==undefined)return _wf[id];
+  var c=CARD_BY[id],r=null;
+  if(c&&(c.t==='S'||c.t==='SP')){
+    var sp=c.t==='SP',sl=c.slot,st=c.st||'',col=c.c||c.sh||'#ffffff';
+    if(sl==='fit'){col=(c.ht&&c.ht!=='#1a1a2a'&&c.ht!=='#2a2a36'?c.ht:c.sh);if(!col||col==='#e8ecf4')col='#bfe8ff'}
+    r=[];
+    if(sp)r.push(['aura',col]);
+    if(sl==='shoes'){r.push([(st==='winged'||st==='spark')?'trail':'trail',col]);if(st==='winged'||sp)r.push(['rise',col])}
+    else if(sl==='spell'){
+      if(st==='fire'||st==='ember'||st==='phoenix')r.push(['rise',col]);
+      else if(st==='ice'||st==='leaf'||st==='wind'||st==='meteor'||st==='sand')r.push(['fall',col]);
+      else if(st==='holy'||st==='smoke'||st==='shadow')r.push(['rise',col]);
+      else r.push(['spk',col])
+    }
+    else if(sl==='wings'){r.push([st==='bfly'||st==='bflyp'||st==='moth'?'fall':'spk',col])}
+    else if(sl==='pet'){r.push(['spk',col]);if(st==='dragon'||st==='phoenix')r.push(['rise',col])}
+    else if(sl==='hat'){r.push(['spk',col])}
+    else if(sl==='weapon'){r.push([st==='swordf'||st==='pistolf'?'rise':'spk',col])}
+    else{r.push(['ring',col]);if(sp)r.push(['spk',col])}
+  }
+  return _wf[id]=r;
+}
+function wfxRun(list,slot,x,y,d,t,tk,P){
+  var cx=x,cy=y-12,seed=slot.length*7;
+  if(slot==='shoes'){cy=y}else if(slot==='hat'){cy=y-24}else if(slot==='weapon'){cx=x+d*5;cy=y-8}
+  else if(slot==='pet'&&P){cx=Math.round(P.x);cy=y-8}
+  list.forEach(function(e,ei){
+    var k=e[0],col=e[1],s2=seed+ei*13,i,ph,px,py;
+    if(k==='aura'){
+      g.globalAlpha=.10+.05*Math.sin(t*3+s2);D(cx,cy,slot==='pet'?9:13,col);
+      g.globalAlpha=.06+.03*Math.sin(t*3+s2);D(cx,cy,slot==='pet'?12:18,col);g.globalAlpha=1;
+    }else if(k==='spk'){
+      for(i=0;i<5;i++){var a=t*1.3+i*1.2566+s2,rr=8+(i%2)*4;px=Math.round(cx+Math.cos(a)*rr);py=Math.round(cy+Math.sin(a)*rr*.9-2);
+        if((Math.floor(t*5)+i)%3){R(px,py,1,1,col);if((Math.floor(t*5)+i)%6===1){R(px-1,py,3,1,col);R(px,py-1,1,3,col)}}}
+    }else if(k==='rise'){
+      for(i=0;i<6;i++){ph=(t*.8+i/6)%1;px=Math.round(cx+((hh(i,s2)%11)-5)+Math.sin(ph*6+i)*2);py=Math.round(cy+6-ph*26);
+        g.globalAlpha=1-ph;R(px,py,ph<.5?2:1,ph<.5?2:1,col)}g.globalAlpha=1;
+    }else if(k==='fall'){
+      for(i=0;i<6;i++){ph=(t*.55+i/6)%1;px=Math.round(cx+((hh(i,s2)%19)-9)+Math.sin(ph*7+i)*2);py=Math.round(cy-16+ph*30);
+        g.globalAlpha=Math.min(1,(1-ph)*2);R(px,py,1,1,col);if(i%2)R(px+1,py,1,1,col);}g.globalAlpha=1;
+    }else if(k==='trail'){
+      for(i=1;i<=6;i++){px=Math.round(x-d*i*3);py=y-(i%2);g.globalAlpha=.7-i*.1;R(px,py,2,1,col);if(i<4)R(px,py-1-(tk+i)%2,1,1,'#ffffff')}g.globalAlpha=1;
+    }else if(k==='ring'){
+      for(i=0;i<6;i++){var a2=t*1.6+i*1.047+s2;px=Math.round(cx+Math.cos(a2)*10);py=Math.round(cy+4+Math.sin(a2)*3);
+        if(Math.sin(a2)>-.3)R(px,py,1,1,col)}
+    }
+  });
+}
+function MOT(slot,F,x,y,d,s,t,tk,L){
+  try{
+    var f=F[slot];if(!f||!f.id)return;var ops=motOps(f.id),wl=wfxFor(f.id);if(!ops&&!wl)return;
+    var ax,ay,flip=0,P=window.__PS;
+    if(slot==='hat'){ax=x;ay=y-21}
+    else if(slot==='shoes'){ax=x;ay=y}
+    else if(slot==='top'||slot==='fit'){ax=x;ay=y-14}
+    else if(slot==='spell'){ax=x;ay=y-12}
+    else if(slot==='weapon'){ax=x+d*5;ay=y-8+s;flip=d}
+    else if(slot==='wings'){ax=x;ay=y-12}
+    else if(slot==='pet'){ax=Math.round(P.x);ay=y;flip=P.m>0?1:-1;
+      if(f.st==='owl'||f.st==='dragon'||f.st==='phoenix')ay+=Math.round(Math.sin(t*3)*2)-10}
+    else return;
+    if(ops)motRun(ops,ax,ay,slot,flip,L,tk);
+    if(wl)wfxRun(wl,slot,x,y,d,t,tk,P);
+  }catch(e){window.__me=e;g.globalAlpha=1}
+}
 /* ===== ฉากภัยพิบัติแปลกๆ 14 ฉาก ===== */
 const SW=(k,n,gy,f)=>SC8(k,n,0,gy,0,f);
 const TX=(s,x,y,c,z)=>{g.fillStyle=c;g.font='bold '+(z||12)+'px monospace';g.fillText(s,x,y)};
