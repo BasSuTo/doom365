@@ -14533,7 +14533,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 05:13';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 05:17';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
@@ -16543,14 +16543,13 @@ Object.assign(MUSIC,{
    const a=[0,1,2,1,2,1,2,0][i%8];note(r*SEMI(ch[a]),1.4,'triangle',.05,n);
    if(i%8===4&&Math.random()<.7)note(r*2*SEMI(PENT[rnd(5)]),1.6,'sine',.04,n,{vib:1})}}
 });
-[['calm','lanna'],['calm','ballad'],['calm','jazz'],['calm','loy'],['warm','lukthung'],['warm','loy'],['warm','ballad'],['warm','jazz'],['fun','lukthung'],['fun','thai3'],['fun','synth'],['fun','jazz'],
- ['sad','loy'],['sad','ballad'],['sad','lanna'],['regret','ballad'],['regret','loy'],['tense','epic'],['tense','nora'],['chaos','epic'],['chaos','synth'],['chaos','nora']
+[['calm','lanna'],['calm','loy'],['warm','lukthung'],['warm','loy'],['fun','lukthung'],['fun','thai3'],['fun','synth'],
+ ['sad','loy'],['sad','lanna'],['regret','loy'],['tense','epic'],['tense','nora'],['chaos','epic'],['chaos','synth'],['chaos','nora']
 ].forEach(p=>{if(VARS[p[0]]&&!VARS[p[0]].includes(p[1]))VARS[p[0]].push(p[1])});
 {const add=(sc,l)=>{SCN_TRK[sc]=(SCN_TRK[sc]||[]).concat(l.filter(x=>!(SCN_TRK[sc]||[]).includes(x)))};
  add('temple',['loy','lanna']);add('market',['thai3','lukthung']);add('stall',['lukthung']);add('village',['lanna','lukthung']);add('farm',['lukthung','lanna']);
- add('street',['jazz','synth']);add('rooftop',['synth','ballad']);add('club',['synth']);add('netcafe',['synth']);add('office',['jazz']);add('room',['ballad','jazz']);
- add('park',['jazz','ballad']);add('beach',['nora','ballad']);add('harbor',['nora']);add('bridge',['ballad']);
- add('floatmkt',['thai3','lukthung','nora']);add('chedi',['loy','lanna']);add('nightmkt',['lukthung','synth','jazz']);add('klong',['loy','lanna','nora']);
+ add('street',['synth']);add('rooftop',['synth']);add('club',['synth']);add('netcafe',['synth']);add('beach',['nora']);add('harbor',['nora']);
+ add('floatmkt',['thai3','lukthung','nora']);add('chedi',['loy','lanna']);add('nightmkt',['lukthung','synth']);add('klong',['loy','lanna','nora']);
 }
 /* ===== แก้เสียงกดปุ่มตีกับเพลง: คลิกเป็นเสียงไม่มีระดับเสียง · เสียงผลลัพธ์ออกทีละเสียง · เพลงเบาลงชั่วครู่ตอนมีเสียงเอฟเฟกต์ ===== */
 (function(){
@@ -16563,7 +16562,7 @@ Object.assign(MUSIC,{
   const _s=sfx;
   sfx=function(k){
     if(!musicOn||!ac)return _s.apply(this,arguments);
-    if(SOFT[k])return; /* ไม่มีเสียงตอนกด/เลือกปุ่ม */
+    if(SOFT[k]||k==='dawn')return; /* ไม่มีเสียงตอนกด/เลือกปุ่ม */
     const now=Date.now();
     if(!BIG[k]&&!VERD[k]){
       /* เสียงผลของตัวเลือก (ได้เงิน เสียใจ ฯลฯ) ให้ออกทีละเสียงเท่านั้น ไม่ซ้อนกัน */
@@ -16573,5 +16572,12 @@ Object.assign(MUSIC,{
     else duck(.55,.3);
     return _s.apply(this,arguments);
   };
+  /* หน้าห้องพัก/ช่วงเช้า: ไม่ใช้เพลงแนวเปียโนและกล่องดนตรี */
+  try{SCN_TRK.room=['folk','thai2','lanna']}catch(e){}
+  const _tf=trackFor;
+  trackFor=function(m){
+    const r=_tf.apply(this,arguments);
+    try{if(view&&view.scene==='room'&&['lofi','musicbox','lullaby','ballad','jazz','sky','rain'].includes(r))return pick(['folk','thai2','lanna','woods'])}catch(e){}
+    return r};
 })();
 </script></body></html>
