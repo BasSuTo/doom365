@@ -501,6 +501,15 @@ body.early .kar,body.early .ptag,body.early .tag.mood{display:none!important}
 @media (max-width:340px){.mgrid.g3{grid-template-columns:1fr 1fr}}
 .invb{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 0 8px;padding:8px 12px;border:2px solid var(--gold);border-radius:10px;background:rgba(255,200,80,.12)}
 .invb .btn{padding:7px 16px;font-size:15px}
+.stats.hasacct{flex:1;flex-wrap:nowrap;justify-content:space-between;gap:12px}
+.stats.hasacct #acct{flex:1;max-width:520px;margin:0 auto}
+.stats.hasacct #acct .amb{padding:4px 10px!important;gap:8px!important;font-size:13px;margin:0}
+.stats.hasacct #acct .amb span{min-width:0!important}
+.stats.hasacct #acct small{font-size:11px}
+.stats.hasacct #acct .btn{padding:4px 12px;font-size:13px}
+.stats.hasacct #acct p.hint{margin:0;font-size:12px}
+.stats.hasacct .lgst{white-space:nowrap}
+@media (max-width:900px){.stats.hasacct{flex-wrap:wrap}.stats.hasacct #acct{flex:1 1 100%;max-width:none;order:2;margin:4px 0 0}}
 </style></head><body>
 
 <div class="app" id="app">
@@ -11972,6 +11981,7 @@ function needOf(h){
   return '';
 }
 function renderHUD(h){
+  try{$('stats').classList.remove('hasacct')}catch(e){}
   try{if(typeof lobbyPresenceSoon==='function'&&S&&stage!=='start')lobbyPresenceSoon()}catch(e){}
   h=h||hudOf();HUDNOW=h;
   const pool=poolSize();
@@ -12331,13 +12341,13 @@ function waitBtn(id,key,base,msg){
     if(left>0){b.disabled=true;b.textContent=base+' (รอ '+mmss(left)+')'}else{b.disabled=false;b.textContent=base;clearInterval(iv)}};
   const iv=setInterval(tick,1000);tick();
 }
-/* คอมพิวเตอร์: ย้ายคนออนไลน์+ช่องแชทโลกไปไว้ใต้ปุ่มเครื่องมือฝั่งซ้าย (หน้าแรกเท่านั้น) */
+/* คอมพิวเตอร์: ย้ายช่องแชทโลกไปไว้ใต้ปุ่มเครื่องมือฝั่งซ้าย (หน้าแรกเท่านั้น) */
 let DOCK_OBS=null;
 function dockChat(){
   const el=$('chat'),scr=document.querySelector('.stage .screen');
   if(!el||!scr||!window.matchMedia('(min-width:901px)').matches)return;
   const box=document.createElement('div');box.className='chatdock';
-  scr.appendChild(box);{const ol=$('onl');if(ol)box.appendChild(ol)}box.appendChild(el);
+  scr.appendChild(box);box.appendChild(el);
   if(DOCK_OBS)DOCK_OBS.disconnect();
   DOCK_OBS=new MutationObserver(()=>{if(!panel.querySelector('.hero')){document.querySelectorAll('.chatdock').forEach(d=>d.remove());DOCK_OBS.disconnect()}});
   DOCK_OBS.observe(panel,{childList:true});
@@ -12367,7 +12377,7 @@ function showStart(){
    '<div id="onl"></div>'+
    '<div id="chat"></div>'+
    '<p class="hint">กดปุ่มเลข 1–6 เพื่อเลือก · กด “เพลง” เพื่อเปิดเสียง · “สัญลักษณ์” อธิบายไอคอนทั้งหมด · “อันดับ” ดูตารางผู้เล่น</p>';
-  try{const sp=document.querySelector('#panel .nick>span'),st=$('stats');if(sp&&st){st.innerHTML='';sp.className='lgst';st.appendChild(sp)}}catch(e){}
+  try{const sp=document.querySelector('#panel .nick>span'),st=$('stats');if(sp&&st){st.innerHTML='';sp.className='lgst';st.appendChild(sp);const ac=$('acct');if(ac){st.classList.add('hasacct');st.insertBefore(ac,sp)}}}catch(e){}
   $('nick').onchange=e=>{setNick(e.target.value);if(LB.signed&&NICK)LB.db.doc('board/'+LB.id).update({nick:NICK}).catch(()=>{})};
   {const sg=$('showg');if(sg)sg.onchange=e=>{try{localStorage.setItem('doom365-showg',e.target.checked?'1':'0')}catch(x){}const g=gnameNow();if(LB.signed){if(g)LB.db.doc('board/'+LB.id).update({gname:g}).catch(()=>{});else LB.db.doc('board/'+LB.id).get().then(sn=>{if(sn.exists){const d=sn.data();delete d.gname;LB.db.doc('board/'+LB.id).set(d).catch(()=>{})}}).catch(()=>{})}}}
   {const nb=$('newsbtn');if(nb)nb.onclick=showNews}{const mb=$('msbtn');if(mb)mb.onclick=msShow}
@@ -14238,7 +14248,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 03:12';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 03:18';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
