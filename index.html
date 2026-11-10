@@ -520,6 +520,12 @@ body.early .kar,body.early .ptag,body.early .tag.mood{display:none!important}
 .stats.hasacct #acct{margin:0 0 0 auto}
 @media (max-width:900px){.stats.hasacct #acct{margin:4px 0 0}}
 @media (max-width:900px){.hud-main:has(.stats.hasacct){flex-wrap:wrap}.stats.hasacct{flex:1 1 100%}}
+.btn.sub{position:relative;display:inline-flex;flex-direction:column;align-items:flex-start;gap:1px;text-align:left}
+.btn.sub b{font:inherit;font-weight:700}
+.btn.sub small{font-size:11.5px;font-weight:400;opacity:.75;line-height:1.25}
+.ndot{position:absolute;top:-4px;right:-4px;width:12px;height:12px;border-radius:50%;background:#e8483c;border:2px solid #fff6e6;animation:ndp 1.6s infinite}
+@keyframes ndp{0%,100%{transform:scale(1)}50%{transform:scale(1.25)}}
+@media (prefers-reduced-motion:reduce){.ndot{animation:none}}
 </style></head><body>
 
 <div class="app" id="app">
@@ -12622,8 +12628,8 @@ function morningHTML(m,mode){
    '<div class="advice'+(adv.i>=0?' hot':'')+'">💡 <b>วันนี้ควรทำ:</b> '+esc(adv.t)+'</div>'+
    '<p class="hint" style="margin:0">🍞 อาหารในคลัง '+(h.inv?h.inv.food:0)+' มื้อ · 💧 น้ำ '+(h.inv?h.inv.water:0)+' ขวด เมื่อหิวหรือกระหาย เกมจะหยิบมากินให้เอง ถ้าของหมดต้องออกไปหาเพิ่ม</p>'+
    '<div class="agrid">'+m.opts.map((a,i)=>'<button class="act'+(i===adv.i?' hot':'')+'" data-vi="'+i+'" data-i="'+i+'"'+(a.ok||mode==='guest'&&false?'':' disabled')+'>'+(i===adv.i?'<i class="rec">แนะนำ</i>':'')+'<b>'+esc(a.t)+'</b><small>'+esc(a.d)+'</small><span class="en">'+(a.en?'เสียแรง '+a.en:'ไม่เสียแรง')+'</span>'+(!a.ok&&a.why?'<span class="why">'+esc(a.why)+'</span>':'')+'</button>').join('')+'</div>'+
-   '<div class="row"><button class="btn'+(m.done?' pulse':'')+'" id="goon" data-vi="'+m.opts.length+'" data-i="'+m.opts.length+'">ไปต่อเหตุการณ์ถัดไป</button>'+(mode==='guest'?'':'<button class="btn ghost" id="shopb">ร้านค้า / ตลาดมืด</button>')+'</div>'+
-   (mode==='guest'?'':'<div class="row"><button class="btn ghost" id="homeb">🏠 ปรับปรุงที่พัก</button><button class="btn ghost" id="skb">⭐ ทักษะ</button><button class="btn ghost" id="giftb">🎁 ส่งของให้เพื่อน</button></div>')+
+   '<div class="row"><button class="btn'+(m.done?' pulse':'')+'" id="goon" data-vi="'+m.opts.length+'" data-i="'+m.opts.length+'">ไปต่อเหตุการณ์ถัดไป</button>'+(mode==='guest'?'':'<button class="btn ghost sub" id="shopb"><b>ร้านค้า / ตลาดมืด</b><small>ซื้อของใช้ ยา อาหาร</small></button>')+'</div>'+
+   (mode==='guest'?'':'<div class="row"><button class="btn ghost sub" id="homeb">'+(homeCanBuild()?'<i class="ndot" title="มีของที่สร้างได้ตอนนี้"></i>':'')+'<b>🏠 ปรับปรุงที่พัก</b><small>เพิ่มป้องกัน · ซ่อนตัว รับมือภัย</small></button><button class="btn ghost sub" id="skb">'+(skillNew()?'<i class="ndot" title="ทักษะเพิ่มระดับ"></i>':'')+'<b>⭐ ทักษะ</b><small>เก่งขึ้นจากการลงมือทำ</small></button></div>')+
    (mode==='host'?hostBar():'')+
    (mode==='guest'?'<p class="hint">เพื่อนช่วยโหวตแผนของวันนี้ได้ หัวหน้าห้องเป็นคนกดตัดสิน</p>':'');
 }
@@ -12637,7 +12643,7 @@ function showMorning(keep){
   panel.innerHTML=morningHTML(m,MP.on&&MP.host?'host':'solo');
   panel.querySelectorAll('.act,#goon').forEach(b=>b.onclick=()=>MP.on&&MP.host?hostClick(+b.dataset.i):morningPick(+b.dataset.i));
   if($('shopb'))$('shopb').onclick=showShop;
-  if($('homeb'))$('homeb').onclick=showHome;if($('skb'))$('skb').onclick=showSkills;if($('giftb'))$('giftb').onclick=showGift;
+  if($('homeb'))$('homeb').onclick=showHome;if($('skb'))$('skb').onclick=showSkills;
   if(MP.on&&MP.host){bindHostBar();mpSend(m);mpTally()}
 }
 function morningPick(i){
@@ -13967,6 +13973,10 @@ function hostIdle(msg){
   if(MP.on&&MP.host)mpSend({k:'idle',msg,hud:hudOf(),mood:'calm',scene:'room',tod:ev?ev.tod:'day',seed:'home',look:S.role.look,doomId:S.doom.id,day:S.day,up:upIds(),crew:S.crew.map(m=>({look:m.look}))});
 }
 let homeMsg='';
+/* จุดแจ้งบนปุ่มหน้าเช้า: มีของที่สร้างได้ / ทักษะเลเวลเพิ่ม */
+function homeCanBuild(){try{return UPG.some(u=>!upOwn(u.id)&&upCan(u).ok)}catch(e){return false}}
+function skSum(){try{return SKL.reduce((a,s)=>a+skLv(s.id),0)}catch(e){return 0}}
+function skillNew(){try{return skSum()>(S.skSeen||0)}catch(e){return false}}
 function showHome(){
   stage='shop';busy=false;view.up=upIds();renderHUD();
   const rows=UPG.map(u=>{
@@ -13987,7 +13997,7 @@ function showHome(){
   hostIdle('หัวหน้าห้องกำลังปรับปรุงที่พัก');
 }
 function showSkills(){
-  stage='shop';busy=false;renderHUD();
+  stage='shop';busy=false;S.skSeen=skSum();renderHUD();
   const rows=SKL.map(s=>{
     const x=skXp(s.id),l=skLv(s.id),nx=SKTH[l],pv=l?SKTH[l-1]:0;
     const pct=nx?Math.round((x-pv)/(nx-pv)*100):100;
@@ -14258,7 +14268,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 03:41';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 03:50';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
