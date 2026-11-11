@@ -6527,7 +6527,7 @@ const TITLES=[
  {id:'rk_sv',src:'rank',m:'survived',n:'ท็อป 10 ผู้รอดครบ 365 วัน',i:'🏆',b:{mo:.04}},
  {id:'rk_fn',src:'rank',m:'funny',n:'ท็อป 10 ตายฮาที่สุด',i:'🤡',b:{mo:.04}},
  {id:'rk_wk',src:'rank',m:'wk',top:20,n:'ท็อป 20 ผู้ผ่านท้าทายสัปดาห์',i:'🏅',b:{mo:.05}},
- {id:'rk_te',src:'rank',m:'te',n:'ท็อป 10 เงินสะสมรวมตั้งแต่เล่น',i:'💰',b:{mo:.05}},
+ {id:'rk_te',src:'rank',m:'te',n:'ท็อป 10 เงินที่หามาได้รวม',i:'💰',b:{mo:.05}},
  {id:'rk_dl',src:'rank',m:'dc',top:20,n:'ท็อป 20 ชีวิตประจำวัน',i:'📅',b:{mo:.05}},
  {id:'e5',src:'epi',n:'ซาตานผู้ปล้นโลกก่อนโลกแตก',i:'💀',b:{mo:.03}}];
 const TT_BY=Object.fromEntries(TITLES.map(t=>[t.id,t]));
@@ -10683,12 +10683,12 @@ async function lbRecord(E,kind){
   }catch(e){return false}
 }
 const SILLY=(typeof FD_IDS!=='undefined'?FD_IDS:[]).concat(['banana','coconut','selfie','laugh','choke','veg','mushroom','spicy','karaoke','allergy','bee','pool','yacht','fugu','safe','heartplay','liver']);
-const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['funny','ตายฮาหลายแบบที่สุด',v=>v+' แบบ','🤡'],['gd','คนดีที่สุด (ช่วยเหลือรวม)',v=>v+' ครั้ง','😇'],['ev','คนชั่วที่สุด (หยิบของรวม)',v=>v+' ครั้ง','😈'],['ot','ออนไลน์นานที่สุด',v=>fmtOt(v),'⏱'],['te','เงินสะสมรวมตั้งแต่เล่น',v=>fmt(v),'💰'],['dc','เล่นชีวิตประจำวันสะสม',v=>v+' วัน','📅']];
+const METRICS=[['richest','รวยที่สุด',v=>fmt(v),'👑'],['survived','รอดครบ 365 วัน',v=>v+' ครั้ง','🛡'],['wk','ผ่านท้าทายสัปดาห์',v=>v+' ครั้ง','🏅'],['funny','ตายฮาหลายแบบที่สุด',v=>v+' แบบ','🤡'],['gd','คนดีที่สุด (ช่วยเหลือรวม)',v=>v+' ครั้ง','😇'],['ev','คนชั่วที่สุด (หยิบของรวม)',v=>v+' ครั้ง','😈'],['ot','ออนไลน์นานที่สุด',v=>fmtOt(v),'⏱'],['te','เงินที่หามาได้รวม',v=>fmt(v),'💰'],['dc','เล่นชีวิตประจำวันสะสม',v=>v+' วัน','📅']];
 /* ซ่อนอันดับที่ยังไม่มีใครทำได้ (ยกเว้น 3 อันดับหลัก) ให้โผล่เองเมื่อมีคนผ่านเกณฑ์ */
 const CORE_M=['richest','survived','gd','ev','ot','te'];
 function activeMetrics(){return METRICS.filter(m=>CORE_M.includes(m[0])||LB.rows.some(r=>!r.bad&&r[m[0]]>0))}
 function rankList(k){return LB.rows.filter(r=>!r.bad&&r[k]>0).sort((a,b)=>b[k]-a[k]||b.best-a.best)}
-const TOPN=20,TSHORT={richest:'เศรษฐี',survived:'ผู้รอด 365 วัน',wk:'ท้าทายสัปดาห์',funny:'ตายฮา',gd:'คนดี',ev:'คนชั่ว',ot:'ออนไลน์นาน',te:'เงินสะสม',dc:'ชีวิตประจำวัน'};
+const TOPN=20,TSHORT={richest:'เศรษฐี',survived:'ผู้รอด 365 วัน',wk:'ท้าทายสัปดาห์',funny:'ตายฮา',gd:'คนดี',ev:'คนชั่ว',ot:'ออนไลน์นาน',te:'เงินหามาได้',dc:'ชีวิตประจำวัน'};
 function topMap(){/* id -> [{k,n,ic,r}] เรียงจากอันดับดีสุด · ท็อป 20 ทุกตาราง */
   const key=(LB.rows||[]).length+':'+(LB.at||0);
   if(window.__tm&&window.__tm.k===key)return window.__tm.m;
@@ -10708,7 +10708,7 @@ function showBoard(back){
   if(LB.useGet)lbLoad().then(()=>{if(stage==='board')renderBoard()});
 }
 function badWhy(r){const w=[];
- if(r.dc>r.lives)w.push('ชีวิตประจำวันมากกว่าจำนวนชีวิต');if(r.te>r.lives*5e8)w.push('เงินสะสมรวมสูงเกิน');
+ if(r.dc>r.lives)w.push('ชีวิตประจำวันมากกว่าจำนวนชีวิต');if(r.te>r.lives*5e8)w.push('เงินที่หามาได้รวมสูงเกิน');
  if(r.at0>0&&r.ot>(Date.now()-r.at0)/60000+180)w.push('เวลาออนไลน์เกินเวลาจริง');if(r.richest>5e8)w.push('เงินสูงสุดเกินเพดาน');
  if(r.meds>80)w.push('meds>80');if(r.joy>100||r.best>100)w.push('joy/best>100');if(r.survived>r.lives)w.push('รอดมากกว่าจำนวนชีวิต');
  if(r.dr>r.lives)w.push('dr>lives');if(r.wk>r.lives+5)w.push('ท้าทายสัปดาห์เกิน');if(r.funny>r.lives)w.push('ตายฮาเกินจำนวนชีวิต');
@@ -10726,7 +10726,7 @@ function adBoardCheck(){
   const draw=()=>{
     let h='<div class="ovb" style="max-width:520px"><div class="ovh"><b>🛡️ ตรวจสถิติผู้เล่น</b><button class="mini" id="bcx">ปิด</button></div>';
     if(sel){const r=sel,w=badWhy(r);
-      h+='<p><button class="mini" id="bcb">← กลับ</button></p><p class="hint"><b>'+esc(r.nick)+'</b> '+(r.gname?'· '+esc(r.gname):'')+'<br>เล่น '+r.lives+' ชีวิต · รอดครบ 365 วัน '+r.survived+' ครั้ง · เงินสูงสุด '+fmt(r.richestRaw!=null?r.richestRaw:r.richest)+'<br>เงินสะสม '+fmt(r.te||0)+' · ท้าทายสัปดาห์ '+r.wk+' · ชีวิตประจำวัน '+r.dc+' · ตายฮา '+r.funny+' แบบ<br>อัปเดตล่าสุด '+(r.at?new Date(r.at).toLocaleString('th-TH'):'-')+'</p>'+
+      h+='<p><button class="mini" id="bcb">← กลับ</button></p><p class="hint"><b>'+esc(r.nick)+'</b> '+(r.gname?'· '+esc(r.gname):'')+'<br>เล่น '+r.lives+' ชีวิต · รอดครบ 365 วัน '+r.survived+' ครั้ง · เงินสูงสุด '+fmt(r.richestRaw!=null?r.richestRaw:r.richest)+'<br>เงินที่หามาได้รวม '+fmt(r.te||0)+' · ท้าทายสัปดาห์ '+r.wk+' · ชีวิตประจำวัน '+r.dc+' · ตายฮา '+r.funny+' แบบ<br>อัปเดตล่าสุด '+(r.at?new Date(r.at).toLocaleString('th-TH'):'-')+'</p>'+
       (r.bad?'<div class="amb" style="border-color:#b33"><b>⚠ ถูกซ่อนจากทุกอันดับ</b><br>'+(w.length?w.map(esc).join('<br>'):'ไม่ทราบสาเหตุ')+'</div>':'<div class="amb"><b>✔ ผ่านการตรวจ</b> อยู่ในอันดับได้ตามค่าของแต่ละหมวด<br>หมวดที่มีค่า: '+activeMetrics().filter(m=>r[m[0]]>0).map(m=>esc(m[1])).join(', ')+'</div>');
     }else{
       const l=LB.rows.filter(r=>!q||r.nick.toLowerCase().includes(q)||(r.gname||'').toLowerCase().includes(q)||r.id.toLowerCase().includes(q)).sort((a,b)=>(b.bad?1:0)-(a.bad?1:0)||b.lives-a.lives).slice(0,60);
@@ -10760,6 +10760,7 @@ function renderBoard(){
   panel.innerHTML=
    '<div class="kick"><span>ตารางอันดับของเซิร์ฟเวอร์</span><span>'+LB.rows.length+' ผู้เล่น</span></div>'+
    '<h2 style="font-size:24px">'+m[3]+' '+esc(m[1])+' · ท็อป 50</h2>'+
+   (k==='te'?'<p class="hint" style="margin:2px 0 8px">นับเงินที่ได้เข้ามาทุกครั้งตลอดทุกชีวิต · ไม่นับเงินตั้งต้นของอาชีพ · ไม่หักเงินที่จ่ายออก · อาชีพเศรษฐีได้เงินต่อครั้งคูณหลายเท่า ตัวเลขจึงสูง</p>':'')+
    '<div class="tabs">'+AM.map(x=>{const rl=LB.signed?rankList(x[0]):null;const mi=rl?rl.findIndex(r=>r.id===LB.id):-1;const rk=LB.signed?(mi>=0?' <b class="myrk">#'+(mi+1)+'</b>':' <b class="myrk no">–</b>'):'';return '<button class="mini'+(x[0]===k?' on':'')+'" data-t="'+x[0]+'">'+x[3]+' '+esc(x[1])+rk+'</button>'}).join('')+'</div>'+(LB.signed?'<p class="hint" style="margin:4px 0">ตัวเลข # ท้ายแต่ละปุ่ม = อันดับของคุณในหมวดนั้น (– = ยังไม่มีอันดับ)</p>':'')+
    (LB.signed?'':'<div class="amb">'+(FBon()?'ยังไม่ได้ล็อกอิน Google ดูอันดับได้ แต่ผลของคุณจะไม่ถูกบันทึก (ล็อกอินได้ที่หน้าแรก)':LB.state==='anon'?'ยังไม่ได้ล็อกอินบัญชี claude.ai ผลของคุณจึงไม่ถูกบันทึกในอันดับ':'ตารางอันดับใช้ได้เมื่อเปิดเกมจาก claude.ai (ต้องล็อกอิน)')+'</div>')+
    mine+pod+
@@ -11224,6 +11225,7 @@ if(window.D365_FB){
 
 /* ===== บอกว่าอัปเดตอะไรบ้าง (เพิ่มรายการใหม่ไว้บนสุดของ NEWS ทุกครั้งที่อัปเดต) ===== */
 const NEWS=[
+ {id:'2026-11-11d',date:'11 พ.ย. 2569',title:'เปลี่ยนชื่อ “เงินสะสม” เป็น “เงินที่หามาได้รวม”',items:['💰 อันดับและฉายาที่เคยชื่อ “เงินสะสมรวมตั้งแต่เล่น” ตอนนี้ชื่อ “เงินที่หามาได้รวม” จะได้ไม่สับสนกับเงินคงเหลือในตัว','ตัวเลขนี้นับเงินที่ได้เข้ามาทุกครั้งตลอดทุกชีวิต ไม่นับเงินตั้งต้นของอาชีพ และไม่หักเงินที่จ่ายออก','อาชีพเศรษฐีระดับสูงได้เงินต่อครั้งคูณหลายเท่า ตัวเลขจึงสูงกว่าอาชีพทั่วไปมาก','เพิ่มคำอธิบายใต้หัวข้อในหน้าอันดับแล้ว']},
  {id:'2026-11-11c',date:'11 พ.ย. 2569',title:'ธีมสบายตาแบบน่ารัก 6 ธีมใหม่',items:['🎨 ธีมสว่างพาสเทลใหม่ 5 แบบ: มินต์ใบเตย นมชมพู ฟ้าครีมโซดา เลมอนครีม ลาเวนเดอร์ อ่านง่าย ไม่จ้าตา','🍫 โกโก้นุ่มถนอมตา ธีมโทนมืดสีน้ำตาลอุ่น เหมาะเล่นตอนกลางคืน','กดปุ่ม “ธีม” เพื่อเลือก ธีมที่เลือกจะถูกจำไว้ในเครื่อง']},
  {id:'2026-11-11b',date:'11 พ.ย. 2569',title:'แชร์ลิงก์เกมและลิงก์ห้องให้เพื่อน',items:['🔗 ปุ่ม “แชร์ลิงก์เกมให้เพื่อน” ในหน้าแรก กดแล้วเปิดเมนูแชร์ของมือถือ หรือคัดลอกลิงก์ให้อัตโนมัติ','🔗 ในห้องรอ (เล่นกับเพื่อน/ปาร์ตี้) มีปุ่ม “ส่งลิงก์ห้อง” เพื่อนกดลิงก์แล้วเข้าห้องด้วยรหัสที่กรอกให้แล้ว']},
  {id:'2026-11-11a',date:'11 พ.ย. 2569',title:'จัดเมนูหน้าแรกใหม่ให้เริ่มเล่นง่ายขึ้น',items:['▶ ปุ่ม “เริ่มเกม” ใหญ่และเด่นที่สุด คนเล่นครั้งแรกกดตรงนี้ได้เลย','🎮 โหมดพิเศษ (ท้าทายสัปดาห์ / ชีวิตประจำวัน) และ 👫 เล่นกับเพื่อน แยกเป็นกลุ่ม มีคำอธิบายใต้ปุ่ม','มีเซฟอยู่แล้ว ปุ่ม “เล่นต่อจากที่บันทึก” จะขึ้นเป็นปุ่มหลักแทน']},
@@ -11501,7 +11503,7 @@ function rkStatus(){
 }
 function ttUnlocked(t){return t.src==='adm'?isAdmin():t.src==='ot'?otMine()>=t.need:t.src==='rank'?!!rkStatus()[t.m]:!!(typeof epiMine==='function'&&epiMine()[t.id])}
 function ttEquipped(){let id=lsGet(TTK,'');if(!id&&isAdmin())return 'adm';const t=TT_BY[id];return t&&ttUnlocked(t)?id:''}
-function ttReq(t){return t.src==='adm'?'เฉพาะเจ้าของเซิร์ฟเวอร์':t.src==='rank'?'ติดท็อป '+(t.top||10)+' ในอันดับ '+({survived:'“รอดครบ 365 วัน”',funny:'“ตายฮาหลายแบบที่สุด”',wk:'“ผ่านท้าทายสัปดาห์”',dc:'“ชีวิตประจำวัน (เล่นสะสม)”',te:'“เงินสะสมรวมตั้งแต่เล่น”'}[t.m])+' (หลุดท็อปฉายาจะถูกถอด)':t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
+function ttReq(t){return t.src==='adm'?'เฉพาะเจ้าของเซิร์ฟเวอร์':t.src==='rank'?'ติดท็อป '+(t.top||10)+' ในอันดับ '+({survived:'“รอดครบ 365 วัน”',funny:'“ตายฮาหลายแบบที่สุด”',wk:'“ผ่านท้าทายสัปดาห์”',dc:'“ชีวิตประจำวัน (เล่นสะสม)”',te:'“เงินที่หามาได้รวม”'}[t.m])+' (หลุดท็อปฉายาจะถูกถอด)':t.src==='ot'?'ออนไลน์สะสม '+fmtOt(t.need):'ได้จากฉายาคนดี/คนชั่วตอนจบชีวิต'}
 function otBadge(v){
   let t=null;TITLES.forEach(x=>{if(x.src==='ot'&&v>=x.need)t=x});
   return t?'<i class="tt" style="'+(t.id==='adm'?'background:#4a2a9a;color:#fff;border-color:#2e1a66;font-weight:700':'color:#8ec5ff;border-color:#8ec5ff')+'">'+t.i+' '+esc(t.n)+'</i>':'';
@@ -14533,7 +14535,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 05:17';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 11/11 19:47';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
@@ -16579,5 +16581,35 @@ Object.assign(MUSIC,{
     const r=_tf.apply(this,arguments);
     try{if(view&&view.scene==='room'&&['lofi','musicbox','lullaby','ballad','jazz','sky','rain'].includes(r))return pick(['folk','thai2','lanna','woods'])}catch(e){}
     return r};
+})();
+/* ===== ปรับมิกซ์เสียงให้โปร่งขึ้น: ลดความดัง ลดเสียงประกอบ ตัดเสียงโน้ตเอฟเฟกต์ที่ซ้อนกับเพลง ===== */
+(function(){
+  /* 1) ลดระดับเสียงตั้งต้นครั้งเดียว (ผู้เล่นปรับเองต่อได้ในเมนูระดับเสียง) */
+  try{
+    if(!localStorage.getItem('doom365-mix2')){
+      localStorage.setItem('doom365-mix2','1');
+      VOL.m=.5;VOL.s=.4;VOL.a=.3;
+      localStorage.setItem(VOLK,JSON.stringify(VOL));
+    }
+  }catch(e){}
+  try{if(ac)applyVol()}catch(e){}
+  /* 2) เสียงประกอบฉาก: เบาบางลง และตัดเสียงที่เป็นโน้ต */
+  const DROP={tick:1,bell:1,beep:1,keys:1,stab:1,monitor:1,whisper:0};
+  ambLoop=function(){
+    if(!musicOn||!ac)return;
+    chan='a';const t=AMB[view&&view.scene]||[];const n=ac.currentTime+.03;
+    for(const [p,f] of t)if(!DROP[f]&&A[f]&&rp(p*.28)){try{A[f](n)}catch(e){}}
+    if(view&&view.day>=350){try{if(ambTick%8===0)A.heart(n);if(ambTick%20===3)A.siren(n)}catch(e){}}
+    ambTick++;ambTimer=setTimeout(ambLoop,620);
+  };
+  /* 3) เสียงเปลี่ยนอารมณ์ตอนเปลี่ยนเหตุการณ์: เหลือเฉพาะฉากน่ากลัว/ตึงเครียด/วุ่นวาย */
+  const _st=stinger;
+  stinger=function(m){if(m==='creepy'||m==='tense'||m==='chaos')return _st.apply(this,arguments)};
+  /* 4) เสียงประกอบเหตุการณ์ที่เป็นทำนอง ให้ตัดออก (เสียงลม ฟ้าร้อง แผ่นดินไหว ฯลฯ ยังอยู่) */
+  for(const k of ['rare','chain','legend','party','sadn','coin'])EVS[k]=function(){};
+  /* 5) เสียงตอบสนองที่เป็นโน้ตสั้นๆ ตัดออก เก็บเฉพาะเสียงจังหวะ/ภัยอันตราย */
+  const MEL={ok:1,bad:1,love:1,sparkle:1,sadn:1,coinloss:1,heartbreak:1,heal:1,coin:1,buy:1,work:1,crew:1,rest:1,chat:1,vote:1,eat:1,drink:1,win:1,dawn:1};
+  const _s=sfx;
+  sfx=function(k){if(MEL[k])return;return _s.apply(this,arguments)};
 })();
 </script></body></html>
