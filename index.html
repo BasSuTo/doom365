@@ -1098,7 +1098,7 @@ function mergeKey(k,l,c){
   if(l==null||l==='')return c;
   if(l===c)return l;
   let a,b;try{a=JSON.parse(l);b=JSON.parse(c)}catch(e){return l}
-  if(k==='doom365-cards'&&a&&b&&typeof a==='object')return (+a.t||0)>=(+b.t||0)?l:c;
+  if(k==='doom365-cards'&&a&&b&&typeof a==='object'){const wa=(+a.t||0)>=(+b.t||0),w=wa?a:b,x=wa?b:a;if((+x.et||0)>(+w.et||0)){const r=Object.assign({},w,{eq:x.eq,et:x.et});return JSON.stringify(r)}return wa?l:c}
   if(typeof a==='number'&&typeof b==='number'&&(k==='doom365-ot'))return String(Math.max(a,b));
   if(Array.isArray(a)&&Array.isArray(b)){
     const seen=new Set(),out=[];
@@ -7109,12 +7109,12 @@ function cardLoad(){
   var adm=isAdmin();
   if(_cardMem&&raw===_cardRaw&&_cardAdm===adm)return _cardMem;
   _cardAdm=adm;
-  var d={o:{},eq:{},t:0};
+  var d={o:{},eq:{},t:0,et:0};
   try{var j=JSON.parse(raw||'null');if(j&&typeof j==='object'){
     var o={};if(j.o&&typeof j.o==='object')Object.keys(j.o).forEach(function(k){if(CARD_BY[k]){var n=Math.min(99,Math.max(0,Math.floor(+j.o[k]||0)));if(n)o[k]=n}});
     if(adm)CARD_LIST.forEach(function(c){if(!o[c[0]])o[c[0]]=1});
     var eq={};if(typeof j.eq==='string'){if(CARD_BY[j.eq]&&o[j.eq])eq[CARD_BY[j.eq].slot]=j.eq}else if(j.eq&&typeof j.eq==='object')Object.keys(j.eq).forEach(function(sl){var id=j.eq[sl];if(CARD_BY[id]&&CARD_BY[id].slot===sl&&o[id])eq[sl]=id});
-    d={o:o,eq:eq,t:+j.t||0};}}catch(e){}
+    d={o:o,eq:eq,t:+j.t||0,et:+j.et||0};}}catch(e){}
   if(adm)CARD_LIST.forEach(function(c){if(!d.o[c[0]])d.o[c[0]]=1});
   _cardMem=d;_cardRaw=raw;return d;
 }
@@ -7129,7 +7129,7 @@ function cardAdd(id,n){var d=cardLoad();d.o[id]=Math.min(99,(d.o[id]|0)+(n||1));
 function cardTake(id){var d=cardLoad();if(cardFree(id)<1)return false;if(d.o[id]===1&&cardIsEq(id)&&CARD_BY[id])delete d.eq[CARD_BY[id].slot];d.o[id]--;if(!d.o[id])delete d.o[id];cardSave();return true}
 function cardEquip(id,slot){var d=cardLoad(),c=CARD_BY[id];
   if(id&&c&&d.o[id]){if(d.eq[c.slot]===id)delete d.eq[c.slot];else d.eq[c.slot]=id}else if(slot)delete d.eq[slot];
-  cardSave()}
+  d.et=Date.now();cardSave()}
 function cardTotal(){var d=cardLoad(),n=0,u=0;for(var k in d.o){n+=d.o[k];u++}return {n:n,u:u}}
 /* สุ่มการ์ด — ลำดับ S+ → S → A (ทอยครั้งเดียว) */
 function cardRollTier(){var r=Math.random();if(r<CARD_T.SP.p)return 'SP';if(r<CARD_T.SP.p+CARD_T.S.p)return 'S';if(r<CARD_T.SP.p+CARD_T.S.p+CARD_T.A.p)return 'A';if(r<CARD_T.SP.p+CARD_T.S.p+CARD_T.A.p+CARD_T.B.p)return 'B';return null}
@@ -14573,7 +14573,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 13/11 04:40';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 13/11 13:57';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
