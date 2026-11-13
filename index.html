@@ -1098,7 +1098,15 @@ function mergeKey(k,l,c){
   if(l==null||l==='')return c;
   if(l===c)return l;
   let a,b;try{a=JSON.parse(l);b=JSON.parse(c)}catch(e){return l}
-  if(k==='doom365-cards'&&a&&b&&typeof a==='object'){const wa=(+a.t||0)>=(+b.t||0),w=wa?a:b,x=wa?b:a;if((+x.et||0)>(+w.et||0)){const r=Object.assign({},w,{eq:x.eq,et:x.et});return JSON.stringify(r)}return wa?l:c}
+  if(k==='doom365-cards'&&a&&b&&typeof a==='object'){
+    /* รวมการ์ดสองเครื่องโดยไม่ให้ใบไหนหาย: จำนวนรวมที่เคยได้ = ที่ถืออยู่ + ที่แลกออกไป (เอาค่ามากสุด) แล้วหักที่แลกออก */
+    const wa=(+a.t||0)>=(+b.t||0),w=wa?a:b,x=wa?b:a,P=o=>(o&&typeof o==='object'?o:{});
+    const tk={};[P(a.tk),P(b.tk)].forEach(m=>Object.keys(m).forEach(i=>{tk[i]=Math.max(tk[i]|0,m[i]|0)}));
+    const O={},ks=new Set([a.o,b.o,a.ux,b.ux].flatMap(m=>Object.keys(P(m))));
+    ks.forEach(i=>{const f=z=>(P(z.o)[i]|0)+(P(z.ux)[i]|0)+(P(z.tk)[i]|0);const n=Math.min(99,Math.max(0,Math.max(f(a),f(b))-(tk[i]|0)));if(n)O[i]=n});
+    const r=Object.assign({},w,{o:O,tk});delete r.ux;
+    if((+x.et||0)>(+w.et||0)){r.eq=x.eq;r.et=x.et}
+    return JSON.stringify(r)}
   if(typeof a==='number'&&typeof b==='number'&&(k==='doom365-ot'))return String(Math.max(a,b));
   if(Array.isArray(a)&&Array.isArray(b)){
     const seen=new Set(),out=[];
@@ -1169,6 +1177,8 @@ async function push(force){
   if(pushing){schedulePush(3000);return false}
   pushing=true;dirty=false;
   try{
+    /* ก่อนเขียนทับคลาวด์ ดึงมารวมก่อนเสมอ กันเครื่องที่ข้อมูลเก่าเขียนทับของใหม่จนการ์ด/ความคืบหน้าหาย */
+    {const sn=await m.c.getDoc(docRef());if(sn.exists()){const ck=(sn.data()&&sn.data().kv)||{};applying=true;try{SYNC.forEach(k=>{const l=rawGet(k),mg=mergeKey(k,l,ck[k]);if(mg!=null&&mg!==''&&mg!==l)rawSet(k,mg)})}finally{applying=false}}}
     const keys={};SYNC.forEach(k=>{const v=rawGet(k);if(v!=null&&v!=='')keys[k]=v});
     let save=rawGet(SAVEK)||'';let svat=+rawGet(SVAT)||0;
     if(save&&!svat){svat=Date.now();rawSet(SVAT,String(svat))}
@@ -7109,12 +7119,15 @@ function cardLoad(){
   var adm=isAdmin();
   if(_cardMem&&raw===_cardRaw&&_cardAdm===adm)return _cardMem;
   _cardAdm=adm;
-  var d={o:{},eq:{},t:0,et:0};
+  var d={o:{},eq:{},t:0,et:0,ux:{},tk:{}};
   try{var j=JSON.parse(raw||'null');if(j&&typeof j==='object'){
     var o={};if(j.o&&typeof j.o==='object')Object.keys(j.o).forEach(function(k){if(CARD_BY[k]){var n=Math.min(99,Math.max(0,Math.floor(+j.o[k]||0)));if(n)o[k]=n}});
     if(adm)CARD_LIST.forEach(function(c){if(!o[c[0]])o[c[0]]=1});
     var eq={};if(typeof j.eq==='string'){if(CARD_BY[j.eq]&&o[j.eq])eq[CARD_BY[j.eq].slot]=j.eq}else if(j.eq&&typeof j.eq==='object')Object.keys(j.eq).forEach(function(sl){var id=j.eq[sl];if(CARD_BY[id]&&CARD_BY[id].slot===sl&&o[id])eq[sl]=id});
-    d={o:o,eq:eq,t:+j.t||0,et:+j.et||0};}}catch(e){}
+    var ux={},tk={},okId=/^[a-z]{1,3}\d{1,3}$/;
+    [j.o,j.ux].forEach(function(src){if(src&&typeof src==='object')Object.keys(src).forEach(function(k){if(!CARD_BY[k]&&okId.test(k)){var n=Math.min(99,Math.max(0,Math.floor(+src[k]||0)));if(n&&!ux[k])ux[k]=n}})});/* การ์ดรุ่นใหม่ที่เวอร์ชันนี้ยังไม่รู้จัก: เก็บไว้ ไม่ทิ้ง */
+    if(j.tk&&typeof j.tk==='object')Object.keys(j.tk).forEach(function(k){if(okId.test(k)){var n=Math.min(9999,Math.max(0,Math.floor(+j.tk[k]||0)));if(n)tk[k]=n}});
+    d={o:o,eq:eq,t:+j.t||0,et:+j.et||0,ux:ux,tk:tk};}}catch(e){}
   if(adm)CARD_LIST.forEach(function(c){if(!d.o[c[0]])d.o[c[0]]=1});
   _cardMem=d;_cardRaw=raw;return d;
 }
@@ -7126,7 +7139,7 @@ function cardIsEq(id){var c=CARD_BY[id];return !!c&&cardLoad().eq[c.slot]===id}
 function cardBonus(){var e=cardLoad().eq,b=0;for(var k in e){var c=CARD_BY[e[k]];if(c)b+=CARD_T[c.t].b}return Math.min(BONUS_CAP,b)}
 function cardFree(id){var d=cardLoad();return d.o[id]|0}
 function cardAdd(id,n){var d=cardLoad();d.o[id]=Math.min(99,(d.o[id]|0)+(n||1));cardSave()}
-function cardTake(id){var d=cardLoad();if(cardFree(id)<1)return false;if(d.o[id]===1&&cardIsEq(id)&&CARD_BY[id])delete d.eq[CARD_BY[id].slot];d.o[id]--;if(!d.o[id])delete d.o[id];cardSave();return true}
+function cardTake(id){var d=cardLoad();if(cardFree(id)<1)return false;if(d.o[id]===1&&cardIsEq(id)&&CARD_BY[id]){delete d.eq[CARD_BY[id].slot];d.et=Date.now()}d.tk=d.tk||{};d.tk[id]=(d.tk[id]|0)+1;d.o[id]--;if(!d.o[id])delete d.o[id];cardSave();return true}
 function cardEquip(id,slot){var d=cardLoad(),c=CARD_BY[id];
   if(id&&c&&d.o[id]){if(d.eq[c.slot]===id)delete d.eq[c.slot];else d.eq[c.slot]=id}else if(slot)delete d.eq[slot];
   d.et=Date.now();cardSave()}
@@ -14573,7 +14586,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 13/11 13:57';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 14/11 03:16';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
