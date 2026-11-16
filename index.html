@@ -563,6 +563,7 @@ body{background:radial-gradient(900px 500px at 85% -10%,var(--g1),transparent 70
 @media (max-width:520px){.mg{grid-template-columns:repeat(4,1fr)}.pod{grid-template-columns:1fr 1fr 1fr}}
 .onc{font-size:12px;color:var(--good);white-space:nowrap}
 .onc.off{color:var(--muted)}
+.wkb{font-size:12px;color:var(--gold2);cursor:pointer;margin:2px 0 4px;line-height:1.5;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.wkb b{color:var(--fg,inherit);font-weight:600}.wkb:hover{text-decoration:underline}
 
 /* ป้ายประเภทเหตุการณ์ */
 .evtag{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;color:#fff;position:relative;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.2) inset;text-shadow:0 1px 2px rgba(0,0,0,.45)}
@@ -770,6 +771,7 @@ details.more{margin:6px 0}details.more>summary{cursor:pointer;font-size:13px;opa
 <div class="app" id="app">
   <header class="hud" id="hud">
     <div class="hud-line"><span id="hl">โลกแตกในอีก 365 วัน</span><span id="hr"></span><span class="onc" id="onc" style="display:none"></span></div>
+    <div class="wkb" id="wkb" style="display:none" title="กดเพื่อดูอันดับ"></div>
     <div class="hud-main">
       <div class="who"><span class="nm" id="nm">ยังไม่ได้เกิด</span><span class="rl" id="rl">ลืมตาขึ้นมาก่อน แล้วชะตาจะสุ่มให้</span></div>
       <div class="stats" id="stats"></div>
@@ -10647,6 +10649,9 @@ async function lbLoad(force){
     if(LB.id&&!LB.rows.some(r=>r.id===LB.id)){try{const me=await LB.db.doc('board/'+LB.id).get();if(me.exists)LB.rows.push(lbRow(LB.id,me.data()))}catch(e2){}}
   }catch(e){LB.err='load'}
 }
+{const _ll=lbLoad;lbLoad=async function(f){await _ll(f);try{updWkb()}catch(e){}}}
+setTimeout(()=>{try{const e=$('wkb');if(e)e.onclick=()=>{try{BSCOPE='week';if(typeof showBoard==='function')showBoard()}catch(x){}};lbLoad().then(updWkb)}catch(x){}},3500);
+setInterval(()=>{try{lbLoad().then(updWkb)}catch(x){}},200000);
 async function lbInit(){
   try{
     if(LB.unsub){try{LB.unsub()}catch(e){}LB.unsub=null}
@@ -10722,6 +10727,17 @@ function champData(){/* ประวัติแชมป์: นับรอบ
   (LB.rows||[]).forEach(r=>{if(r.bad)return;r.wh.forEach(x=>{(byW[x[0]]=byW[x[0]]||[]).push({id:r.id,a:x[1],b:r.best})})});
   Object.keys(byW).forEach(w=>{WKM.forEach(k=>{const l=byW[w].filter(x=>x.a[WI[k]]>0).sort((p,q)=>q.a[WI[k]]-p.a[WI[k]]||p.a[5]-q.a[5]||q.b-p.b||(p.id<q.id?-1:1));if(l.length<3)return;l.slice(0,10).forEach((x,i)=>{const o=m[x.id]=m[x.id]||{g:0,t:0};if(i===0)o.g++;o.t++})})});
   window.__ch={k:key,m:m};return m;
+}
+function lastWeekTop(k){const lw=wkIdx()-1;return LB.rows.filter(r=>!r.bad).map(r=>{const x=r.wh.find(z=>z[0]===lw);return x&&x[1][WI[k]]>0?{r,v:x[1][WI[k]],l:x[1][5]}:null}).filter(Boolean).sort((a,b)=>b.v-a.v||a.l-b.l||(a.r.id<b.r.id?-1:1))}
+const WKS=[['richest','👑',v=>fmt(v)],['survived','🛡',v=>v+' ครั้ง'],['te','💰',v=>fmt(v)],['gd','😇',v=>v],['ev','😈',v=>v]];
+function updWkb(){
+  const el=$('wkb');if(!el)return;
+  if(!LB.rows||!LB.rows.length){el.style.display='none';return}
+  const parts=[];
+  WKS.forEach(m=>{const l=rankWeek(m[0]);if(l.length)parts.push(m[1]+' <b>'+esc(l[0].nick)+'</b> '+esc(m[2](l[0].wv[m[0]])))});
+  const lw=[];WKS.forEach(m=>{const l=lastWeekTop(m[0]);if(l.length)lw.push(m[1]+' <b>'+esc(l[0].r.nick)+'</b> '+esc(m[2](l[0].v)))});
+  el.innerHTML=parts.length?'📆 ผู้นำสัปดาห์นี้ '+parts.slice(0,3).join(' · ')+' · เหลือ '+wkLeft():(lw.length?'🥇 ผู้ชนะสัปดาห์ที่แล้ว '+lw.slice(0,3).join(' · ')+' · สัปดาห์นี้ยังว่าง จบชีวิตแล้วแย่งตำแหน่งได้':'📆 อันดับสัปดาห์นี้ยังว่าง จบชีวิต 1 ครั้งแล้วเป็นคนแรกได้เลย · เหลือ '+wkLeft());
+  el.style.display='';
 }
 function rankChamp(){const m=champData();return LB.rows.filter(r=>!r.bad&&m[r.id]&&m[r.id].t>0).map(r=>{r.champ=m[r.id].g*1000+Math.min(999,m[r.id].t);return r}).sort((a,b)=>b.champ-a.champ||b.best-a.best)}
 function rankAll(k){if(k==='champ')return rankChamp();return LB.rows.filter(r=>!r.bad&&r[k]>0).sort((a,b)=>b[k]-a[k]||b.best-a.best)}
@@ -10807,7 +10823,8 @@ function renderBoard(){
    '<div class="kick"><span>ตารางอันดับของเซิร์ฟเวอร์</span><span>'+LB.rows.length+' ผู้เล่น</span></div>'+
    '<h2 style="font-size:24px">'+m[3]+' '+esc(m[1])+' · ท็อป 50</h2>'+
    '<div class="tabs"><button class="mini'+(BSCOPE==='week'?' on':'')+'" data-sc="week">📆 สัปดาห์นี้</button><button class="mini'+(BSCOPE==='all'?' on':'')+'" data-sc="all">🏛 ตลอดกาล</button></div>'+
-   (BSCOPE==='week'?(BSCOPE==='week'&&LB.signed?(()=>{const me=LB.rows.find(r=>r.id===LB.id),er=lsGet('doom365-wkerr','');return er?'<div class="amb" style="margin:6px 0;border-color:#b33">⚠ บันทึกอันดับรายสัปดาห์ไม่สำเร็จ: เซิร์ฟเวอร์ไม่รับข้อมูลส่วนนี้ ('+esc(er)+') · ตอนนี้ยังนับได้เฉพาะอันดับตลอดกาล · เจ้าของเกมต้องแก้กฎ Firestore</div>':(me&&me.wy!==wkIdx()?'<div class="amb" style="margin:6px 0">คุณยังไม่ได้จบชีวิตในสัปดาห์นี้ จบ 1 ชีวิต (ตายหรืออยู่รอดครบ 365 วัน) แล้วชื่อคุณจะขึ้นในอันดับสัปดาห์นี้</div>':'')})():'')+'<p class="hint" style="margin:4px 0">อันดับประจำสัปดาห์ นับใหม่ทุกเที่ยงคืนวันอาทิตย์ (เวลาไทย) · เหลืออีก '+wkLeft()+' · ฉายาท็อป 10/20 มาจากอันดับสัปดาห์นี้ อันดับเก่าไปอยู่แท็บ “ตลอดกาล”</p>':'<p class="hint" style="margin:4px 0">สถิติสะสมตลอดกาล ไม่ถูกล้าง · “แชมป์รายสัปดาห์สะสม” นับจากสัปดาห์ที่จบแล้ว (เริ่มนับตั้งแต่เปิดระบบรายสัปดาห์)</p>')+
+   (BSCOPE==='week'?(BSCOPE==='week'?(()=>{const t=WKS.map(m=>{const l=lastWeekTop(m[0]);return l.length?m[1]+' <b>'+esc(l[0].r.nick)+'</b> '+esc(m[2](l[0].v)):''}).filter(Boolean);return t.length?'<div class="amb" style="margin:6px 0">🥇 ผู้ชนะสัปดาห์ที่แล้ว: '+t.join(' · ')+'</div>':''})():'')+
+   (BSCOPE==='week'&&LB.signed?(()=>{const me=LB.rows.find(r=>r.id===LB.id),er=lsGet('doom365-wkerr','');return er?'<div class="amb" style="margin:6px 0;border-color:#b33">⚠ บันทึกอันดับรายสัปดาห์ไม่สำเร็จ: เซิร์ฟเวอร์ไม่รับข้อมูลส่วนนี้ ('+esc(er)+') · ตอนนี้ยังนับได้เฉพาะอันดับตลอดกาล · เจ้าของเกมต้องแก้กฎ Firestore</div>':(me&&me.wy!==wkIdx()?'<div class="amb" style="margin:6px 0">คุณยังไม่ได้จบชีวิตในสัปดาห์นี้ จบ 1 ชีวิต (ตายหรืออยู่รอดครบ 365 วัน) แล้วชื่อคุณจะขึ้นในอันดับสัปดาห์นี้</div>':'')})():'')+'<p class="hint" style="margin:4px 0">อันดับประจำสัปดาห์ นับใหม่ทุกเที่ยงคืนวันอาทิตย์ (เวลาไทย) · เหลืออีก '+wkLeft()+' · ฉายาท็อป 10/20 มาจากอันดับสัปดาห์นี้ อันดับเก่าไปอยู่แท็บ “ตลอดกาล”</p>':'<p class="hint" style="margin:4px 0">สถิติสะสมตลอดกาล ไม่ถูกล้าง · “แชมป์รายสัปดาห์สะสม” นับจากสัปดาห์ที่จบแล้ว (เริ่มนับตั้งแต่เปิดระบบรายสัปดาห์)</p>')+
    (k==='richest'?'<p class="hint" style="margin:2px 0 8px">'+(BSCOPE==='week'?'เงินในตัวตอนจบสูงสุดของชีวิตเดียวในสัปดาห์นี้':'เงินในตัวตอนจบสูงสุดของชีวิตเดียว รวมเงินตั้งต้นของอาชีพ ไม่ใช่ยอดรวมทุกชีวิต')+'</p>':'')+
    (k==='te'?'<p class="hint" style="margin:2px 0 8px">นับเงินที่ได้เข้ามาทุกครั้งตลอดทุกชีวิต · ไม่นับเงินตั้งต้นของอาชีพ · ไม่หักเงินที่จ่ายออก · อาชีพเศรษฐีได้เงินต่อครั้งคูณหลายเท่า ตัวเลขจึงสูง</p>':'')+
    '<div class="tabs">'+AM.map(x=>{const rl=LB.signed?rankBoard(x[0]):null;const mi=rl?rl.findIndex(r=>r.id===LB.id):-1;const rk=LB.signed?(mi>=0?' <b class="myrk">#'+(mi+1)+'</b>':' <b class="myrk no">–</b>'):'';return '<button class="mini'+(x[0]===k?' on':'')+'" data-t="'+x[0]+'">'+x[3]+' '+esc(x[1])+rk+'</button>'}).join('')+'</div>'+(LB.signed?'<p class="hint" style="margin:4px 0">ตัวเลข # ท้ายแต่ละปุ่ม = อันดับของคุณในหมวดนั้น (– = ยังไม่มีอันดับ)</p>':'')+
@@ -14585,7 +14602,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 17/11 00:11';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 17/11 00:28';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
