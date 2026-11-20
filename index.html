@@ -10744,7 +10744,8 @@ function rankAll(k){if(k==='champ')return rankChamp();return LB.rows.filter(r=>!
 function rankWeek(k){return LB.rows.filter(r=>!r.bad&&r.wv&&r.wv[k]>0).sort((a,b)=>b.wv[k]-a.wv[k]||a.wa[5]-b.wa[5]||b.best-a.best||(a.id<b.id?-1:1))}
 function rankList(k){return WKM.includes(k)?rankWeek(k):rankAll(k)}/* ฉายา/ท็อป: หมวดที่มีรายสัปดาห์ใช้ของสัปดาห์นี้ */
 let BSCOPE='week';
-const isWk=k=>BSCOPE==='week'&&WKM.includes(k);
+let WKHAS={};function wkRefresh(){WKM.forEach(k=>{WKHAS[k]=LB.rows.some(r=>!r.bad&&r.wv&&r.wv[k]>0)})}/* ถ้าสัปดาห์นี้หมวดนั้นยังไม่มีใครบันทึก ให้โชว์อันดับตลอดกาลไปก่อน แทนหน้าว่าง */
+const isWk=k=>BSCOPE==='week'&&WKM.includes(k)&&!!WKHAS[k];
 function rankBoard(k){return isWk(k)?rankWeek(k):rankAll(k)}
 function RV(r,k){return isWk(k)?r.wv[k]:r[k]}
 const TOPN=20,TSHORT={richest:'เศรษฐี',survived:'ผู้รอด 365 วัน',wk:'ท้าทายสัปดาห์',funny:'ตายฮา',gd:'คนดี',ev:'คนชั่ว',ot:'ออนไลน์นาน',te:'เงินหามาได้',dc:'ชีวิตประจำวัน'};
@@ -10803,7 +10804,7 @@ function adBoardCheck(){
 let boardQ='';
 function wkLeft(){const ms=Math.max(0,wkEndMs()-Date.now()),d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);return d>0?d+' วัน '+h+' ชม.':h>0?h+' ชม. '+m+' นาที':m+' นาที'}
 function renderBoard(){
-  const AM=BSCOPE==='week'?activeMetrics().filter(x=>WKM.includes(x[0])):activeMetrics();const m=AM.find(x=>x[0]===boardTab)||AM[0],k=m[0];
+  wkRefresh();const AM=BSCOPE==='week'?activeMetrics().filter(x=>WKM.includes(x[0])):activeMetrics();const m=AM.find(x=>x[0]===boardTab)||AM[0],k=m[0];
   const full=rankBoard(k);
   const top=full.slice(0,50);
   const myI=full.findIndex(r=>r.id===LB.id),meRow=LB.rows.find(r=>r.id===LB.id);
@@ -10824,6 +10825,8 @@ function renderBoard(){
    '<h2 style="font-size:24px">'+m[3]+' '+esc(m[1])+' · ท็อป 50</h2>'+
    '<div class="tabs"><button class="mini'+(BSCOPE==='week'?' on':'')+'" data-sc="week">📆 สัปดาห์นี้</button><button class="mini'+(BSCOPE==='all'?' on':'')+'" data-sc="all">🏛 ตลอดกาล</button></div>'+
    (BSCOPE==='week'?(BSCOPE==='week'?(()=>{const t=WKS.map(m=>{const l=lastWeekTop(m[0]);return l.length?m[1]+' <b>'+esc(l[0].r.nick)+'</b> '+esc(m[2](l[0].v)):''}).filter(Boolean);return t.length?'<div class="amb" style="margin:6px 0">🥇 ผู้ชนะสัปดาห์ที่แล้ว: '+t.join(' · ')+'</div>':''})():'')+
+   (BSCOPE==='week'&&WKM.includes(k)&&!WKHAS[k]?'<div class="amb" style="margin:6px 0">สัปดาห์นี้ยังไม่มีใครบันทึกในหมวดนี้ (ระบบรายสัปดาห์เพิ่งเริ่ม และนับตอนจบชีวิตเท่านั้น) · ตอนนี้แสดงอันดับตลอดกาลไปก่อน และจะเปลี่ยนเป็นอันดับสัปดาห์เมื่อมีคนจบชีวิต</div>':'')+
+   (BSCOPE==='week'?'<p class="hint" style="margin:2px 0">บันทึกอันดับสัปดาห์นี้แล้ว '+LB.rows.filter(r=>!r.bad&&r.wy===wkIdx()&&r.wa[5]>0).length+' คน จากผู้เล่นทั้งหมด '+LB.rows.length+' คน</p>':'')+
    (BSCOPE==='week'&&LB.signed?(()=>{const me=LB.rows.find(r=>r.id===LB.id),er=lsGet('doom365-wkerr','');return er?'<div class="amb" style="margin:6px 0;border-color:#b33">⚠ บันทึกอันดับรายสัปดาห์ไม่สำเร็จ: เซิร์ฟเวอร์ไม่รับข้อมูลส่วนนี้ ('+esc(er)+') · ตอนนี้ยังนับได้เฉพาะอันดับตลอดกาล · เจ้าของเกมต้องแก้กฎ Firestore</div>':(me&&me.wy!==wkIdx()?'<div class="amb" style="margin:6px 0">คุณยังไม่ได้จบชีวิตในสัปดาห์นี้ จบ 1 ชีวิต (ตายหรืออยู่รอดครบ 365 วัน) แล้วชื่อคุณจะขึ้นในอันดับสัปดาห์นี้</div>':'')})():'')+'<p class="hint" style="margin:4px 0">อันดับประจำสัปดาห์ นับใหม่ทุกเที่ยงคืนวันอาทิตย์ (เวลาไทย) · เหลืออีก '+wkLeft()+' · ฉายาท็อป 10/20 มาจากอันดับสัปดาห์นี้ อันดับเก่าไปอยู่แท็บ “ตลอดกาล”</p>':'<p class="hint" style="margin:4px 0">สถิติสะสมตลอดกาล ไม่ถูกล้าง · “แชมป์รายสัปดาห์สะสม” นับจากสัปดาห์ที่จบแล้ว (เริ่มนับตั้งแต่เปิดระบบรายสัปดาห์)</p>')+
    (k==='richest'?'<p class="hint" style="margin:2px 0 8px">'+(BSCOPE==='week'?'เงินในตัวตอนจบสูงสุดของชีวิตเดียวในสัปดาห์นี้':'เงินในตัวตอนจบสูงสุดของชีวิตเดียว รวมเงินตั้งต้นของอาชีพ ไม่ใช่ยอดรวมทุกชีวิต')+'</p>':'')+
    (k==='te'?'<p class="hint" style="margin:2px 0 8px">นับเงินที่ได้เข้ามาทุกครั้งตลอดทุกชีวิต · ไม่นับเงินตั้งต้นของอาชีพ · ไม่หักเงินที่จ่ายออก · อาชีพเศรษฐีได้เงินต่อครั้งคูณหลายเท่า ตัวเลขจึงสูง</p>':'')+
@@ -11473,7 +11476,8 @@ async function ovBoard(tab){
   if(!ov){ov=document.createElement('div');ov.className='ov';ov.id='ovboard';document.body.appendChild(ov);ov.addEventListener('click',e=>{if(e.target===ov)ov.remove()})}
   const draw=()=>{
     const AM=activeMetrics().filter(x=>x[0]!=='champ');const m=AM.find(x=>x[0]===ovTab)||AM[0],k=m[0];
-    const full=rankList(k),top=full.slice(0,TOPN);
+    wkRefresh();const wkOn=WKM.includes(k)&&WKHAS[k];
+    const full=wkOn?rankWeek(k):rankAll(k),top=full.slice(0,TOPN);
     const me=LB.rows.find(r=>r.id===LB.id),myI=full.findIndex(r=>r.id===LB.id);
     const tag=r=>topTagsHtml(r.id,1);
     const tier=i=>i<3?' t'+(i+1):' t4';
@@ -11481,7 +11485,7 @@ async function ovBoard(tab){
      (LB.rows.length?'':'<p class="hint">'+(LB.state==='load'||LB.state==='loading'?'กำลังโหลดอันดับ…':'ยังไม่มีข้อมูลอันดับ (ต้องต่ออินเทอร์เน็ตและมีผู้เล่นที่ล็อกอิน Google)')+'</p>')+
      (me&&LB.signed?'<div class="amb" style="margin:6px 0">คุณ: <b>'+esc(me.nick)+'</b> · รอดครบ 365 วัน <b>'+me.survived+'</b> ครั้ง จาก '+me.lives+' ชีวิต'+(myI>=0?' · อันดับ <b>'+(myI+1)+'</b> ในหมวดนี้':' · ยังไม่มีสถิติในหมวดนี้')+'</div>':'')+
      '<div class="tabs">'+AM.map(x=>'<button class="mini'+(x[0]===k?' on':'')+'" data-ot="'+x[0]+'">'+x[3]+' '+esc(x[1])+'</button>').join('')+'</div>'+
-     '<ol class="rank rk2">'+(top.length?top.map((r,i)=>'<li class="'+(r.id===LB.id?'me':'')+tier(i)+'"><b>'+(i+1)+'</b><span>'+esc(r.nick)+tag(r)+'<small>อาชีพ: '+esc(WKM.includes(k)?r.role:(r.rr[k]||r.role))+'</small><small class="sv2">🛡 รอดครบ 365 วัน <b>'+r.survived+'</b> ครั้ง จากเล่น '+r.lives+' ชีวิต</small></span><em>'+esc(m[2](WKM.includes(k)?r.wv[k]:r[k]))+'</em></li>').join(''):'<li style="grid-template-columns:1fr">ยังไม่มีใครในหมวดนี้</li>')+'</ol>'+
+     '<ol class="rank rk2">'+(top.length?top.map((r,i)=>'<li class="'+(r.id===LB.id?'me':'')+tier(i)+'"><b>'+(i+1)+'</b><span>'+esc(r.nick)+tag(r)+'<small>อาชีพ: '+esc(wkOn?r.role:(r.rr[k]||r.role))+'</small><small class="sv2">🛡 รอดครบ 365 วัน <b>'+r.survived+'</b> ครั้ง จากเล่น '+r.lives+' ชีวิต</small></span><em>'+esc(m[2](wkOn?r.wv[k]:r[k]))+'</em></li>').join(''):'<li style="grid-template-columns:1fr">ยังไม่มีใครในหมวดนี้</li>')+'</ol>'+
      '<div class="row" style="margin-top:8px"><button class="btn" id="ovbok">กลับไปเล่นต่อ</button></div></div>';
     ov.querySelector('#ovbx').onclick=ov.querySelector('#ovbok').onclick=()=>ov.remove();
     ov.querySelectorAll('[data-ot]').forEach(b=>b.onclick=()=>{ovTab=b.dataset.ot;draw()});
@@ -14602,7 +14606,7 @@ function showLetter(){
   hostIdle('หัวหน้าห้องกำลังเขียนจดหมายฉบับสุดท้าย');
   setTimeout(()=>{try{ta.focus({preventScroll:true})}catch(e){}},50);
 }
-(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 17/11 00:28';document.body.appendChild(e)}catch(x){}})();
+(function(){try{const e=document.createElement('div');e.id='ver';e.textContent='เวอร์ชัน 20/11 04:16';document.body.appendChild(e)}catch(x){}})();
 /* ===== เสียงเพิ่ม: เพลงใหม่ตามอารมณ์ · เสียงตอบสนองค่าที่เปลี่ยน · เสียงปุ่ม ===== */
 Object.assign(MUSIC,{
  lofi:{ms:400,step(i,n){const r=261.6,ch=[[0,4,7,11],[-3,0,4,7],[2,5,9,12],[-5,-1,2,5]][((i/8)|0)%4];
